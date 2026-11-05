@@ -48,3 +48,13 @@ Goal: establish the actual limits of GitHub identity evidence and implement the 
 Plan: (1) inspect actual installations/reviews/rules/checks and official API capabilities; (2) add a collector adapter with complete pagination, immutable context binding, current native review/dismissal/thread checks, authenticated expiring/revocable issuer evidence and trusted Builder provenance; (3) run adversarial offline cases and separate real read-only observations from simulations; (4) document credential custody and an isolated canary matrix, update Result and Draft PR #5.
 Acceptance: missing or unverifiable provenance never yields PASS; head/base/scope changes invalidate evidence; L0 only exempts independent review and cannot bypass other gates. No registry, secrets or policy may come from candidate code. No real canary writes are authorized by this request.
 Verification: existing 26 tests first, then synthetic collector/signature failures and positive cases; inspect resulting CI separately. Live independent review remains NOT RUN without authenticated identities and isolated custody.
+
+## Revision 5 — Canary Authorization Package
+2026-11-05: Human authorizes read-only discovery, design and documentation only. This is NOT authorization to create repositories/Apps/keys/secrets, edit protections, run privileged workflows, merge or deploy.
+Goal/WHY: turn native App Review plus authenticated context attestation into a minimal, individually approvable Canary package independent of Codex Receipt capability.
+Scope: evaluate existing repositories; specify exact proposed resources, permissions, custody, protected Actions boundaries, test matrix, rollback and cost caps in docs/development/CANARY_AUTHORIZATION.md. Preserve all earlier Plan history.
+Risk: L3 design; resource/configuration execution deferred to explicit itemized approval.
+Implementation: commit this Plan revision before writing the package; record current API facts versus assumptions/NOT RUN; prepare staged authorization IDs and update RESULT. Commit/push documentation to Draft PR #5 only.
+Acceptance: no claimed isolation without technical proof, no candidate-controlled trusted policy/code/credentials, original APPROVED gate retained, L0 review-only exemption, first authorization batch contains no secret creation or privileged execution.
+Verification: read-only API evidence; documentation consistency/diff check and Git Plan ordering. No production behavior or source changes; existing 55 offline tests were verified in preceding assessment, not real integration evidence.
+Human decisions pending: resource names/visibility, named custodians, App permissions, credentials, safeguards, execution/budget. Every configuration item requires separate approval; no blanket activation.
