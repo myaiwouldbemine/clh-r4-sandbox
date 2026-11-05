@@ -66,7 +66,7 @@ myaiwouldbemine-Copy-Learning-Hub/
 │   │   ├── machine-learning/
 │   │   ├── deep-learning/
 │   │   ├── computer-vision/
-│   │   └── nlp/
+│   │   └── Natural-Language-Processing/
 │   └── assets/
 ├── AGENTS.md
 ├── GOVERNANCE.md

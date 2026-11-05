@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -42,6 +40,9 @@ jobs:
 
   deploy:
     name: deploy
+    permissions:
+      pages: write
+      id-token: write
     if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
