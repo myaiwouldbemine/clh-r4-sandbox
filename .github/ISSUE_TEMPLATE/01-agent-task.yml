@@ -1,0 +1,100 @@
+name: "Agent Task｜自動化開發任務"
+description: "以 WHAT / WHY / Acceptance Criteria / Boundary 提交 Claude Code 與 Codex 可執行的工作需求。"
+title: "[CLH-XXX] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Issue-First · Agent-Driven · Policy-Gated
+        請描述**目標與邊界**，無需自行設計 Branch、PR 或 Merge 步驟。
+        Agent 可在符合 `GOVERNANCE.md`、`AGENTS.md` 與必要 GitHub Checks 的情況下執行；**表單不等於自動授權高風險變更**。
+
+  - type: textarea
+    id: what
+    attributes:
+      label: "WHAT｜要做什麼"
+      description: "描述期待交付的成果、功能或教材變更；避免只寫實作手段。"
+      placeholder: |
+        例：新增 Operating Systems 的 Process Scheduling 教學首頁，含導覽與 NachOS Code Walkthrough 入口。
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: "WHY｜為何要做"
+      description: "目前存在什麼問題？完成後能改善什麼？"
+      placeholder: "例：目前學習網站缺乏可由教材快速進入程式碼驗證的入口。"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Acceptance Criteria｜驗收標準"
+      description: "寫出 Agent、CI 或審查者可以客觀判斷的完成條件；請以核取清單表示。"
+      placeholder: |
+        - [ ] 新增頁面及導覽，連結可以開啟
+        - [ ] 重要技術敘述有來源與 VERIFIED/ILLUSTRATIVE 標註
+        - [ ] mkdocs build --strict PASS
+        - [ ] PR 提供 WHAT / WHY / TEST / Evidence
+    validations:
+      required: true
+
+  - type: textarea
+    id: boundary
+    attributes:
+      label: "Boundary｜工作邊界與禁止事項"
+      description: "明確列出 In Scope、Out of Scope、不得更動的檔案/資料、不可繞過的限制。"
+      placeholder: |
+        In scope:
+        - docs/subjects/operating-systems/ 相關頁面
+        Out of scope:
+        - 不修改 NachOS 原始碼
+        - 不重構其他學科頁面
+        Must not:
+        - 不刪除既有 Evidence
+        - 不變更 Repository Settings / Branch Protection
+    validations:
+      required: true
+
+  - type: dropdown
+    id: risk
+    attributes:
+      label: "Risk Level｜風險分類（初步）"
+      description: "僅作初步分類；Agent 必須自行重評風險，不能以此欄單獨決定是否 Merge。"
+      options:
+        - "Low｜一般教材或小範圍可回復修改"
+        - "Medium｜影響多頁、配置或既有工作流程"
+        - "High｜大量刪改、權限/安全、重要證據、大型重構或不可逆操作"
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: "References / Evidence｜參考資料與既有證據"
+      description: "相關文件、Issue、課程講義、程式路徑、可重現步驟；沒有可填『無』。"
+      placeholder: "例：docs/subjects/operating-systems/index.md、既有教材、相關 Issue URL"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: execution
+    attributes:
+      label: "Execution Preference｜執行偏好"
+      description: "工作可以由 Claude Code 或 Codex 擔任實作或審查；本欄不保證自動指派成功。"
+      options:
+        - "Either Agent｜由可用 Agent 決定"
+        - "Claude Code preferred｜偏好 Claude Code"
+        - "Codex preferred｜偏好 Codex"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: acknowledgement
+    attributes:
+      label: "Governance Acknowledgement｜治理確認"
+      options:
+        - label: "我了解 Agent 必須通過 CI / Review / Policy Gate，且高風險變更需要個別核准。"
+          required: true

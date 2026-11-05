@@ -1,0 +1,2 @@
+# Show the structured Agent Task form first. Repository maintainers may still create blank issues.
+blank_issues_enabled: false
