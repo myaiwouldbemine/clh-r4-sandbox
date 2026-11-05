@@ -38,3 +38,6 @@ Local adversarial policy tests: risk escalation, missing records, plan ordering,
 Next implementation: add fail-closed lifecycle evaluator/tests; test a native ruleset against isolated canary ref using live GitHub API, retaining production disablement; investigate native simplification and credential constraints. Document actual results without claiming trusted services exist. Independent agent work is authorized by the requested independent review workflow, but no independent reviewer is presumed available.
 
 PR #1 dependency step: its copy precedes only the new deployment-trigger fix, not historical bootstrap; commits 0b180ff then f4a429c. Both branch histories are preserved by merge.
+
+## Revision 3 — Independent Review Identity Gate
+2026-11-05: user authorizes isolated implementation/tests only. Build versioned attestation schema and fail-closed gate using trusted collector inputs and pinned identity registry; test both peer directions, impersonation, missing/stale review and blocking reviews/threads. Prefer native GitHub reviews with authenticated App provenance; no actual App install, credentials, ruleset edits, merge, deployment or production activation. Produce design, missing integration list and actual CI evidence. Gate is not an authentication service; simulated identities must never be described as provisioned.
