@@ -1,0 +1,52 @@
+site_name: myaiwouldbemine Copy Learning Hub
+site_description: Multi-Disciplinary Code-First Learning Platform
+site_url: https://myaiwouldbemine.github.io/myaiwouldbemine-Copy-Learning-Hub/
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: 切換至深色模式
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: 切換至淺色模式
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - tables
+  - attr_list
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_javascript:
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Operating Systems: subjects/operating-systems/index.md
+  - Machine Learning: subjects/machine-learning/index.md
+  - Deep Learning: subjects/deep-learning/index.md
+  - Computer Vision: subjects/computer-vision/index.md
+  - Natural Language Processing: subjects/Natural-Language-Processing/index.md
