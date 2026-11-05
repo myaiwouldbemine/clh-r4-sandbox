@@ -66,3 +66,11 @@ Real signed independent review, isolated custody/enrollment, broker capability, 
 Next minimum Human input: non-secret read-only existing App installation/actor/permission/custody details. Do not provision Apps or secrets merely to complete discovery; present exact per-App sandbox permissions/custody request if discovery establishes that provisioning is necessary. PLAN and RESULT preserve history; Issue #4 stays open.
 
 Revision 4 CI follow-up: implementation a5b97dedc27ef336ae5454005105293a12828a2c governance-tests SUCCESS, https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/actions/runs/42033329902/job/127265008696 . PR API confirms Draft=true, open, auto_merge=null. This is test CI only. No real independent Reviewer or production eligibility is inferred.
+
+## Revision 5 — Canary Authorization Package
+Status: READY FOR AUTHORIZATION of resource-only batch; runtime remains BLOCKED / NOT RUN. Pre-document Plan commit 2147ad0. Human authorized design/documentation only, not any L3 operation.
+Delivered docs/development/CANARY_AUTHORIZATION.md: exact proposed public sandbox/control names, reuse assessment, App permission matrix, custody/Actions boundaries, individual authorization IDs, positive/negative tests, cost caps and rollback.
+Read-only facts: private governed-env exists and is readable, but main effective-rules API returns 403 requiring Pro/public visibility; protected reuse is not established. Existing learning Repo and PR #7 are historical evidence only. PR #5 remains Draft at discovery head ddf064c5 with auto_merge=null.
+Important unresolved prerequisites: named independent Control approver/custodians, feature availability, absence of Human admin credentials in Agent environments, actual App/actor enrollment and provider-side enforceable cost caps. Environment names and distinct keys alone do not prove isolation.
+First requested batch R1/R2/C1/C2 creates two synthetic-only public Repos with Actions disabled, USD 0 incremental paid spend. No App/credential/model/protection/runtime authorization is implied.
+Verification: document diff/record ordering checks; new integration tests NOT RUN. Existing 55 offline tests from preceding assessment remain simulated, not App or isolation verification. No source/workflow/settings changes, no merge/deployment, no new Secrets/keys/App provisioning.
