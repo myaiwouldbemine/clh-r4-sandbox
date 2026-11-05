@@ -5,9 +5,22 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Issue-First · Agent-Driven · Policy-Gated
-        請描述**目標與邊界**，無需自行設計 Branch、PR 或 Merge 步驟。
-        Agent 可在符合 `GOVERNANCE.md`、`AGENTS.md` 與必要 GitHub Checks 的情況下執行；**表單不等於自動授權高風險變更**。
+        ## Human Defines Requirements; Agents Execute; Trusted Gates Enforce.
+        Human Owner 只需描述需求、驗收標準與工作邊界，無需預先判定 L0–L3 或指定 Agent。
+        Claude Code 與 Codex 為對等 Agent，負責依適用治理要求進行風險分類、Plan、Early Draft PR、Implementation、Review，以及符合授權條件的 Merge。
+
+        ### LIGHT Governance v1.0
+        - Default Intake Risk 為 L0；Agent 必須依實際修改內容與影響重新分類，並在範圍改變時重新評估。
+        - L0 不強制正式 Plan、Records 或 Independent Review。
+        - L1 需要適用的驗證與可信 Independent Review。
+        - L2 必須有 Formal Plan 與 Human Plan Approval。
+        - L3 預設禁止 Auto-Merge；例外操作須具體 Human Authorization。
+
+        - Draft PR 可以提早建立，但 Draft 不代表實作或 Merge 授權。
+        - Auto-Merge 只有在可信 Policy Gate 通過且正式啟用後才允許；目前正式 Guarded Auto-Merge 尚未啟用。
+
+        **Issue Form 僅用於需求收集，不構成 Merge 或高風險操作授權。**
+        Agent 必須遵守適用的 `GOVERNANCE.md`、`AGENTS.md` 與可信 Gates；不得以表單內容取代必要的核准、驗證或審查。
 
   - type: textarea
     id: what
@@ -58,43 +71,11 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: risk
-    attributes:
-      label: "Risk Level｜風險分類（初步）"
-      description: "僅作初步分類；Agent 必須自行重評風險，不能以此欄單獨決定是否 Merge。"
-      options:
-        - "Low｜一般教材或小範圍可回復修改"
-        - "Medium｜影響多頁、配置或既有工作流程"
-        - "High｜大量刪改、權限/安全、重要證據、大型重構或不可逆操作"
-    validations:
-      required: true
-
   - type: textarea
     id: references
     attributes:
       label: "References / Evidence｜參考資料與既有證據"
-      description: "相關文件、Issue、課程講義、程式路徑、可重現步驟；沒有可填『無』。"
+      description: "相關文件、Issue、課程講義、程式路徑、可重現步驟；選填，沒有可留白。"
       placeholder: "例：docs/subjects/operating-systems/index.md、既有教材、相關 Issue URL"
     validations:
       required: false
-
-  - type: dropdown
-    id: execution
-    attributes:
-      label: "Execution Preference｜執行偏好"
-      description: "工作可以由 Claude Code 或 Codex 擔任實作或審查；本欄不保證自動指派成功。"
-      options:
-        - "Either Agent｜由可用 Agent 決定"
-        - "Claude Code preferred｜偏好 Claude Code"
-        - "Codex preferred｜偏好 Codex"
-    validations:
-      required: true
-
-  - type: checkboxes
-    id: acknowledgement
-    attributes:
-      label: "Governance Acknowledgement｜治理確認"
-      options:
-        - label: "我了解 Agent 必須通過 CI / Review / Policy Gate，且高風險變更需要個別核准。"
-          required: true
