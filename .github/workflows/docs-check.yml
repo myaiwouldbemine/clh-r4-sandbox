@@ -2,7 +2,7 @@ name: Docs Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feat/CLH-001-project-bootstrap]
   workflow_dispatch:
 
 permissions:
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5

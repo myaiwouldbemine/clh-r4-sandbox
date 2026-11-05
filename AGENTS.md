@@ -1,22 +1,15 @@
-# Shared Agent Instructions — LIGHT Governance v1.0
+# Agent Instructions — Minimal Learning Hub
 
-- Read GOVERNANCE.md and the Issue boundary before work. Codex and Claude Code are equal peers; assign Builder and Independent Reviewer per task.
-- Human defines goals/WHY/boundaries and major decisions, not routine PR review/merge.
-- Default L0; reassess actual risk. Never treat labels, PR text, self-review or a shared user account as authenticated independent approval.
-- L0 needs no mandatory plan or independent review. L1+ requires independent review; unavailable/pending reviewer blocks. L2 requires Human-approved plan; L3 blocks auto-merge unless specifically authorized.
-- Every formal Plan belongs in records/ISSUE-<number>/PLAN.md. L2/L3 require one. Include Goal/WHY/Scope/Boundary, Risk Level, Implementation Plan, Acceptance Criteria, Verification Strategy, Human Decisions/Authorization and Revision History.
-- Commit the Plan on a traceable topic branch BEFORE implementation. Link Issue and PR. Never backfill a plan as if it existed earlier; preserve revisions and reauthorize scope expansion.
-- After planned implementation, write RESULT.md beside PLAN.md: actual results, verification evidence, PR/commits, deviations, unfinished items. Pending means pending, never PASS/CLOSED.
-- Use Issues/PRs/Commits/Checks as execution evidence. No mandatory ledger or step-by-step log.
-- Keep build/content/provenance/visual/deployment checks distinct; report NOT RUN honestly.
-- No direct main push, force push, rule bypass, or unauthorized deployment. Auto-merge is disabled until the activation package receives one Human approval and runtime verification succeeds.
-- Self-review does not count as independent review. Record the actual agent identity and do not impersonate another reviewer.
-- For closure, enforce all applicable gates, required Plan/Result records, risk/scope/authorization and resolved blockers. Deployment is separately authorized; do not close unfinished work.
-
-## Draft-first lifecycle
-- Human Issue input: WHAT / WHY / DONE; References optional. Builder owns investigation, risk classification and necessary planning.
-- Open Draft PR early for CI, collaboration, records and progress. Commit formal Plan before implementation; L2/L3 must have necessary Plan authorization first. Draft creation grants no implementation authority.
-- Run verification continuously. Mark Ready only after implementation, applicable verification and required Result record are complete.
-- Drafts, pending/incomplete CI, unresolved blocking review and missing authorization cannot merge. After Ready, applicable independent review and all Policy Gates must pass.
-- Material scope/risk changes after Ready require plan/review/authorization reevaluation; return to Draft when appropriate. Invalidate stale head/base evidence.
-- L0 without formal Plan requires no new records or independent review. Principle: Draft Early, Verify Continuously, Review When Ready, Merge Only When Eligible.
+- Read GOVERNANCE.md and the Issue boundary. Human myaiwouldbemine is the sole administrator; Codex and Claude Code are peers.
+- Use Issue → Draft PR → conditional Plan → Implementation → conditional Result → Review → authorized Merge. Open Draft early; Draft grants no implementation or merge authority.
+- Classify actual impact: L0 nonsemantic typo/formatting, L1 substantive content/code, L2 major architecture/provenance, L3 security/governance/permissions/deployment/irreversible operations. Unknown risk blocks clarification-dependent work.
+- L0 needs no mandatory Plan/Result or independent Review. L1 needs opposite-Agent cross-review. L2/L3 need pre-implementation Plan and Human approval; L3 also needs specific action/scope authorization.
+- Formal Plans go in records/ISSUE-<number>/PLAN.md and must be committed before their implementation; preserve history. If a formal Plan exists, write RESULT.md after implementation. Do not fabricate historical ordering.
+- Record actual Reviewer, full reviewed commit, relevant base/scope, findings/verdict and evidence in the PR. Self-review is not cross-review. Another login/shared Human token alone proves no independence. If opposite-Agent execution is unconfirmed, review remains pending.
+- Distinguish Bot Summary, native GitHub Review and Human Approval. No mandatory native APPROVED conversion, App/Registry/Attestation/Control Plane/second Human. Do not claim automated trusted identity verification.
+- Run applicable tests/CI and strict MkDocs for site changes. Report build/content/provenance/visual/deployment separately. Missing, failed, skipped, pending, stale evidence or unresolved blockers prevents Merge.
+- New head requires Review reconfirmation; base/scope/risk changes require reassessment and renewed authorization where necessary.
+- Ready requires completed implementation, applicable verification and conditional Result; follow explicit PR status boundaries. PR #5 remains Draft in this task.
+- Merge only with explicit operation authority, non-Draft and all applicable conditions met. L1 has no mandatory per-PR Human content approval. No direct main push, force push, bypass, unauthorized Merge/deployment or Auto-Merge activation.
+- Roll back using an authorized revert PR and applicable checks. Human handles L2 Plan/L3 action approval and emergency stop.
+- Archived platform designs/tests and historical records are evidence, not active instructions. C3-C5 and later platform work are stopped. Do not provision new governance infrastructure.

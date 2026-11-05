@@ -1,3 +1,5 @@
+> **Current policy: Minimal Governance (Revision 6).** Earlier platform/Canary proposals and test results are ARCHIVED / NOT ACTIVE historical evidence. No earlier entry grants new platform/settings authority.
+
 # Results — Issue #4
 
 Status: PARTIAL / AWAITING ACTIVATION-DESIGN APPROVAL; Issue remains OPEN.
@@ -74,3 +76,30 @@ Read-only facts: private governed-env exists and is readable, but main effective
 Important unresolved prerequisites: named independent Control approver/custodians, feature availability, absence of Human admin credentials in Agent environments, actual App/actor enrollment and provider-side enforceable cost caps. Environment names and distinct keys alone do not prove isolation.
 First requested batch R1/R2/C1/C2 creates two synthetic-only public Repos with Actions disabled, USD 0 incremental paid spend. No App/credential/model/protection/runtime authorization is implied.
 Verification: document diff/record ordering checks; new integration tests NOT RUN. Existing 55 offline tests from preceding assessment remain simulated, not App or isolation verification. No source/workflow/settings changes, no merge/deployment, no new Secrets/keys/App provisioning.
+
+## Revision 6 — Minimal Learning Hub Governance (ACTIVE)
+Status: implementation READY FOR REVIEW; opposite-Agent Review NOT RUN / pending. PR #5 must remain Draft; Merge/deployment/Auto-Merge NOT AUTHORIZED. Earlier platform readiness/activation statements are archived, not this revision's requirements.
+Pre-implementation Plan commit: 32158be. Human accepted simplification and authorized documents/scripts/tests on existing PR branch only.
+
+### Results
+Replaced GOVERNANCE.md, AGENTS.md and PR template with minimal conditional records, actual-impact L0-L3 policy, traceable Codex/Claude cross-review, CI/blocker handling, separate merge authority and basic revert PR rollback. Native GitHub Review, Bot Summary and Human Approval remain distinct. No automatic trusted identity claim or required native APPROVED/attestation conversion.
+Moved review_identity, trusted_review_collector, attestation schema and both dedicated platform test modules unchanged into archive/governance-platform/scripts, outside normal scripts test discovery. Archived three design documents and added historical record status; preserved all prior Plan/Result text, Canary JSON bytes and GitHub evidence.
+Retained small local lifecycle and record-order helpers. Lifecycle requires traceable opposite-Agent/full-head review for L1+, L2 Plan approval, L3 specific action approval and explicit Merge operation authority; it has no network or authentication/merge capability. Input assertions still require evidence assessment.
+Docs Check now includes PR #5 bootstrap base as well as main, contents:read and nonpersistent checkout credentials. Governance Tests remains read-only. Pages workflow unchanged: manual dispatch only, deployment separate; no workflow invoked manually.
+
+### Evidence
+- python3 -m unittest discover -s scripts -p 'test_*.py': 23 tests PASS (13 lifecycle, 10 records). Historical platform tests are not retained as active CI requirements.
+- Existing project .venv Python -m mkdocs build --strict: PASS. Build is not content/source/visual/deployment or independent Review acceptance.
+- git diff --check: PASS. Git record-order check run after Result commit.
+- Active scripts/.github have no imports or execution references to archived identity/collector/attestation modules. No new privileged trigger, merge call or automatic deployment.
+- Real final-head GitHub CI: PENDING until pushed; tracked separately from local tests.
+
+### L0-L3 verification
+L0 no formal Plan => no mandatory Result/reviewer, applicable checks/authorization still apply. Voluntary formal Plan retains Result.
+L1 both cross-Agent directions pass checklist with current referenced head; unavailable/self/unknown reviewer or changed head blocks.
+L2 missing records/Plan approval blocks; Human Plan approval cannot replace Agent review.
+L3 additionally requires specific action approval; Plan approval alone blocks.
+All levels: Draft, missing merge-operation authority, failed/pending/skipped/cancelled CI, unresolved/unknown blockers, stale base/scope evidence or unassessed scope block. These are local policy helper tests, not automated enforcement of Agent identity.
+
+### Deviations / Unfinished
+No new infrastructure, settings, App, keys, secrets or second Human required. No existing Canary resources/PRs/settings altered. No independent Reviewer was available/claimed for this implementation; next step is opposite-Agent Review at current head, not activation research. PR #1 dependency/base and any future Merge permission remain separate. Issue #4 remains open; READY FOR REVIEW means implementation can be reviewed, not Ready status, merge eligibility or production readiness.

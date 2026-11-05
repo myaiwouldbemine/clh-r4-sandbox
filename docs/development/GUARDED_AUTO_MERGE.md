@@ -1,3 +1,5 @@
+> **ARCHIVED / NOT ACTIVE.** Superseded by Minimal Governance. C3–C5 and later platform implementation are stopped. The original proposal/evidence below is preserved, not current policy or authorization. Prototype code/tests formerly under scripts/ are retained under archive/governance-platform/scripts/.
+
 # Guarded Auto-Merge — one-time activation approval package
 
 Status: PROPOSED / NOT ENABLED. Issue #4. This is L3 control-plane work.

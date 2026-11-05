@@ -1,3 +1,5 @@
+> **ARCHIVED / NOT ACTIVE.** Superseded by Minimal Governance. C3–C5 and later platform implementation are stopped. The original proposal/evidence below is preserved, not current policy or authorization. Prototype code/tests formerly under scripts/ are retained under archive/governance-platform/scripts/.
+
 # Issue #4 — Canary Authorization Package v1
 Date: 2026-11-05 Asia/Taipei. Proposal only; no item below is authorized by this document.
 Issue: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/4

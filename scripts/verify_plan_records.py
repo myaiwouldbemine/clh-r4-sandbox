@@ -1,4 +1,4 @@
-"""Read-only Git record verifier. Called by a trusted classifier, never PR assertions.
+"""Read-only Git record verifier. Local assistance only; caller must assess risk and whether a formal Plan exists.
 Usage: python scripts/verify_plan_records.py BASE HEAD ISSUE RISK [--formal-plan]
 This is a local verifier, not a production authorization/merge service.
 """
@@ -14,6 +14,8 @@ def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip()
 
 def verify(base, head, issue, risk, formal_plan=False):
+    if type(risk) is not int or risk not in range(4):
+        raise ValueError("unknown risk")
     # Validate revisions as commit objects before using them in Git expressions.
     base = git("rev-parse", "--verify", base + "^{commit}")
     head = git("rev-parse", "--verify", head + "^{commit}")

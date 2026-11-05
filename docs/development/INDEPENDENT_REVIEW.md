@@ -1,3 +1,5 @@
+> **ARCHIVED / NOT ACTIVE.** Superseded by Minimal Governance. C3–C5 and later platform implementation are stopped. The original proposal/evidence below is preserved, not current policy or authorization. Prototype code/tests formerly under scripts/ are retained under archive/governance-platform/scripts/.
+
 # Independent Review Identity Gate
 
 Status: isolated implementation; production integration BLOCKED. Codex/Claude roles are interchangeable. L0 exempts independent review only, never other gates or unresolved blockers.

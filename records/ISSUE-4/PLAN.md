@@ -1,3 +1,5 @@
+> **Current policy: Minimal Governance (Revision 6).** Earlier platform/Canary proposals and test results are ARCHIVED / NOT ACTIVE historical evidence. No earlier entry grants new platform/settings authority.
+
 # LIGHT Governance v1.0 — Plan
 
 Issue: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/4

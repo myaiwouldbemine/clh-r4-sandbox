@@ -31,6 +31,12 @@ class RecordTests(unittest.TestCase):
         self.write("records/ISSUE-4/RESULT.md", "\n".join(RESULT_FIELDS) + " /pull/5")
     def test_l0_no_plan(self):
         self.assertIn("NOT REQUIRED", verify(self.base, "HEAD", 4, 0))
+    def test_l1_no_plan(self):
+        self.assertIn("NOT REQUIRED", verify(self.base, "HEAD", 4, 1))
+    def test_l3_missing_plan(self):
+        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, 3)
+    def test_unknown_risk(self):
+        with self.assertRaises(ValueError): verify(self.base, "HEAD", 4, -1)
     def test_l2_missing_plan(self):
         with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, 2)
     def test_valid_order(self):
