@@ -28,3 +28,12 @@ PR base is PR #1 branch to isolate review diff; retarget/synchronize after boots
 
 ## Unfinished
 Human approval of activation design; trusted service implementation/provisioning; independent control-plane review; actual CI/ruleset configuration and negative enforcement tests; PR #1 deployment decoupling on its real merge candidate and outstanding independent review; authorized dependency merge; successful guarded-merge E2E; separate deployment strategy and runtime verification. Do not mark these PASS or close Issue #4. Future Plan revisions must preserve history and precede the corresponding implementation.
+
+## Revision 2 execution results / readiness
+Human conditional approval authorizes build/config/tests, **not production activation**. Early Draft PR is now in Governance, AGENTS, PR Template and a pure lifecycle evaluator with fail-closed tests. Plan revision commit: 1429881, before these changes.
+
+Evidence: local test suite 15/15 PASS. Live GitHub canary Ruleset 26612260 active with no bypass; direct update and deletion both denied (422), ref unchanged; effective rules and API responses in canary-enforcement.json. This is not proof of required-check isolation, all rules, separate service credentials or main enforcement.
+PR #1 actual head f4a429c removes push deployment; pre-change Plan commit 0b180ff. CI pending at time of this entry; independent review NOT RUN. PR #1 remains unmerged. No Pages invocation.
+Simplification proposal: one trusted control-plane App and one required aggregate eligibility check with subresults; native Draft, Actions, PR and Ruleset features. Reviewer identity still independently isolated. No production service/credential is claimed to exist. Human OAuth token has repository admin access but is not an App installation token (installation/repositories returned 403); do not use it as a trusted reviewer or executor.
+
+Unfinished / readiness blockers: authenticated App and independent reviewer identity provisioning; trusted collector, semantic classifier and merge service implementation/integration; aggregate-check design independent review; required-check source enforcement and merge/force-push/race/rollback tests; main Ruleset; independent PR #1/#5 review; CI results; final readiness report and separate activation approval. Current readiness: NOT READY. Governance Tests workflow is unprivileged test CI only, not a trusted eligibility check. Draft PR #5 must remain Draft while implementation is incomplete.

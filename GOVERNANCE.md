@@ -52,3 +52,15 @@ Close only with all applicable gates, valid authorization, resolved blockers, sc
 ## Rollback / 回復
 先停止 merge executor 並撤銷其 credential，保留 required checks 保護；以 revert PR 回復錯誤 commit，不 reset/force push main。部署 rollback 獨立處理，保留既有網站與稽核證據。Policy/Settings 改動均需具體授權。
 Stop the executor first; retain protections and revert by PR. Deployment rollback is independent.
+
+## Early Draft PR / 標準工作流程
+**Draft Early, Verify Continuously, Review When Ready, Merge Only When Eligible.**
+
+1. Human 開立 Issue，提供 WHAT / WHY / DONE；References 選填。Builder 調查、依實際影響分類 Risk，決定必要 Plan。
+2. 有正式 Plan 時，先獨立提交 `records/ISSUE-<number>/PLAN.md`，再實作。L2/L3 必須先取得必要 Plan 核准。提早建立 Draft PR 不構成實作授權。
+3. 優先早期建立 Draft PR，作為 CI、Agent Collaboration、Records 與進度追蹤工作空間；持續驗證，不等待 Ready 才跑 CI。
+4. Builder 完成實作、適用驗證與必要 RESULT.md 後，才能轉 Ready for Review。沒有正式 Plan 的 L0 不必新增 Records；L0 不強制獨立審查。
+5. Ready 後由適用 Independent Review 與 Policy Gates 驗證，符合資格才由 Guarded Auto-Merge 合併。Draft、未完成 CI、未解決 Blocking Review 或缺少授權一律禁止 Merge。
+6. Ready 後重大 Scope / Risk 改變，須重新評估 Plan、Review 與授權有效性；必要時轉回 Draft。任何新 head/base 均重新驗證綁定證據，不沿用過期 PASS。
+
+Human supplies WHAT/WHY/DONE; references are optional. Builder investigates and classifies risk. Commit formal plans first and obtain required L2/L3 plan approval before implementation. Open a Draft early for collaboration and continuous verification; a Draft grants no authorization. Mark Ready only after implementation, applicable verification and required Result records are complete. Enforce applicable independent review and policy gates before merge. Draft, incomplete CI, unresolved blockers and missing authorization always block. Reevaluate material scope/risk changes and invalidate stale evidence. L0 gains no additional mandatory records or review.

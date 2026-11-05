@@ -12,3 +12,11 @@
 - No direct main push, force push, rule bypass, or unauthorized deployment. Auto-merge is disabled until the activation package receives one Human approval and runtime verification succeeds.
 - Self-review does not count as independent review. Record the actual agent identity and do not impersonate another reviewer.
 - For closure, enforce all applicable gates, required Plan/Result records, risk/scope/authorization and resolved blockers. Deployment is separately authorized; do not close unfinished work.
+
+## Draft-first lifecycle
+- Human Issue input: WHAT / WHY / DONE; References optional. Builder owns investigation, risk classification and necessary planning.
+- Open Draft PR early for CI, collaboration, records and progress. Commit formal Plan before implementation; L2/L3 must have necessary Plan authorization first. Draft creation grants no implementation authority.
+- Run verification continuously. Mark Ready only after implementation, applicable verification and required Result record are complete.
+- Drafts, pending/incomplete CI, unresolved blocking review and missing authorization cannot merge. After Ready, applicable independent review and all Policy Gates must pass.
+- Material scope/risk changes after Ready require plan/review/authorization reevaluation; return to Draft when appropriate. Invalidate stale head/base evidence.
+- L0 without formal Plan requires no new records or independent review. Principle: Draft Early, Verify Continuously, Review When Ready, Merge Only When Eligible.

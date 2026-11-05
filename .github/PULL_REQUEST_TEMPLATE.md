@@ -25,3 +25,9 @@ Human authorization reference (when applicable; gate verifies issuer and scope):
 ## Status
 Blocking reviews / pending checks:
 Deployment scope and authorization (merge does not authorize deployment):
+
+## Lifecycle / 生命週期
+Open Draft early; run CI continuously. Ready means implementation and applicable verification are complete, plus RESULT.md when a formal Plan exists. Draft is not implementation authorization; L2/L3 need approved Plans first.
+Current stage / outstanding work:
+Material scope/risk changes since Ready and reevaluation (only if applicable):
+Draft, incomplete CI, blocking review or missing authorization prohibits merge. L0 adds no mandatory Plan or independent review.
