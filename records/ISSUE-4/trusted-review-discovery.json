@@ -1,0 +1,16 @@
+{
+  "classification": "REAL_READ_ONLY_DISCOVERY_NOT_CANARY",
+  "observed_client_date": "2026-11-05",
+  "repository": "myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub",
+  "snapshot": {
+    "repository": "myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub",
+    "pr": 5,
+    "head": "879c3704abc2a9ae07d05ec7875f8c1988e470d8",
+    "base": "f4a429c9ea51f1542c85d92571b5d4a5c15e86b5",
+    "scope": "sha256:73a9dfbb46d227b2ddadc74fa8ad2725d63e484c2d5b17fdf12ff3454061ca5d",
+    "reviews": [],
+    "threads": []
+  },
+  "missing_identity_result": "BLOCK: unverified or incomplete collector evidence",
+  "note": "No enrolled registry, reviewer or builder attestation. This is not real positive identity verification or canary enforcement."
+}

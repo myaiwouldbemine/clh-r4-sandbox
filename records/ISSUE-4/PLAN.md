@@ -1,3 +1,5 @@
+> **Current policy: Minimal Governance (Revision 6).** Earlier platform/Canary proposals and test results are ARCHIVED / NOT ACTIVE historical evidence. No earlier entry grants new platform/settings authority.
+
 # LIGHT Governance v1.0 — Plan
 
 Issue: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/4
@@ -37,4 +39,35 @@ Local adversarial policy tests: risk escalation, missing records, plan ordering,
 
 Next implementation: add fail-closed lifecycle evaluator/tests; test a native ruleset against isolated canary ref using live GitHub API, retaining production disablement; investigate native simplification and credential constraints. Document actual results without claiming trusted services exist. Independent agent work is authorized by the requested independent review workflow, but no independent reviewer is presumed available.
 
-PR #1 dependency step: this copy precedes only the new deployment-trigger fix. It does not retroactively plan bootstrap. Human conditional approval authorizes this configuration fix; no merge/deployment is authorized.
+PR #1 dependency step: its copy precedes only the new deployment-trigger fix, not historical bootstrap; commits 0b180ff then f4a429c. Both branch histories are preserved by merge.
+
+## Revision 3 — Independent Review Identity Gate
+2026-11-05: user authorizes isolated implementation/tests only. Build versioned attestation schema and fail-closed gate using trusted collector inputs and pinned identity registry; test both peer directions, impersonation, missing/stale review and blocking reviews/threads. Prefer native GitHub reviews with authenticated App provenance; no actual App install, credentials, ruleset edits, merge, deployment or production activation. Produce design, missing integration list and actual CI evidence. Gate is not an authentication service; simulated identities must never be described as provisioned.
+
+## Revision 4 — Trusted Independent Review Integration
+2026-11-05: current Human request authorizes read-only discovery, nonprivileged development and offline tests. L3 implementation proposal only; installation, credentials, ruleset changes and production activation need separate specific authorization.
+Goal: establish the actual limits of GitHub identity evidence and implement the smallest fail-closed collector boundary without pretending a reviewer is provisioned.
+Plan: (1) inspect actual installations/reviews/rules/checks and official API capabilities; (2) add a collector adapter with complete pagination, immutable context binding, current native review/dismissal/thread checks, authenticated expiring/revocable issuer evidence and trusted Builder provenance; (3) run adversarial offline cases and separate real read-only observations from simulations; (4) document credential custody and an isolated canary matrix, update Result and Draft PR #5.
+Acceptance: missing or unverifiable provenance never yields PASS; head/base/scope changes invalidate evidence; L0 only exempts independent review and cannot bypass other gates. No registry, secrets or policy may come from candidate code. No real canary writes are authorized by this request.
+Verification: existing 26 tests first, then synthetic collector/signature failures and positive cases; inspect resulting CI separately. Live independent review remains NOT RUN without authenticated identities and isolated custody.
+
+## Revision 5 — Canary Authorization Package
+2026-11-05: Human authorizes read-only discovery, design and documentation only. This is NOT authorization to create repositories/Apps/keys/secrets, edit protections, run privileged workflows, merge or deploy.
+Goal/WHY: turn native App Review plus authenticated context attestation into a minimal, individually approvable Canary package independent of Codex Receipt capability.
+Scope: evaluate existing repositories; specify exact proposed resources, permissions, custody, protected Actions boundaries, test matrix, rollback and cost caps in docs/development/CANARY_AUTHORIZATION.md. Preserve all earlier Plan history.
+Risk: L3 design; resource/configuration execution deferred to explicit itemized approval.
+Implementation: commit this Plan revision before writing the package; record current API facts versus assumptions/NOT RUN; prepare staged authorization IDs and update RESULT. Commit/push documentation to Draft PR #5 only.
+Acceptance: no claimed isolation without technical proof, no candidate-controlled trusted policy/code/credentials, original APPROVED gate retained, L0 review-only exemption, first authorization batch contains no secret creation or privileged execution.
+Verification: read-only API evidence; documentation consistency/diff check and Git Plan ordering. No production behavior or source changes; existing 55 offline tests were verified in preceding assessment, not real integration evidence.
+Human decisions pending: resource names/visibility, named custodians, App permissions, credentials, safeguards, execution/budget. Every configuration item requires separate approval; no blanket activation.
+
+## Revision 6 — Minimal Learning Hub Governance (ACTIVE)
+2026-11-05: Human accepted the simplification Plan and authorizes only PR #5 existing branch nonprivileged documents/scripts/tests. Earlier platform/C3-C5 designs are ARCHIVED / NOT ACTIVE; historical decisions/evidence remain below/in Git, not current execution authority.
+Goal/WHY: reduce governance maintenance cost; retain Issue -> Draft PR -> conditional Plan/Result -> Review -> authorized Merge without new governance infrastructure.
+Scope/Boundary: simplify GOVERNANCE/AGENTS/PR template, archive identity collector/attestation code and platform tests outside active scripts, retain small lifecycle/record checks and read-only CI, verify strict MkDocs. No repository settings, Apps, keys/secrets, merges, deployment or automatic merge activation.
+Risk Level: L3 governance proposal; this exact simplification is Human-authorized, production/platform operations are not. Codex Builder; opposite-Agent review pending.
+Implementation Plan: commit this revision first; rewrite active policy and checklist; remove mandatory native APPROVED/signature/service dependency and require traceable cross-Agent review for L1+; archive platform artifacts/evidence, simplify lifecycle tests; run retained tests/build/order/diff checks, update Result/Issue/PR while Draft.
+Acceptance Criteria: L0 nonsemantic changes have no mandatory Plan/Result/review; L1 opposite-Agent review; L2 approved Plan and L3 specific scope/action approval; missing/failed/stale evidence or unresolved blocker prevents merge. Draft/CI/implementation/records/merge authority remain distinct. No second Human/new App required.
+Verification Strategy: retained unit tests across L0-L3 and negative cases, no active archive imports, workflow review (no automatic merge/deploy trigger), strict MkDocs, Git record order. Report tests separately from real Agent review and Human authorization.
+Human Decisions: current prompt authorizes implementation only within stated boundary. Prior Canary facts preserved; C3-C5 and subsequent platform work stopped. No independent review presumed.
+Revision History: append-only policy history; archived records are evidence, not active policy. Current revision supersedes incompatible earlier proposals.
