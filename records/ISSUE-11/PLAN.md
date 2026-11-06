@@ -90,8 +90,8 @@ Workflow runs:
      → Why: Pull Issue / Plan / PR motivation
      → What Changed: Commit summary, files changed
      → Evidence: Merge Commit SHA, CI logs, PR link
-     → What Learned: Auto-detect from PR title/body, default to "N/A"
-     → Next Steps: Auto-detect from linked issues, default to "None"
+     → What Learned: Extract from Issue / PR description / Result record; mark "未記錄" if not found
+     → Next Steps: Extract from linked issues / Result; mark "None identified" if not found
 
   7. Post closure summary to issue
      → Single comment with formatted summary
@@ -414,13 +414,26 @@ If the automated merge-and-close workflow needs to be disabled:
 
 ### Required GitHub Actions Token Permissions
 
-The workflow will need a token with:
-- `contents: read` — Read PR info, branch state
-- `pull-requests: read` — Read PR state, reviews, checks
-- `issues: write` — Post closure comment, close issue
-- `statuses: read` — Read CI check status
+The workflow will execute:
+- **Read operations**: PR state, reviews, CI checks, branch state, issue body
+- **Write operations**: Merge PR (via API), post issue comment, close issue
 
-**Status**: These are standard GitHub Actions permissions; verify at implementation time that `GITHUB_TOKEN` scope includes these. If insufficient, **requires Human authorization** to adjust workflow permissions.
+Required token scopes:
+
+- `contents: read` — Read PR info, branch state, main HEAD
+- `pull-requests: read` — Read PR details, reviews, check status
+- `pull-requests: write` — **Execute Merge API call** (required for merge execution)
+- `issues: write` — Post closure comment to issue, close issue
+- `statuses: read` — Read CI check run status (pass/fail/pending)
+
+**Critical write permission**: `pull-requests: write` is essential for merge execution. Without it, merge API call will fail at gate 4.
+
+**Status**: These are standard GitHub Actions token scopes. At implementation time, verify that workflow's `GITHUB_TOKEN` is provisioned with these scopes. If insufficient, **requires Human authorization** to reconfigure token permissions or grant additional scopes. This may require adjustment in:
+- GitHub repository settings (Actions permissions)
+- Workflow file (`permissions` section in YAML)
+- GitHub App / OAuth token configuration
+
+If permissions cannot be granted, merge execution cannot proceed; **this constitutes a separate L3 authorization decision**.
 
 ### Branch Protection Rules (Existing)
 
