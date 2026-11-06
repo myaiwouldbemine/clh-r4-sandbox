@@ -13,6 +13,12 @@ RESULT_FIELDS = ("results", "evidence", "pr", "commit", "deviations", "unfinishe
 def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip()
 
+def plan_fields_present(body, revision=False):
+    # Named architecture revisions may use an E2E acceptance heading for DONE.
+    return all(field in body or (revision and field == "acceptance criteria" and "e2e acceptance" in body)
+               for field in FIELDS)
+
+
 def verify(base, head, issue, formal_plan=False, record_prefix=""):
     if type(issue) is not int or issue <= 0:
         raise ValueError("invalid issue")
@@ -30,7 +36,7 @@ def verify(base, head, issue, formal_plan=False, record_prefix=""):
         return "NOT REQUIRED: no formal plan"
     assert plan in files and result in files, "Plan and Result are required"
     body = git("show", f"{head}:{plan}").lower()
-    assert all(field in body for field in FIELDS), "Missing Plan fields"
+    assert plan_fields_present(body, bool(record_prefix)), "Missing Plan fields"
     assert f"/issues/{issue}" in body, "Plan must link the Issue"
     output = git("show", f"{head}:{result}").lower()
     assert all(field in output for field in RESULT_FIELDS), "Missing Result fields"
@@ -45,7 +51,7 @@ def verify(base, head, issue, formal_plan=False, record_prefix=""):
         assert prior_plan or not implementation, "Implementation precedes Plan commit"
         if not prior_plan and plan in changed:
             initial = git("show", f"{commit}:{plan}").lower()
-            assert all(field in initial for field in FIELDS), "Initial Plan was incomplete"
+            assert plan_fields_present(initial, bool(record_prefix)), "Initial Plan was incomplete"
             assert f"/issues/{issue}" in initial, "Initial Plan lacked Issue link"
             prior_plan = True
     assert prior_plan, "No traceable Plan commit"

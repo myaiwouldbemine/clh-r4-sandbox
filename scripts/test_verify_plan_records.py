@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from verify_plan_records import verify, FIELDS, RESULT_FIELDS
+from verify_plan_records import verify, FIELDS, RESULT_FIELDS, plan_fields_present
 
 class RecordTests(unittest.TestCase):
     def setUp(self):
@@ -35,6 +35,11 @@ class RecordTests(unittest.TestCase):
         with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, formal_plan=True)
     def test_invalid_issue(self):
         with self.assertRaises(ValueError): verify(self.base, "HEAD", -1)
+    def test_revision_acceptance_heading_alias(self):
+        body="\n".join(FIELDS).replace("acceptance criteria", "e2e acceptance")
+        self.assertTrue(plan_fields_present(body, True))
+        self.assertFalse(plan_fields_present(body, False))
+        self.assertFalse(plan_fields_present(body.replace("e2e acceptance", ""), True))
     def test_named_revision_order(self):
         self.write("records/ISSUE-4/ON-DEMAND-REVISION-PLAN.md", "\n".join(FIELDS) + " /issues/4")
         self.commit()
