@@ -71,3 +71,15 @@ Acceptance Criteria: L0 nonsemantic changes have no mandatory Plan/Result/review
 Verification Strategy: retained unit tests across L0-L3 and negative cases, no active archive imports, workflow review (no automatic merge/deploy trigger), strict MkDocs, Git record order. Report tests separately from real Agent review and Human authorization.
 Human Decisions: current prompt authorizes implementation only within stated boundary. Prior Canary facts preserved; C3-C5 and subsequent platform work stopped. No independent review presumed.
 Revision History: append-only policy history; archived records are evidence, not active policy. Current revision supersedes incompatible earlier proposals.
+
+## Revision 7 — Post-Merge Documentation Cleanup (2026-11-06)
+
+- **Goal / WHY:** Remove obsolete PR #5 Draft-only instructions from active policy, and append final PR #1/#5 merge facts to Issue #4 Result without rewriting history.
+- **Issue:** #4. **Risk:** L3 (touches governance policy text), but strictly non-semantic cleanup.
+- **Scope:** GOVERNANCE.md, AGENTS.md, records/ISSUE-4/RESULT.md; this Plan records the authorized cleanup.
+- **Boundary:** No change to L0–L3 policy, review/merge eligibility, scripts, tests, workflows, GitHub settings, deployment, or main. Create Draft PR only; no Merge authority.
+- **Implementation:** (1) Remove task-specific 'PR #5 must remain Draft' clauses while retaining generic Ready criteria. (2) Append dated closure evidence to RESULT.md; preserve prior content byte-for-byte.
+- **Acceptance criteria:** No active stale PR #5 Draft command; PR #1 merge 488c84c9 and PR #5 merge a9f85ffd stated accurately; prior history unchanged; CI green.
+- **Verification:** File diff review, GitHub PR CI, record ordering and strict MkDocs (if executable); distinguish tests not run.
+- **Human decision:** User explicitly requested these two documentation cleanups on 2026-11-06. No Merge, deploy or Auto-Merge authorization.
+- **Revision history:** Revision 7 appended after Revision 6; existing records preserved.
