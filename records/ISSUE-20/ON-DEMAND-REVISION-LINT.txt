@@ -1,0 +1,5 @@
+Implementation head: c37275eb05dd80574fd482b3a9a9fc7ee1db66ed
+Date: 2026-11-07 Asia/Taipei
+Command: /tmp/clh-actionlint/actionlint (1.7.12)
+Exit: 0; no findings
+git diff --check: PASS
