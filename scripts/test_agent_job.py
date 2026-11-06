@@ -3,8 +3,9 @@ import os
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
-from agent_job import publish
+from agent_job import publish, prepare
 from autonomous_lifecycle import Blocked
 
 class PublishTests(unittest.TestCase):
@@ -54,5 +55,24 @@ class PublishTests(unittest.TestCase):
         Path('candidate/pr-body.md').write_text('Fixes #20')
         with self.assertRaises(Blocked): publish(self.gh,20)
         self.assertFalse(self.gh.writes)
+
+    def setup_attempt_fixture(self, previous_issue):
+        for i in range(1,4):
+            self.run_git('commit','--allow-empty','-m',f'CLH agent attempt {i} for Issue {previous_issue}')
+        issue={'number':20,'state':'open','user':{'login':'owner'},'body':'## WHAT\nEngineering task'}
+        self.gh.get=lambda path: issue
+        self.gh.pages=lambda path: []
+        return issue
+    def test_other_issue_attempts_do_not_exhaust_new_issue(self):
+        issue=self.setup_attempt_fixture(19)
+        with patch.dict(os.environ,{'GITHUB_OUTPUT':str(Path('outputs').resolve())}):
+            prepare(self.gh,{'issue':issue})
+        self.assertEqual(self.run_git('log','-1','--format=%s'),'CLH agent attempt 1 for Issue 20')
+    def test_same_issue_three_attempts_stop(self):
+        issue=self.setup_attempt_fixture(20)
+        with patch.dict(os.environ,{'GITHUB_OUTPUT':str(Path('outputs').resolve())}):
+            with self.assertRaisesRegex(Blocked,'retry budget exhausted'):
+                prepare(self.gh,{'issue':issue})
+        self.assertEqual(self.run_git('log','-1','--format=%s'),'CLH agent attempt 3 for Issue 20')
 
 if __name__=='__main__': unittest.main()

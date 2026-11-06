@@ -35,7 +35,7 @@ def prepare(gh, event):
         subprocess.run(['git', 'switch', '-C', branch, 'FETCH_HEAD'], check=True)
     else:
         subprocess.run(['git', 'switch', '-c', branch], check=True)
-    attempts = git('log', '--format=%s', '--grep=^CLH agent attempt ').splitlines()
+    attempts = git('log', '--format=%s', f'--grep=^CLH agent attempt [0-9][0-9]* for Issue {issue["number"]}$').splitlines()
     require(len(attempts) < 3, 'Automatic retry budget exhausted (3 attempts)')
     prs = gh.pages(f'pulls?state=all&head={gh.repo.split("/")[0]}:{branch}')
     require(not any(p['merged_at'] or p['state'] == 'closed' for p in prs), 'Branch already completed or stopped')
