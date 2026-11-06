@@ -1,8 +1,13 @@
 # LIGHT Governance v2 — Minimal Learning Hub
 
-目前採用極簡治理，轉向 Claude Code Single-Builder + Self-Verification 模式。唯一 Human 管理者為 myaiwouldbemine；Claude Code 為指定 Builder。本文件是現行政策；歷史平台與 Canary 設計為 Archived / Not Active，不構成執行授權。
+目前採用極簡治理，使用 Tool-Neutral Single-Builder + Self-Verification 模式。唯一 Human 管理者為 myaiwouldbemine；每個 Engineering Issue／PR 在任一時點只有一位明確指定的 accountable Builder，可為 Claude Code 或 Codex。本文件是現行政策；歷史平台與 Canary 設計為 Archived / Not Active，不構成執行授權。
 
-## 工作流程
+## 分工與學習紀錄
+ChatGPT＋Human 擁有 V2／V3 教材內容創作、推導、品質核准與整合定稿權。V2 Knowledge Consolidation 與 V3 Code-First Deep Dive：**製作時分開、定稿時合併、網站上依主題呈現**。
+GitHub 保存已核准教材、版本與學習軌跡；MkDocs 提供閱讀、搜尋、導覽與展示。Engineering Builder 負責工程實作、忠實匯入已核准教材、排版／網站相容性、CI、PR 與工程驗證，不得自行創作或修改教材語意；需要語意變更時標記 PENDING，交由 ChatGPT／Human 決定。風險分類不構成教材創作授權。
+Learning Record Issue 可用 Comments 逐步更新 V2／V3、品質證據、整合與歸檔參考，不必對應工程 PR；只有 Repository 變更需要下列工程流程。建立 Issue、CI PASS、PR Merge 或 Issue Closed 均不代表內容品質已核准、學習完成或完全掌握；歸檔完成與學習完成分開記錄。
+
+## 工作流程（Repository 工程變更）
 Issue → Draft PR → Plan（必要時）→ Implementation → Result（必要時）→ Review → Merge。
 Issue 說明 WHAT / WHY / DONE 與邊界。提早建立 Draft、持續執行 CI；Draft 不等於實作授權，也不能 Merge。
 Builder 依實際影響判定風險。文件不一定是 L0；教材語意修改至少 L1。風險無法判定時先釐清，不以 L0 放行。
@@ -26,10 +31,14 @@ Formal Plan Draft 與所有修訂版本保存於 `records/ISSUE-<number>/` 並�
 Approved Plan 發佈後須完成 Remote Readback 驗證，確認 Repository Records 與 Issue Timeline 內容一致、相互連結。
 Plan Approval、Implementation Authorization、Ready、Merge 與 Deployment 是獨立且不同的授權決策。不自動推定前一決策涵蓋後續決策。
 
+## Builder 責任與交接
+Single-Builder 是責任制度，不是指定 AI 品牌。工程 Issue／PR 須記錄目前唯一 accountable Builder；交接時記錄前後 Builder、完整交接 Commit SHA、base、工作範圍、risk、已完成／未完成事項、Evidence 與 Blockers。
+接手 Builder 須重新確認目前 head 的 Self-Review 與證據有效性，評估 base／scope／risk 變化並重新確認適用 Human 授權；更換工具不會自動繼承舊審查結論或 Human 授權。範圍／風險變動依既有規則重新核准。交接不等於 Fresh-Context Challenge 或獨立 Review。
+
 ## Self-Review 與 Verification
-Claude Code Builder 負責 Investigation、Plan、Implementation、Self-Review、Tests、Evidence、Result 與 Readback。
+指定 Builder（Claude Code 或 Codex，適用完全相同的風險、驗證、Self-Review、Evidence 與授權規範）負責 Investigation、Plan、Implementation、Self-Review、Tests、Evidence、Result 與 Readback。
 Self-Review 須以可追溯 Evidence 支持，包含 Claim、Source、Method、Evidence 及 Commit SHA 之清單；不宣稱此為獨立 Review。
-L1–L3 若無法提供必要證據或判定仍有高風險，可按 Risk 選用 Fresh-Context Challenge：由 Claude Code 評估必要性、記錄執行或不執行的理由；Human 明確指定時不得略過。Fresh-Context 非 Agent Handoff 或新治理平台，僅為補充驗證機制。
+L1–L3 若無法提供必要證據或判定仍有高風險，可按 Risk 選用 Fresh-Context Challenge：由指定 Builder 評估必要性、記錄執行或不執行的理由；Human 明確指定時不得略過。Fresh-Context 非 Agent Handoff 或新治理平台，僅為補充驗證機制。
 新 head 必須重新確認 Self-Review；base 或範圍改變須評估影響並重新自審，未確認前不能沿用舊結果。
 
 三種證據不得互相冒充：
@@ -50,7 +59,7 @@ L1–L3 若無法提供必要證據或判定仍有高風險，可按 Risk 選用
 ## Rollback 與部署
 以 revert PR 回復錯誤變更，保留原始記錄並執行適用驗證／審查；不 reset／force push main。重大回復或緊急操作由 Human 明確授權。
 Merge 不代表部署授權。Pages 僅有手動入口，執行仍需另行授權；不要求合併前先部署同一 commit。
-Issue 只在範圍完成、必要證據完整且已授權合併後結案；未完成的工作繼續標示 pending／blocked。
+工程 Issue 只在範圍完成、必要證據完整且已授權合併後結案；未完成的工作繼續標示 pending／blocked。
 
 ## 輕量工具與歷史
 scripts/merge_lifecycle.py 是本地條件檢查輔助，不是身分驗證或 Merge 服務；scripts/verify_plan_records.py 只檢查記錄結構與 Git 順序。使用者提供的分類與事實仍須人工／Agent 核對。

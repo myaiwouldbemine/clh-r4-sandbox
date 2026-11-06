@@ -1,34 +1,36 @@
-# CLH Governance v1.1 — Installation / 安裝說明
+# Copy Learning Hub — 治理文件維護說明
 
-此套件準備放入目前的 `feat/CLH-001-project-bootstrap` 分支，並透過 PR 合併；不會自行修改 GitHub。
+以目前 main 的 `GOVERNANCE.md`、`AGENTS.md` 與 Issue 邊界為準；本文件說明授權後的文件維護方式，不授予 GitHub 設定或工程操作權限。
 
 ## Files / 檔案
 
-- `GOVERNANCE.md` — 雙語 PR 政策（含對等 Agent 與 Merge 授權）
+- `GOVERNANCE.md` — 正式政策（Tool-Neutral Single-Builder + Self-Verification 與獨立操作授權）
 - `AGENTS.md` — Claude Code / Codex 共用的精簡執行規則
-- `.github/PULL_REQUEST_TEMPLATE.md` — 雙語 PR 驗收表
+- `.github/PULL_REQUEST_TEMPLATE.md` — 工程 PR 與 Self-Review 紀錄模板
 
 ## Apply / 套用
 
-在 WSL 專案根目錄、正確 Feature Branch 上，將檔案複製到對應路徑（不要複製 `INSTALL.md` 也可以）：
+每個工程 Issue／PR 只有一位指定 accountable Builder（Claude Code 或 Codex），適用相同規範。ChatGPT＋Human 負責教材創作與品質核准；Builder 僅忠實匯入已核准教材及處理工程。Learning Issue 可獨立記錄，不必對應 PR；只有 Repository 變更需要工程流程。
+
+先確認 Issue 與工作邊界、建立工作分支並提早開 Draft PR。治理變更屬 L3，須在實作前獨立提交正式 Plan，取得 Human 對 Plan 及具體操作／範圍的明確授權。Draft 不等於實作授權。授權後才在 WSL 專案根目錄、正確 Feature Branch 上修改指定檔案並檢查差異：
 
 ```bash
 cd /home/copylearning/myaiwouldbemine-Copy-Learning-Hub
 git branch --show-current
-# Copy the 3 files into the repository while preserving .github/ path.
+# 僅在本次授權包含以下檔案時暫存。
 git add GOVERNANCE.md AGENTS.md .github/PULL_REQUEST_TEMPLATE.md
 git diff --cached --check
 git diff --cached --stat
 git diff --cached -- GOVERNANCE.md AGENTS.md .github/PULL_REQUEST_TEMPLATE.md
 ```
 
-請先審閱 Staged Diff，確認內容正確後才 Commit。若前次 Governance 尚未 Commit，可一次提交三份文件；若已 Commit，可另外建立政策升級 Commit，保留歷史。
+請先審閱 Staged Diff，確認範圍正確後才 Commit。保留已提交的 Plan 與修訂歷史，不將 Plan 與其實作放在同一初始提交。
 
 ```bash
-git commit -m "docs: adopt bilingual PR governance and shared agent instructions"
+git commit -m "docs: align authorized governance documentation"
 ```
 
-不要直接 Push `main`。在 CLH-001 Feature Branch 完成 MkDocs / CI 後，再 Push Branch 建立 PR。
+不要直接 Push `main`。將工作分支推送至既有 Draft PR，完成適用 MkDocs strict／測試／CI、Result 與目前 head 的 Self-Review／Evidence；新 head 或 Builder 交接須依治理重新確認，不能自動沿用審查或 Human 授權。Ready、Merge 與 Deployment 仍各依有效授權辦理。
 
 ## Claude Code compatibility / Claude Code 相容性
 
@@ -40,4 +42,4 @@ claude --version
 
 ## Enforcement caveat / 治理生效注意
 
-文件合併不等於 GitHub Rulesets / Branch Protection 已啟用。須在 GitHub Settings 額外設定，且 Required Check 應在 CI 第一次實際運行後再指定。Agent Merge 須另有使用者授權。
+文件合併不等於 GitHub Rulesets / Branch Protection 已啟用。本文件不授權變更 GitHub Settings／權限或啟用 Auto-Merge；如需變更，另依 L3 具體授權辦理。Merge 須另有操作授權；Pages 只有手動入口且 Deployment 需獨立授權。

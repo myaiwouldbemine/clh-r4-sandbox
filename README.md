@@ -19,7 +19,13 @@ Copy Learning Hub 旨在將大學課程講義、技術文件、原始碼、數�
 - **Page-by-Page Learning**：依原始教材頁碼逐頁深入學習。
 - **Progressive Validation**：透過理解驗收與實作確認學習成果。
 - **Reusable Knowledge**：將學習成果整理成可重複閱讀的文件。
-- **Multi-Agent Collaboration**：Claude Code 與 Codex 共同參與開發與審查。
+- **Tool-Neutral Single-Builder**：每個工程 Issue／PR 由一位指定的 Claude Code 或 Codex Builder 負責，採 Self-Verification。
+
+正式分工：ChatGPT＋Human 擁有 V2／V3 教材創作、推導、品質核准與整合定稿權；GitHub 保存已核准教材、版本與學習軌跡；MkDocs 提供閱讀、搜尋、導覽與展示。Engineering Builder 負責忠實匯入及工程驗證，不創作或改寫教材語意。
+
+V2 Knowledge Consolidation 與 V3 Code-First Deep Dive：**製作時分開、定稿時合併、網站上依主題呈現**。
+
+使用 **Learning Record** Issue 記錄學習目標、來源及後續進度，V2／V3 成果、驗收與歸檔參考可在 Comments 逐步補充，不必對應工程 PR。只有 Repository 變更才需要 **Engineering Task** 與相應工程流程。Issue 建立、CI PASS、PR Merge 或 Issue Closed 均不代表品質已核准、學習完成或完全掌握；歸檔完成與學習完成分開記錄。表單使用方式見 [Issue Forms 說明](docs/development/ISSUE_TEMPLATE_INSTALL.md)。
 
 ## 2. Learning Subjects｜學科分類
 
@@ -46,7 +52,7 @@ Copy Learning Hub 旨在將大學課程講義、技術文件、原始碼、數�
 | CI/CD | GitHub Actions |
 | Hosting | GitHub Pages |
 | Future Interactive Labs | Streamlit / Python |
-| Agent Collaboration | Claude Code / Codex |
+| Engineering Builder | Claude Code 或 Codex（單一 accountable Builder） |
 
 目前採用 MkDocs Material 建立網站，未來可另行評估 Zensical 遷移。
 
@@ -149,47 +155,31 @@ Copy Learning Hub 採用 **Pull Request First** 的開發模式。所有正式�
 
 ### 7.1 Standard PR Workflow｜標準流程
 
-**Issue → Branch → Commit → Pull Request → Review / CI → Merge**
+Repository 工程變更採用 **Issue → Draft PR → Plan（必要時）→ Implementation → Result（必要時）→ Self-Review／CI → Authorized Merge**。L2／L3 的正式 Plan 必須先獨立提交並取得 Human 核准；L3 另需具體操作／範圍授權。Draft 不授予實作或 Merge 權限。
 
 ```mermaid
 flowchart TD
-    A["Issue / Change Request<br/>需求與修改目的"]
-    B["Feature Branch<br/>建立工作分支"]
-    C["Implementation & Commit<br/>實作、測試、保留變更紀錄"]
-    D["Pull Request<br/>WHAT / WHY / TEST / Evidence"]
-    E["Review<br/>Agent 或人工審查"]
-    F["Required CI Checks<br/>自動化驗證"]
-    G{"Merge Conditions<br/>全部符合？"}
-    H["Merge into main<br/>合併正式分支"]
-    I["GitHub Pages Deployment<br/>網站發布"]
-    J["Keep PR Open<br/>修正問題並重新驗證"]
-
-    A --> B --> C --> D
-    D --> E
-    D --> F
-    E --> G
-    F --> G
-    G -->|Yes| H
-    G -->|No| J
-    J --> C
-    H --> I
+    A["Engineering Issue／工作邊界"] --> B["工作分支與 Draft PR"]
+    B --> C["風險評估；必要時事前 Plan 與 Human 授權"]
+    C --> D["授權範圍內實作與提交"]
+    D --> E["適用驗證、Self-Review／Evidence、必要 Result"]
+    E --> F{"條件完整且具有效操作授權？"}
+    F -->|否| G["保留 Draft／處理未完成事項"]
+    G --> C
+    F -->|是| H["依授權轉非 Draft 並 Merge"]
+    H --> I["另行取得 Deployment 授權"]
+    I --> J["手動 GitHub Pages 部署"]
 ```
 
 ### 7.2 Agent Roles｜Agent 角色
 
-**Claude Code 與 Codex 是對等 Agent。**
+採 **Tool-Neutral Single-Builder + Self-Verification**。每個工程 Issue／PR 在任一時點只有一位明確指定的 accountable Builder，可為 Claude Code 或 Codex，兩者適用完全相同的風險、驗證、Self-Review、Evidence 與授權規範。
 
-兩者均可參與：
+Builder 負責工程實作、忠實匯入已核准教材、排版／網站相容性、CI、PR 與工程驗證。教材語意需要變更時標記 PENDING，由 ChatGPT／Human 決定。L1 起需可追溯的 Self-Review 與 Evidence，不強制交叉審查；Fresh-Context Challenge 依風險評估，Human 明確要求時必須執行。
 
-- Implementation（程式碼或教材實作）
-- Documentation（文件維護）
-- Testing（測試與驗證）
-- Code Review（程式碼審查）
-- Merge（符合授權條件後合併）
+交接須記錄前後 Builder、完整 Commit SHA、base／scope／risk、已完成／未完成事項、Evidence 與 Blockers。接手 Builder 重新確認目前 head 的 Self-Review、證據有效性及適用 Human 授權；更換工具不自動繼承舊審查或授權。
 
-不固定誰負責實作、誰負責審查。同一個 PR 優先由不同 Agent 進行實作與審查；簡單的學習文件修改可採 Self-Review。
-
-Agent Review 屬於輔助驗收，**不得冒充 GitHub 正式 Reviewer Approval**。
+Self-Review／Bot Summary、原生 GitHub Review 與 Human Approval 分別記錄，不可互相冒充。
 
 ### 7.3 Branch & Commit｜分支與提交
 
@@ -219,7 +209,7 @@ ci/CLH-004-build-validation
 | Risk | 已知風險與影響 |
 | Review | 審查結果及未解決問題 |
 
-PR 優先關聯 Issue，簡單修改可以直接建立 PR。
+Repository 變更的 PR 應關聯工程 Issue。純學習紀錄不強制建立工程 PR。
 
 ### 7.5 Review & CI｜審查與自動化檢查
 
@@ -240,11 +230,11 @@ GitHub Actions 將負責執行設定好的自動化檢查。
 
 Agent 只有在以下條件**全部符合**時，才可以執行 Merge：
 
-1. 使用者已事先授權該類 PR 可由 Agent Merge。
-2. 所有 Required CI Checks 均已通過。
-3. 沒有未解決的阻擋性審查意見。
-4. 修改範圍符合 Issue 或 PR 的原始目的。
-5. 未涉及需要使用者個別確認的高風險操作。
+1. 執行者具備權限且已獲明確 Merge 操作授權，PR 為非 Draft。
+2. 必要實作、適用驗證／CI、目前 head 的 Self-Review 與 Evidence、必要 Result 均已完成；不存在缺失、失敗、待定或過期證據。
+3. 沒有未解決的阻擋性 Review、評論或 Thread。
+4. base／scope／risk 已確認，範圍與授權仍有效；有變動時完成重新評估及必要重新核准。
+5. L2／L3 必要的 Plan 核准及 L3 具體操作／範圍授權完整。L1 不要求逐次 Human 內容核准，Merge 操作授權仍須獨立確認。
 
 若任一條件未滿足，Agent 必須保留 PR 並回報，不得繞過 Branch Protection 或未通過的必要 CI。
 
@@ -253,7 +243,7 @@ Agent 只有在以下條件**全部符合**時，才可以執行 Merge：
 以下操作需要使用者個別確認：
 
 - 大量刪除或搬移資料。
-- 修改 Repository 權限或安全設定。
+- 修改治理控制、Repository 權限、安全設定或部署操作。
 - 修改重要資料的來源或證據。
 - 大規模重構。
 - 可能造成不可逆結果的操作。
@@ -268,11 +258,11 @@ Agent 只有在以下條件**全部符合**時，才可以執行 Merge：
 
 ---
 
-*English summary: All formal changes follow the Issue → Branch → Commit → PR → Review/CI → Merge workflow. Claude Code and Codex are peer agents. Merge requires prior authorization, passing required checks, resolved blocking feedback, scope alignment, and separate approval for high-risk operations. The authoritative policy is maintained in GOVERNANCE.md.*
+工程流程依 `GOVERNANCE.md`：一位指定 Builder 負責 Self-Review 與 Evidence；Plan 核准、實作、Ready、Merge 與 Deployment 分別依有效授權辦理。
 
 ## 8. Deployment｜網站部署
 
-預計透過 GitHub Actions 自動部署至 GitHub Pages。
+目前 GitHub Pages workflow 僅提供手動 `workflow_dispatch` 入口，部署工作限定 `main`。Merge 不會自動授權部署；每次執行仍需獨立 Deployment 授權，本流程不啟用 Auto-Merge。
 
 預計網址：
 
@@ -280,12 +270,12 @@ https://myaiwouldbemine.github.io/myaiwouldbemine-Copy-Learning-Hub/
 
 部署流程：
 
-1. 在 Feature Branch 修改內容。
-2. 建立 Pull Request。
-3. 執行 CI 驗證。
-4. 完成 Review 並合併至 `main`。
-5. GitHub Actions 建立靜態網站。
-6. GitHub Pages 發布網站。
+1. 依工程 Issue 建立 Feature Branch 與 Draft PR。
+2. 完成必要 Plan／授權後，實作並執行適用驗證及 CI。
+3. 完成目前 head 的 Self-Review／Evidence 與必要 Result。
+4. 符合所有條件並取得操作授權後，依授權轉非 Draft 並合併至 `main`。
+5. 另行取得 Deployment 授權後，從 `main` 手動觸發 Pages workflow。
+6. GitHub Actions 建置並發布網站，再分別核對部署與視覺結果。
 
 **目前部署狀態：尚未完成正式 GitHub Pages 上線驗收。**
 

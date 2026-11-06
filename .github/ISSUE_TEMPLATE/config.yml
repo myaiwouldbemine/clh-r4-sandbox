@@ -1,2 +1,2 @@
-# Require the structured Agent Task form; blank issue creation is disabled.
+# 提供 Engineering Task 與 Learning Record 兩種表單；維持停用空白 Issue。
 blank_issues_enabled: false
