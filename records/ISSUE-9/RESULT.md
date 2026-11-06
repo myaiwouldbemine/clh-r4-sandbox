@@ -168,3 +168,83 @@ None identified. All modifications completed within approved Scope (four files +
 ---
 
 **Co-authored-by:** Copilot <223556219+Copilot@users.noreply.github.com>
+
+---
+
+## 9. QA Corrections — Revision 2
+
+**Date:** 2026-11-06 (post-implementation)
+
+**Correction Commits:** `bfcbbd5`
+
+### Issues Identified & Resolved
+
+**MAJOR-01: Plan Publication Policy Specification**
+- **Issue:** Formal Plan publication procedure not explicitly documented in governance files
+- **Resolution:** Added "Formal Plan 的發佈與核准" section to GOVERNANCE.md (lines 19-23)
+  - Specifies drafts preserved with Git history in records/
+  - Human approves via fixed Commit SHA
+  - Only approved plans published to Timeline
+  - Approved Plan comments include version, SHA, Records link, scope, Human approval reference
+  - Remote Readback verification required
+  - Plan Approval/Implementation/Ready/Merge/Deployment are separate authorizations
+- **Scope:** Language clarification only; no policy change
+
+**MAJOR-02: Remove Stale Cross-Agent Execution Gate**
+- **Issue:** AGENTS.md retained obsolete pending clause: "If opposite-Agent execution is unconfirmed, review remains pending"
+- **Resolution:** Removed from line 7 (AGENTS.md)
+- **Scope:** Removal of v1 gate; consistent with v2 Single-Builder model
+- **Preserved:** Claude Code Single-Builder, Self-Review + Evidence, Fresh-Context Challenge, Self-Review ≠ Independent Review distinction
+
+### Post-Correction Verification
+
+✅ **Governance Consistency Check:** PASSED (10/10 checks)
+- ✓ Single-Builder model
+- ✓ Self-Review requirement
+- ✓ Cross-Agent mandate removed
+- ✓ Fresh-Context Challenge
+- ✓ Plan Publication Policy
+- ✓ Three evidence types distinguished
+- ✓ L2/L3 safeguards preserved
+- ✓ Stale cross-Agent gate removed
+- ✓ Templates updated
+- ✓ PR template Self-Review aligned
+
+✅ **Template Validation:** PASSED
+- Issue Template YAML: valid
+- PR Template: valid
+
+✅ **MkDocs Strict Build:** PASSED (0 errors, 0 warnings, 0.58s)
+
+✅ **Git Record:** QA corrections committed to working branch
+- Commit: bfcbbd5 (2 files changed, +7/-1)
+- No main branch modification
+- Branch isolation maintained
+
+### No Deviations
+
+All QA corrections remain within governance file clarification scope. No changes to:
+- Four-file implementation scope
+- L0-L3 risk model
+- L2/L3 Plan/Result/Human approval requirements
+- Rollback or Merge boundaries
+- Governance platform/infrastructure (prohibited)
+
+### Unfinished / Outstanding
+
+- GitHub Actions jobs (governance-tests, docs-check) re-running on new HEAD
+- Human Merge Authorization (Decision #7, awaiting separate decision)
+
+---
+
+**QA CORRECTIONS VERIFIED ✓**
+
+**New Candidate HEAD:** `bfcbbd5`
+
+**RESULT: IMPLEMENTATION + CORRECTIONS VERIFIED**
+
+**STATUS: DRAFT PR #10 — AWAITING HUMAN MERGE AUTHORIZATION**
+
+---
+
+**Co-authored-by:** Copilot <223556219+Copilot@users.noreply.github.com>
