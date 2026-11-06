@@ -57,3 +57,9 @@ Overall candidate: **L3**, retained for Human review because Builder accountabil
 ## Fresh-Context Challenge
 
 Omitted for this records-only Phase 1: no implementation is authorized, source/boundary checks are direct and Human reviews the fixed Plan before proceeding. This is Codex Self-Review, not independent Review or a claim that Claude Code evaluated it. Reassess challenge necessity before later L3 implementation verification; any Human-mandated challenge is mandatory. No subagent or governance platform was introduced.
+
+## Additional requirement — v1.1 investigation supplement
+
+Re-read updated Issue #18 body (updated_at 2026-11-06T12:38:44Z) and Human chat instruction. Completed tracked-file inventory, full active operating-document read and keyword audit; see [Documentation Consistency Matrix](DOCUMENTATION-CONSISTENCY.md) and [baseline matches](MATCHES.txt). Newly identified INSTALL.md requires minimal correction; planned scope expands from eight to nine files, still L3 candidate and unapproved. Three docs/development files are explicitly ARCHIVED / NOT ACTIVE and will remain byte-identical, as will historical records/merged PR evidence. Earlier eight-file description records the initial investigation; Plan v1.1 supersedes its scope count.
+
+Additional phase changes are records only. No production docs/templates have been modified. Existing baseline tests remain relevant to unchanged code; the new Plan head requires renewed records-only Self-Review and remote CI readback.

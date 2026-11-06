@@ -1,12 +1,13 @@
 # Issue #18 — Learning Issue Forms + Tool-Neutral Single-Builder
 
-Version: **v1.0** · Date: 2026-11-06 (Asia/Taipei)
+Version: **v1.1** · Date: 2026-11-06 (Asia/Taipei)
 Status: **DRAFT — PENDING HUMAN PLAN APPROVAL AND SEPARATE IMPLEMENTATION AUTHORIZATION**
 Issue: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/18
 Phase 1 authority: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/18#issuecomment-6684903154
 Accountable Phase 1 Builder: **Codex**. Phase 2 Builder: proposed Codex, requires explicit designation/authorization; no automatic handoff or inherited authority.
 Base: `main @ 7e530cdc818044ae4f760a021a331f888f993e43`.
 Read-only report and risk evidence: [INVESTIGATION.md](INVESTIGATION.md).
+Documentation audit: [Documentation Consistency Matrix](DOCUMENTATION-CONSISTENCY.md), with baseline line matches in [MATCHES.txt](MATCHES.txt). Latest Issue body re-read after Human additional requirement (updated_at 2026-11-06T12:38:44Z).
 This Plan's full immutable commit SHA will be supplied in the Draft PR and final handoff after its independent commit. No implementation is included in that commit.
 
 ## Goal
@@ -30,7 +31,8 @@ Only after Human approval of this fixed Plan and specific implementation authori
 | `AGENTS.md` | Mirror that policy concisely; preserve main-policy precedence, records and authorization gates |
 | `.github/PULL_REQUEST_TEMPLATE.md` | Expand existing Builder field and add optional handoff details plus incoming current-head Self-Review/base/scope/risk/authorization reassessment |
 | `docs/development/ISSUE_TEMPLATE_INSTALL.md` | Two entry points, contracts, creation vs comments, schema vs post-merge UI evidence; remove obsolete mandatory opposite-Agent review |
-| `README.md` | Necessary role/process paragraphs, workflow diagram/summary and manual/separately authorized deployment wording; explain V2/V3 division/integration and archive vs mastery; leave unrelated roadmap/status history alone |
+| `INSTALL.md` | Correct stale v1.1/peer-Agent package and copy-before-approval instructions; align current main/Issue/Draft/Plan and specific L3 authority; preserve vendor compatibility section and no-main-push guidance; no settings provisioning |
+| `README.md` | Necessary role/process paragraphs including Issue-first and complete Merge conditions, workflow diagram/summary and manual/separately authorized deployment wording; explain V2/V3 division/integration and archive vs mastery; leave unrelated roadmap/status history alone |
 
 `records/ISSUE-18/` may contain Plan revisions, verification evidence and post-implementation RESULT.md. No new scripts/tests/dependencies/workflows are proposed; use existing tools and one-off checks with evidence. Any need for additional production paths requires a revised Plan and renewed applicable approval.
 
@@ -61,23 +63,24 @@ Implementation is NOT authorized. No V2/V3 authorship, derivation or semantic ed
 
 ## Risk Level
 
-**L3 candidate, handled with L3 gates**: governance/accountability/authorization semantics. See investigation risk assessment. Eight implementation files form the proposed action scope. Human must approve the fixed Plan and separately authorize those edits with an accountable Builder before they begin. Existing main is the sole active repository policy until an authorized change; this Plan is not policy.
+**L3 candidate, handled with L3 gates**: governance/accountability/authorization semantics. See investigation risk assessment. Nine implementation files form the proposed action scope. Human must approve the fixed Plan and separately authorize those edits with an accountable Builder before they begin. Existing main is the sole active repository policy until an authorized change; this Plan is not policy.
 
 ## Implementation Plan
 
-1. Phase 1: preserve read-only findings, independently commit Plan v1.0 and report; open Draft PR to main, record SHA and actual verification. Stop for Human.
+1. Phase 1: preserve read-only findings, independently commit Plan and report (v1.0 already independently committed; v1.1 adds audit and scope clarification); open Draft PR to main, record SHA and actual verification. Stop for Human.
 2. After explicit Plan approval and implementation authorization: fetch main/current head, reassess changes against this baseline, confirm one Builder and record approval references. If scope/risk/base changes materially, revise Plan in a new commit and obtain renewed authorization before dependent work.
 3. Publish only the approved Plan to the Issue Timeline with fixed SHA, version, records link, scope and Human approval reference; read back both sources and record consistency.
-4. Implement the eight scoped files, preserving engineering field contract and all workflow/helper bytes. Keep learning fields honest and optional after initial information. Review role/authority wording across all eight files.
+4. Implement the nine scoped files, preserving engineering field contract and all workflow/helper bytes. Keep learning fields honest and optional after initial information. Review role/authority wording across all nine files.
 5. Execute applicable checks below, resolve failures within scope or report blockers. Do not repair unrelated historical tests/workflow under this authorization.
 6. Write `records/ISSUE-18/RESULT.md` after implementation with Results, Evidence, PR, full Commit, Deviations and Unfinished; preserve chronological Plan history. Bind final-head Self-Review in PR after any evidence/Result commit.
 7. Keep Draft until implementation, applicable verification and Result are complete and PR-status authority is confirmed. Human Merge authorization is separate and must identify the actual candidate. Deployment and any live merge/closure E2E need separate scope/authority. This Plan grants none.
 
 ## Acceptance Criteria
 
-- Two named forms, distinct purpose; all eight Learning Record topics, only initial information mandatory; milestones can be updated in comments without fabricated evidence.
+- Two named forms, distinct purpose; all nine Learning Record topics, only initial information mandatory; milestones can be updated in comments without fabricated evidence.
 - Engineering IDs/types/order/required flags remain compatible; existing Issues need no migration and PR-to-Issue linkage remains supported.
-- All eight files consistently define content ownership and exactly one tool-neutral accountable Builder; identical risk/evidence/Self-Review/authorization rules.
+- Documentation Consistency Matrix covers current operating documents and records per-hit disposition/rationale; preserve archived documents even outside archive/, all historical records and merged PR evidence. Repeat audit at final head.
+- All nine files consistently define content ownership and exactly one tool-neutral accountable Builder; identical risk/evidence/Self-Review/authorization rules.
 - Handoff records all required fields; incoming current-head review and base/scope/risk/authorization reassessment are explicit.
 - No CI/mastery conflation, implicit merge/deploy permission or archived-platform activation.
 - YAML/schema checks, applicable tests, strict MkDocs and head-specific CI succeed; workflow/helper/history preservation confirmed.
@@ -92,7 +95,8 @@ All implementation checks below are **NOT RUN** in Phase 1 unless explicitly ide
 |---|---|
 | YAML and GitHub schema | Parse both YAML files/config; compare supported top-level/body keys, IDs, labels/types, booleans and uniqueness against official Issue Forms and form-schema docs; record commands/tool versions and results. YAML parsing alone is insufficient |
 | Two intake contracts | Inspect both definitions, required/optional matrix and no fabricated defaults; preserve exactly engineering `what/why/acceptance/boundary/references` flags T/T/T/T/F; retain blank issue setting |
-| Tool-neutral roles and ownership | Read and search eight scoped files for Claude/Codex/Builder/review/deployment language; assess semantics, not blind brand replacement; verify ChatGPT+Human content boundary |
+| Documentation consistency | Repeat tracked-file inventory and keyword/semantic audit from DOCUMENTATION-CONSISTENCY.md; reconcile every MODIFY row and verify KEEP/PRESERVE paths unchanged; exclude historical evidence from policy rewrites |
+| Tool-neutral roles and ownership | Read and search nine scoped files for Claude/Codex/Builder/review/deployment language; assess semantics, not blind brand replacement; verify ChatGPT+Human content boundary |
 | Handoff | Tabletop both Claude→Codex and Codex→Claude; new head, changed base/scope/risk and missing authorization cases must require reassessment, not inherited approval |
 | Existing Issue compatibility | Compare engineering contract against fixed base; exercise existing linkage helper with non-closing `Issue: #18` reference; no edits/migration of existing Issue bodies |
 | Workflow preservation | `git diff 7e530cdc818044ae4f760a021a331f888f993e43 HEAD -- .github/workflows scripts archive` must be empty; verify merge workflow blob remains `9b014e67583818e03442f136b3aedf80f05620fc`; no live dispatch |
@@ -113,8 +117,8 @@ Report build, content, provenance, visual and deployment separately. No content 
 | Decision | Current status / exact scope |
 |---|---|
 | Phase 1 investigation, records commit and Draft PR | AUTHORIZED by linked Human task only |
-| Plan v1.0 approval at reported immutable SHA | PENDING — review this Plan and investigation |
-| L3 implementation action/scope | NOT AUTHORIZED — separately designate one Builder and authorize eight scoped files plus Issue #18 Result/evidence; clarify any requested changes via Plan revision |
+| Plan v1.1 approval at reported immutable SHA | PENDING — review this Plan and investigation |
+| L3 implementation action/scope | NOT AUTHORIZED — separately designate one Builder and authorize nine scoped files plus Issue #18 Result/evidence; clarify any requested changes via Plan revision |
 | Ready transition | NOT AUTHORIZED by Phase 1; confirm later task boundary after verification |
 | Merge / Close Issue #18 | NOT AUTHORIZED; separate operation decision for final candidate and applicable conditions |
 | Deployment / live E2E | NOT AUTHORIZED; outside implementation scope |
@@ -128,3 +132,5 @@ Rollback, if later needed: separately authorized revert PR for scoped implementa
 | Version | Date | Change | Authorization |
 |---|---|---|---|
 | v1.0 | 2026-11-06 | Initial pre-implementation Plan and main-baseline investigation; records-only independent commit | Phase 1 only; Plan approval and implementation PENDING |
+
+| v1.1 | 2026-11-06 | Human requested repository-wide current documentation audit; re-read updated Issue; add consistency matrix/search evidence and INSTALL.md to bounded scope; v1.0 remains at efe0fedf7490781f53e6467dfc4b848cafbd37fb | Phase 1 only; revised Plan and implementation PENDING |
