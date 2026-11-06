@@ -1329,3 +1329,162 @@ All planned acceptance criteria met:
 
 Next step: Return to Human for review of Commit 479402c.
 
+
+---
+
+## 9. Workflow Execution Repair (v1.5)
+
+**Date**: 2026-11-07 (post-Archive Governance Simplification)  
+**Basis**: User Direction "Archive Workflow Execution Repair"  
+**Scope**: Minimal workflow fixes only (no governance changes)
+
+### 9.1 Issues Fixed
+
+#### Fix 1 — PR Body Linkage Verification
+
+**Problem**: PR body passed to Python via shell env variable using `"""${{ env.pr_body }}"""` was unreliable for multi-line strings
+
+**Solution**:
+- Removed shell-based env variable passing
+- Moved PR data fetching into Python subprocess
+- Use GitHub API via `subprocess` + `json.loads()` for safe parsing
+- Directly use GitHub API output, avoiding shell quoting issues
+
+**Code Change** (lines 208-242):
+```python
+# Get PR data from GitHub API (safe JSON parsing)
+repo = os.environ.get('REPO')
+pr_number = int(os.environ.get('PR_NUMBER'))
+issue_number = int(os.environ.get('ISSUE_NUMBER'))
+
+pr_api_output = subprocess.run(
+    ['gh', 'api', f'repos/{repo}/pulls/{pr_number}'],
+    capture_output=True, text=True, check=True
+).stdout
+pr_data = json.loads(pr_api_output)
+pr_body = pr_data.get('body') or ''
+```
+
+**Verification**: PR body now parsed directly from GitHub API JSON
+
+#### Fix 2 — Merge SHA Compare-and-Swap Protection
+
+**Problem**: No verification that authorized HEAD SHA matches current PR head before merge
+
+**Solution**:
+- Added HEAD SHA verification before Merge API call
+- Compare `authorized_head_sha` (from workflow input) vs. current `pr.head.sha`
+- Fail-closed if mismatch (prevents merging unauthorized commits)
+
+**Code Change** (lines 249-260):
+```bash
+# Verify HEAD SHA hasn't changed since authorization
+current_head=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.head.sha')
+
+if [[ "$current_head" != "$AUTHORIZED_HEAD_SHA" ]]; then
+  echo "❌ MERGE BLOCKED: HEAD SHA changed since authorization"
+  exit 1
+fi
+```
+
+**Verification**: Merge only proceeds if HEAD SHA unchanged
+
+#### Fix 3 — Prior Closure Comments Handling
+
+**Problem**: Comments JSON passed via shell with `${{ env.comments | tojson }}` was invalid (env vars don't support jq filters)
+
+**Solution**:
+- Removed invalid shell env filter
+- Moved comments fetching into Python subprocess
+- Use GitHub API directly via `subprocess` + `json.loads()`
+- Safe JSON parsing independent of shell quoting
+
+**Code Change** (lines 330-355):
+```python
+# Get issue comments directly from GitHub API (safe JSON)
+comments_api_output = subprocess.run(
+    ['gh', 'api', f'repos/{repo}/issues/{issue_number}/comments', '--paginate'],
+    capture_output=True, text=True, check=False
+).stdout
+
+try:
+    comments_data = json.loads(comments_api_output) if comments_api_output else []
+except json.JSONDecodeError:
+    comments_data = []
+```
+
+**Verification**: Comments array now safely parsed from GitHub API
+
+#### Fix 4 — Closure Recovery with Issue Close
+
+**Problem**: If prior closure record existed, Issue Close step was skipped entirely due to `if: steps.prior_closure.outputs.prior_closure == '0'` condition
+
+**Solution**:
+- Decoupled "Post Archive Record" (idempotent, skipped if prior) from "Close Issue" (always attempted)
+- Check current issue state at start of Close step
+- If issue already closed, exit gracefully
+- If issue open, close it (regardless of prior record)
+
+**Code Change** (lines 363-391):
+```bash
+# Check current issue state
+issue_state=$(gh api repos/$REPO/issues/$ISSUE_NUMBER --jq '.state')
+
+if [[ "$issue_state" == "closed" ]]; then
+  echo "ℹ️  Issue #$ISSUE_NUMBER already closed"
+  exit 0
+fi
+
+# Issue is open, close it
+close_result=$(gh issue close $ISSUE_NUMBER --repo $REPO 2>&1)
+```
+
+**Verification**: Issue Close now independent of prior closure record post
+
+### 9.2 Workflow Architecture Changes
+
+| Component | Before | After | Change |
+|-----------|--------|-------|--------|
+| PR Body Passing | Shell env var | Python subprocess | ✅ Safe JSON |
+| Comments Fetching | Invalid shell filter | Python subprocess | ✅ Safe JSON |
+| HEAD SHA Verify | None | Added pre-merge check | ✅ Compare-and-swap |
+| Close Issue Logic | Conditional on prior | Always attempted | ✅ Independent |
+
+### 9.3 Test Results
+
+**Local Tests** (all passing):
+- ✅ 12 mock tests (PR linkage + prior closure dedup)
+- ✅ 10 governance tests
+- ✅ MkDocs strict build
+
+**Verification**:
+- Python syntax valid (both helpers and tests)
+- GitHub API subprocess calls properly handle JSON
+- Prior closure detection still functional
+- Issue close logic independent of record posting
+
+### 9.4 Safety Improvements
+
+1. **Shell Injection Prevention**:
+   - Removed `"""${{ }}"""` string embedding
+   - Use subprocess + JSON for all GitHub API data
+   - No eval-like constructs
+
+2. **Idempotency Guarantee**:
+   - Prior record detection: Only based on PR# + full Merge SHA + archive marker
+   - Issue close: Checks current state, always proceeds if open
+   - No rerun race conditions
+
+3. **Compare-and-Swap Merge**:
+   - HEAD SHA verified immediately before merge
+   - Prevents race condition where new commits pushed between authorization and merge
+
+### 9.5 Remaining Limitations
+
+1. **GitHub API Rate Limiting**: No retry logic (mitigated by typical <10 runs/hour)
+2. **Workflow YAML Validation**: No linting performed on file itself
+3. **Manual Workflow Activation**: Still requires Human to trigger workflow_dispatch
+
+---
+
+## 10. Final Status (v1.5)
