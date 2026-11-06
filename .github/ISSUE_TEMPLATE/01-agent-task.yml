@@ -1,0 +1,66 @@
+name: "Agent Task｜學習與開發需求"
+description: "以 WHAT、WHY、Acceptance Criteria、Boundary 提交 Learning Hub 工作需求。"
+title: "[CLH-XXX] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Human 定義需求；Codex 與 Claude Code 對等協作
+        請填寫需求、理由、驗收標準與工作邊界；不必自行選擇 Agent 或預先指定風險等級。
+
+        Agent 依實際影響判斷 L0–L3；錯字格式 L0、實質教材與一般程式 L1、重大架構 L2、權限／治理／部署等 L3。
+        L1 起需要另一 Agent 可追溯的交叉 Review。L2／L3 必須有事前 Plan、Human 對 Plan／範圍的核准與事後 Result；L3 另需 Human 對具體操作授權。
+        提早建立 Draft PR 不代表已獲實作或合併授權。適用測試及 CI、Review、未解阻擋與 Merge 操作授權須分別確認。
+        目前 Auto-Merge 與自動部署均未啟用；Issue Form 不授予任何合併、部署或高風險操作權限。
+        以目前 main 的 GOVERNANCE.md 與 AGENTS.md 為準。
+
+  - type: textarea
+    id: what
+    attributes:
+      label: "WHAT｜要做什麼"
+      description: "說明預期交付成果。"
+      placeholder: "例：新增 Operating Systems 的 Process Scheduling 教學頁面及 NachOS 程式碼對照。"
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: "WHY｜為什麼"
+      description: "說明問題和預期改善。"
+      placeholder: "例：目前缺少可以由概念連結至實際程式碼的學習入口。"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Acceptance Criteria｜驗收標準"
+      description: "列出可以客觀核對的完成條件。"
+      placeholder: |
+        - [ ] 內容與導覽連結可用
+        - [ ] 程式碼來源與驗證證據清楚
+        - [ ] 適用的 MkDocs strict build 與測試通過
+    validations:
+      required: true
+
+  - type: textarea
+    id: boundary
+    attributes:
+      label: "Boundary｜工作邊界"
+      description: "列出 In Scope、Out of Scope 及禁止更動事項。"
+      placeholder: |
+        In Scope: 指定學科教材與導覽
+        Out of Scope: 其他學科、NachOS 核心原始碼
+        Must Not: 更改 GitHub Settings、部署或直接推送 main
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: "References / Evidence｜參考資料"
+      description: "相關教材、Issue、檔案路徑或證據；選填。"
+      placeholder: "例：相關 PDF、現有程式碼路徑、參考 PR 連結。"
+    validations:
+      required: false
