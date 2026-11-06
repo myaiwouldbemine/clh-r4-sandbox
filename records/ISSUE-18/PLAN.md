@@ -132,5 +132,4 @@ Rollback, if later needed: separately authorized revert PR for scoped implementa
 | Version | Date | Change | Authorization |
 |---|---|---|---|
 | v1.0 | 2026-11-06 | Initial pre-implementation Plan and main-baseline investigation; records-only independent commit | Phase 1 only; Plan approval and implementation PENDING |
-
 | v1.1 | 2026-11-06 | Human requested repository-wide current documentation audit; re-read updated Issue; add consistency matrix/search evidence and INSTALL.md to bounded scope; v1.0 remains at efe0fedf7490781f53e6467dfc4b848cafbd37fb | Phase 1 only; revised Plan and implementation PENDING |
