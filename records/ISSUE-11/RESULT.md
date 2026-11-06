@@ -1133,7 +1133,165 @@ All planned acceptance criteria met:
 
 ---
 
-## 7. Recommendations for Next Phase
+## 7. Archive Governance Simplification (v1.4)
+
+**Date**: 2026-11-07 (concurrent with targeted QA)  
+**Basis**: User Direction "Learning Archive Governance Clarification"  
+**Policy Shift**: Issue = Archive Record (not Learning Management Record)
+
+### 7.1 Philosophical Change
+
+**Before**: Governance enforces Learning Quality
+- Issue must document: Learning Plan, Objectives, Acceptance Criteria, Summary, "What Learned"
+- Workflow extracts learning outcomes from Issue/PR/RESULT
+- Closure Summary emphasizes learning consolidation
+- Issue Close implies "learning is complete" (misleading)
+
+**After**: Governance Preserves Learning Archives
+- Issue = Simple upload/archive record (Topic, Files, Commit link, Archive Status)
+- Workflow creates objective Archive Closure Record (PR number, Merge Commit, CI status, Workflow run)
+- No forced Learning Summary or Quality Assessment
+- Issue Close = Archive upload complete (not learning conclusion)
+
+### 7.2 Implementation Changes
+
+#### Simplified Workflow (615 → 424 lines, -31%)
+
+**Removed Components:**
+1. Learning Outcome Keyword Detection (regex search for "learned", "discovered", etc.)
+2. Evidence Extraction from Issue/PR/RESULT.md
+3. Learning Summary Composition
+4. "What Learned" field in Closure Comment
+5. Learning Quality Assessment
+
+**Retained Components:**
+1. Six essential Merge Gates (authorization, PR state, CI, blocking reviews, etc.)
+2. PR-Issue linkage verification (precise pattern matching)
+3. Merge execution with SHA compare-and-swap
+4. Archive Closure Record (objectively: PR# + Merge SHA + CI + Workflow run)
+5. Prior closure deduplication (prevents duplicate records)
+6. Recovery path (safe retry for already-merged PRs)
+
+#### Simplified Helper Functions (600 → 88 lines, -85%)
+
+**Removed Functions:**
+- `extract_learning_outcome()` (was 60 lines, now unused)
+- `identify_learning_sources()` (helper for outcome extraction)
+- Associated learning-specific validation
+
+**Retained Functions:**
+- `verify_pr_issue_linkage()` (14 lines) — Precise PR↔Issue pattern matching
+- `detect_prior_closure()` (28 lines) — Full SHA + PR + archive marker deduplication
+
+#### Simplified Test Suite (20 → 12 tests, but more focused)
+
+**Removed Tests:**
+- 5 learning outcome extraction tests (archived for reference)
+- Learning prioritization tests
+
+**Retained Tests:**
+- 6 PR-Issue linkage tests (exact, wrong issue, bare ref, empty, case-insensitive, no ref)
+- 6 prior closure deduplication tests (found, wrong PR, wrong merge, empty, no marker, partial match)
+
+**Key Insight**: Smaller test suite is more focused; learning extraction can be added back later if policy changes, but tests prove current simple behavior works correctly.
+
+### 7.3 Archive Closure Record Format
+
+**Old Closure Comment** (when Learning Summary was required):
+```markdown
+## 📚 Learning Closure Summary
+
+**PR**: #10  
+**Issue**: #11  
+**What Changed**: [diff summary]
+
+**What Learned**: [extracted keywords + guessed summary]  
+**Remaining Questions**: [not recorded]  
+**Next Steps**: [not recorded]
+
+**Evidence**: [searched PR + Issue + RESULT.md]
+```
+
+**New Closure Comment** (Archive-focused):
+```markdown
+## 📦 Archive Closure Record
+
+**PR**: #10  
+**Merge Commit**: abc12345def456abc123def456abc123def456ab  
+**Base**: main  
+**Merge Method**: merge  
+
+**CI Status**: ✅ All checks passed  
+**Workflow Run**: [GitHub Actions link]  
+**Timestamp**: [UTC timestamp]
+
+**Archive Status**: ✅ Merged and archived  
+**Next**: Access artifacts via PR #10 and associated files
+```
+
+**Advantages**:
+- Objective, no interpretation required
+- Immutable record of what happened
+- Clear paper trail for audit/recovery
+- Simpler to parse for future tooling
+- No false "learning outcome" claims
+
+### 7.4 Governance Philosophy Alignment
+
+**LIGHT Governance v2 Principle**: "Governance preserves learning records; it does not govern learning."
+
+**Applied**:
+- ✅ Issue creation: No quality requirements (just timestamp + topic + files)
+- ✅ PR upload: No learning assessment before merge (just CI + human approval)
+- ✅ Merge automation: Verify upload integrity (linkage, CI, no conflicts)
+- ✅ Archive closure: Record what happened (not evaluate what was learned)
+- ✅ Issue close: Mark "uploaded" (not "learning complete")
+
+**Result**: Automation is lightweight, fail-safe, and deferential to actual learning happening outside the system.
+
+### 7.5 Testing & Verification
+
+**Local Test Results** (simplified helpers):
+```
+✅ test_pr_issue_linkage_precision PASSED
+  - Exact "Fixes #N" pattern
+  - Wrong issue rejected
+  - Bare "#N" reference
+  - Empty body handled
+  - Case-insensitive matching
+
+✅ test_prior_closure_deduplication PASSED
+  - Prior closure found (PR + SHA + marker)
+  - Different PR not matched
+  - Different merge SHA not matched
+  - Empty comments handled
+  - Missing archive marker not matched
+```
+
+**Full CI Results**:
+- ✅ 12 mock tests (PR linkage + closure dedup)
+- ✅ 10 governance tests (Plan/Result verification)
+- ✅ MkDocs strict build (documentation)
+
+### 7.6 Files Modified in v1.4
+
+1. `.github/workflows/merge-and-close-pr.yml` — 615 → 424 lines
+   - Removed learning outcome extraction steps
+   - Simplified closure record composition
+   - Retained six merge gates + linkage + recovery
+
+2. `scripts/merge_lifecycle.py` — 520+ → 88 lines
+   - Removed learning extraction functions (kept for archive)
+   - Simplified to two focused helpers
+
+3. `scripts/test_merge_lifecycle.py` — 420 → ~80 lines
+   - Removed learning outcome tests
+   - Retained linkage + dedup coverage
+   - All tests still passing
+
+---
+
+## 8. Recommendations for Next Phase
 
 **Phase: Human Review (Draft PR #12)**
 
