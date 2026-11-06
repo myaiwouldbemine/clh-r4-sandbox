@@ -79,12 +79,4 @@ def publish(gh, number):
                'head': branch, 'base': 'main', 'draft': True, 'body': body})
 
 if __name__ == '__main__':
-    import sys
-    gh = GitHub(os.environ['GITHUB_REPOSITORY'])
-    try:
-        if sys.argv[1] == 'prepare':
-            prepare(gh, json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text()))
-        else:
-            publish(gh, int(sys.argv[2]))
-    except Blocked as error:
-        raise SystemExit(f'BLOCKED: {error}')
+    raise SystemExit('BLOCKED: hosted publisher retired; use local git/PR operations. Library retained for historical regression tests.')

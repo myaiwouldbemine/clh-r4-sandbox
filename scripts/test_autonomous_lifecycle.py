@@ -178,7 +178,9 @@ class LifecycleTests(unittest.TestCase):
             return original(path,**kw)
         f.get=get
         f.comments=[{'id':1,'body':f'<!-- clh-deployed:{MERGE} -->\n'+json.dumps({'run_id':'123','url':'https://owner.github.io/repo/'})}]
-        process(f,21)
+        with patch('autonomous_lifecycle.read_deployed_sha') as readback:
+            process(f,21)
+        readback.assert_called_once_with('https://owner.github.io/repo/', MERGE)
         self.assertEqual(f.issue['state'],'closed')
     def test_deploy_failed_run_does_not_archive(self):
         f=Fake(); f.pr['body']=body(deployment=True)

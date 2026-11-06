@@ -143,9 +143,9 @@ mkdocs build --strict
 - Execution Flow / State Trace。
 - 理解驗收與證據文件化。
 
-## 7. Issue-Driven Autonomous Governance｜Issue 驅動自主工程
+## 7. On-Demand Autonomous Engineering｜按需自主工程
 
-Human 只需開立工程 Issue，定義 WHAT／WHY／DONE／邊界。唯一 accountable Builder（Codex 或 Claude Code）自主規劃、實作、測試、自審、維護 PR、Ready、Merge、適用部署、Evidence 歸檔與結案；不使用 L0–L3 或重複 Human 工程核准。
+Human 建立工程 Issue，並在需要時啟動 Codex App／本機 Agent，定義 WHAT／WHY／DONE／邊界。唯一 accountable Builder（Codex 或 Claude Code）自主規劃、實作、測試、自審、維護 PR、Ready、Merge、適用部署、Evidence 歸檔與結案；不使用 L0–L3 或重複 Human 工程核准。
 
 ChatGPT＋Human 保有 V2 Knowledge Consolidation／V3 Code-First Deep Dive 的創作、推導、語義品質、核准與最終整合。製作時分開、定稿時合併、網站依主題呈現。工程 Agent 只忠實匯入已核准教材；缺少語義核准時標記 PENDING／BLOCKED。
 
@@ -155,15 +155,15 @@ ChatGPT＋Human 保有 V2 Knowledge Consolidation／V3 Code-First Deep Dive 的�
 
 ## 8. Deployment｜網站部署
 
-設計流程為 main 合併後以 strict MkDocs 建置、GitHub Pages 部署，讀回 deployment SHA，再歸檔證據與結案。非網站任務不強制部署。Merge 不代表部署成功。
+設計流程為通過 Gate 並合併 main 後，由本機 Builder 指定 merge SHA 啟動 GitHub Actions，以 strict MkDocs 建置、GitHub Pages 部署，讀回 deployment SHA，再歸檔證據與結案。非網站任務不強制部署。Merge 不代表部署成功。
 
-**啟用狀態：遷移實作與正式啟用分開；初次稽核尚無 Runner 憑證、main 保護或 Pages。** 最新結果見 [Issue #20](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/20)。未完成真實 E2E 不宣稱全自主上線。
+**實作與正式驗收分開：本機流程使用既有 App 登入與 gh auth，不需要額外模型或自動化 Token。** 最新結果見 [Issue #20](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/20)。未完成真實 E2E 不宣稱全自主上線。
 
 ## 9. Project Status｜目前進度
 
 Issue #20 的自主治理遷移使用獨立 PR #21；既有 Issue #18／PR #19 的雙語化與學習表單歷史保留。main 已設定必要 CI、PR-only、無 bypass 的原生規則，Pages 已設定 Actions 來源；這不代表網站已部署。
 
-自動化仍未啟用：缺少模型與工程自動化傳輸憑證，真實 Agent → Merge → Deploy → Archive → Close E2E 尚未完成。最新完整 SHA、CI、Result 與阻擋原因以 PR #21 為準。
+已改為按需工程候選：停用 hosted Agent 與排程 Merge。電腦／App 關閉時不執行新工程，已提交 CI／Pages 可繼續；下次由 Builder 讀回狀態恢復。真實 Merge → Deploy → Archive → Close E2E 尚未完成，本次修訂維持 Draft 且不 Merge／Deploy／Close。最新完整 SHA、CI、Result 與阻擋原因以 PR #21 為準。
 
 ## 10. Roadmap｜未來發展
 

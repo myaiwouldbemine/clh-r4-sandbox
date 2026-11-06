@@ -1,8 +1,11 @@
 name: Deploy GitHub Pages
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: 'Full reviewed merge SHA; must still be main'
+        required: true
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -10,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   applicability:
-    if: vars.CLH_AUTONOMY_ENABLED == 'true' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,22 +27,27 @@ jobs:
       - id: check
         env:
           GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
         run: |
           python - <<'PYCODE'
           import os, sys
           sys.path.insert(0, 'scripts')
-          from autonomous_lifecycle import GitHub, metadata
+          from autonomous_lifecycle import GitHub, metadata, require, protection
           gh = GitHub(os.environ['GITHUB_REPOSITORY'])
           sha = os.environ['GITHUB_SHA']
+          require(sha == os.environ['EXPECTED_SHA'], 'Dispatch SHA changed')
+          require(gh.get('git/ref/heads/main')['object']['sha'] == sha, 'Main advanced before deployment')
+          protection(gh)
           prs = gh.pages(f'commits/{sha}/pulls')
           applicable = any(p['merged_at'] and p['merge_commit_sha'] == sha and
                            metadata(p['body'])['deployment'] for p in prs)
+          require(applicable, 'No merged PR requiring deployment for this SHA')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
               f.write(f'deploy={str(applicable).lower()}\n')
           PYCODE
   build:
     needs: applicability
-    if: needs.applicability.outputs.deploy == 'true' && vars.CLH_AUTONOMY_ENABLED == 'true' && github.ref == 'refs/heads/main'
+    if: needs.applicability.outputs.deploy == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

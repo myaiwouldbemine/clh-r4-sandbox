@@ -8,6 +8,8 @@ import re
 import subprocess
 import urllib.request
 from pathlib import Path
+from contextlib import contextmanager
+import fcntl
 
 REQUIRED = {'docs-check', 'governance-tests'}
 SHA = re.compile(r'[0-9a-f]{40}')
@@ -170,13 +172,19 @@ def archive_close(gh, pr, m, deployment):
         comment = gh.get(f'issues/{issue}/comments', method='POST', data={'body': record})
     readback = gh.get(f'issues/comments/{comment["id"]}')
     require(readback['body'] == record, 'Archive remote readback mismatch')
+    current_issue = gh.get(f'issues/{issue}')
+    require(hashlib.sha256(current_issue['body'].encode()).hexdigest() == m['issue_body_sha256'],
+            'Issue changed before closure')
+    require(gh.get(f'pulls/{pr["number"]}')['body'] == pr['body'], 'PR evidence changed before closure')
     gh.get(f'issues/{issue}', method='PATCH', data={'state': 'closed', 'state_reason': 'completed'})
     require(gh.get(f'issues/{issue}')['state'] == 'closed', 'Closure readback failed')
 
 
-def process(gh, number):
+def process(gh, number, *, expected_head=None, expected_base=None, check_only=False):
     pr = gh.get(f'pulls/{number}')
     m = metadata(pr['body'])
+    require(expected_head is None or expected_head == m['head'], 'Expected head differs')
+    require(expected_base is None or expected_base == m['base'], 'Expected base differs')
     require(pr['base']['ref'] == 'main' and pr['head']['repo']['full_name'] == gh.repo, 'Unsupported PR source/base')
     require(pr['head']['sha'] == m['head'], 'Stale reviewed head')
     issue = gh.get(f'issues/{m["issue"]}')
@@ -201,13 +209,25 @@ def process(gh, number):
         current = gh.get(f'pulls/{number}')
         require(current['head']['sha'] == m['head'] and current['body'] == pr['body'], 'PR changed during validation')
         require(gh.get('git/ref/heads/main')['object']['sha'] == base, 'Base changed during validation')
+        require(gh.get(f'issues/{m["issue"]}') == issue, 'Issue changed during validation')
+        if check_only:
+            return 'PASS: read-only merge gates; no Ready, merge, deployment, archive or close'
         if current['draft']:
             gh.graphql('''mutation($id:ID!){markPullRequestReadyForReview(input:{pullRequestId:$id}){pullRequest{isDraft}}}''', id=pr['node_id'])
-        require(not gh.get(f'pulls/{number}')['draft'], 'Still Draft')
+        current = gh.get(f'pulls/{number}')
+        require(not current['draft'], 'Still Draft')
+        require(current['head']['sha'] == m['head'] and current['body'] == pr['body']
+                and current['state'] == 'open' and current['mergeable'] is True, 'PR changed after Ready')
+        require(gh.get('git/ref/heads/main')['object']['sha'] == base, 'Base changed after Ready')
+        require(gh.get(f'issues/{m["issue"]}') == issue, 'Issue changed after Ready')
+        successful_checks(gh, m['head'])
+        threads_clear(gh, number)
         merged = gh.get(f'pulls/{number}/merge', method='PUT', data={'sha': m['head'], 'merge_method': 'merge'})
         require(merged.get('merged') is True, 'GitHub refused merge')
         pr = gh.get(f'pulls/{number}')
     require(pr['merged'] is True and bool(SHA.fullmatch(pr['merge_commit_sha'])), 'Merge readback invalid')
+    if check_only:
+        return 'PASS: merged PR observed; no deployment, archive or close performed'
     if m['deployment']:
         # Deployment job records a marker only after remote SHA readback. Verify run independently.
         prefix = f'<!-- clh-deployed:{pr["merge_commit_sha"]} -->\n'
@@ -218,20 +238,19 @@ def process(gh, number):
         run = gh.get(f'actions/runs/{int(d["run_id"])}')
         require(run['head_sha'] == pr['merge_commit_sha'] and run['conclusion'] == 'success'
                 and run['path'] == '.github/workflows/pages.yml' and run['head_branch'] == 'main', 'Deployment workflow not successful for merge SHA')
+        read_deployed_sha(d['url'], pr['merge_commit_sha'])
         deployment = {'status': 'PASS', 'sha': run['head_sha'], 'workflow': run['html_url'], 'url': d['url']}
     else:
         deployment = {'status': 'NOT RUN', 'reason': 'Not applicable to this task'}
+    require(gh.get(f'issues/{m["issue"]}') == issue, 'Issue changed before archive')
+    require(gh.get(f'pulls/{number}')['body'] == pr['body'], 'PR evidence changed before archive')
     archive_close(gh, pr, m, deployment)
 
 
 def deployment_verified(gh, sha, run_id):
     require(bool(SHA.fullmatch(sha)), 'Invalid deployment SHA')
     page = gh.get('pages')
-    url = page['html_url'].rstrip('/') + '/deployment-sha.txt'
-    require(url.startswith('https://'), 'HTTPS Pages URL required')
-    with urllib.request.urlopen(url + '?sha=' + sha, timeout=30) as response:
-        actual = response.read(128).decode().strip()
-    require(actual == sha, 'Remote deployment SHA mismatch')
+    read_deployed_sha(page['html_url'], sha)
     for pr in gh.pages(f'commits/{sha}/pulls'):
         if not pr['merged_at'] or pr['merge_commit_sha'] != sha:
             continue
@@ -244,40 +263,60 @@ def deployment_verified(gh, sha, run_id):
             gh.get(f'issues/{m["issue"]}/comments', method='POST', data={'body': body})
 
 
-def reconcile(gh):
-    # Includes merged-but-not-closed work. Avoid unrelated historical PRs.
-    failures = []
-    for pr in gh.pages('pulls?state=all&sort=updated&direction=desc'):
-        if '<!-- clh-lifecycle' not in (pr['body'] or ''):
-            continue
+def read_deployed_sha(site_url, sha):
+    require(bool(SHA.fullmatch(sha)), 'Invalid deployment SHA')
+    require(site_url.startswith('https://'), 'HTTPS Pages URL required')
+    url = site_url.rstrip('/') + '/deployment-sha.txt?sha=' + sha
+    with urllib.request.urlopen(url, timeout=30) as response:
+        actual = response.read(128).decode().strip()
+    require(actual == sha, 'Remote deployment SHA mismatch')
+
+
+@contextmanager
+def local_lock():
+    # Shared across worktrees; OS releases this advisory lock after a crash.
+    common = subprocess.check_output(['git', 'rev-parse', '--git-common-dir'], text=True).strip()
+    with (Path(common) / 'clh-lifecycle.lock').open('a') as handle:
         try:
-            m = metadata(pr['body'])
-            if gh.get(f'issues/{m["issue"]}')['state'] == 'closed':
-                continue
-            process(gh, pr['number'])
-        except (Blocked, KeyError, ValueError) as error:
-            message = f'BLOCKED PR #{pr["number"]}: {error}'
-            print(message)
-            failures.append(message)
-            # No secrets/raw API output. Deduplicate identical blocker records.
-            body = '<!-- clh-blocker -->\n' + message
-            comments = gh.pages(f'issues/{pr["number"]}/comments')
-            if not any(c['body'] == body for c in comments):
-                gh.get(f'issues/{pr["number"]}/comments', method='POST', data={'body': body})
-    require(not failures, 'One or more lifecycle operations blocked; see PR evidence')
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise Blocked('Another local lifecycle operation is active') from error
+        try:
+            yield
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('command', choices=['check', 'run', 'deployment', 'preflight'])
+    parser.add_argument('--repo', default=os.environ.get('GITHUB_REPOSITORY'))
+    parser.add_argument('--pr', type=int)
+    parser.add_argument('--head'); parser.add_argument('--base')
+    parser.add_argument('--sha'); parser.add_argument('--run-id')
+    args = parser.parse_args(argv)
+    require(bool(args.repo), 'Explicit --repo or GITHUB_REPOSITORY required')
+    github = GitHub(args.repo)
+    if args.command == 'deployment':
+        require(args.sha is not None and args.run_id is not None, 'Deployment SHA/run required')
+        deployment_verified(github, args.sha, args.run_id)
+    elif args.command == 'preflight':
+        protection(github)
+        print('PASS: native protection readback; no mutation')
+    else:
+        require(args.pr is not None and args.pr > 0, 'One explicit PR required')
+        require(bool(SHA.fullmatch(args.head or '')) and bool(SHA.fullmatch(args.base or '')),
+                'Explicit full expected head/base required')
+        with local_lock():
+            result = process(github, args.pr, expected_head=args.head,
+                             expected_base=args.base, check_only=args.command == 'check')
+            print(result or 'PASS: lifecycle completed and read back')
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['reconcile', 'deployment', 'preflight'])
-    parser.add_argument('--sha'); parser.add_argument('--run-id')
-    args = parser.parse_args()
-    github = GitHub(os.environ['GITHUB_REPOSITORY'])
     try:
-        if args.command == 'deployment':
-            deployment_verified(github, args.sha, args.run_id)
-        elif args.command == 'preflight':
-            protection(github)
-        else:
-            reconcile(github)
-    except (Blocked, KeyError, ValueError) as error:
-        raise SystemExit(f'BLOCKED: {error}')
+        main()
+    except (Blocked, KeyError, ValueError, OSError, subprocess.SubprocessError) as error:
+        # No credential/raw API output in failure evidence. Builder records cause/recovery.
+        message = str(error) if isinstance(error, Blocked) else type(error).__name__
+        raise SystemExit(f'BLOCKED: {message}')

@@ -4,4 +4,4 @@ Engineering Task collects WHAT, WHY, Acceptance Criteria (DONE), Boundary, and o
 
 Learning records and unapproved V2/V3 semantics remain owned by ChatGPT + Human. Engineering agents must mark missing semantic approval PENDING/BLOCKED; a learning record is not automatically an engineering job.
 
-The form alone starts no AI. See AUTONOMOUS_OPERATIONS.md and INSTALL.md for runner credentials, native GitHub protections, deployment setup and actual activation status. Do not confuse CI or closure with learning mastery.
+The form alone starts no AI. See AUTONOMOUS_OPERATIONS.md and INSTALL.md for existing App/gh sign-in, on-demand startup, native GitHub protections, deployment setup and actual verification status. Do not confuse CI or closure with learning mastery.

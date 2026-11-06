@@ -9,7 +9,7 @@ body:
         Codex 或 Claude Code 擔任唯一 accountable Builder，負責調查、實作、測試、自審、PR、Merge、適用部署、Evidence 與結案。
         不使用風險分級或重複 Human 工程核准。遵守 CI 與 GitHub 保護，不繞過權限。
         ChatGPT＋Human 保有 V2／V3 教材創作與語義核准；工程僅匯入已核准內容。
-        實際自動啟動取決於 Runner 與安裝設定；缺少時明確標記 BLOCKED，不能以 Issue Form 冒充自動化。
+        Human 在需要時啟動 Codex App／本機 Agent；不安排關機後的無人值守工程。使用既有 App 登入與 gh auth；Issue Form 本身不啟動 Agent。
 
   - type: textarea
     id: what

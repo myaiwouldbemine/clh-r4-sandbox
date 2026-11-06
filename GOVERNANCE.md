@@ -1,6 +1,6 @@
-# Issue-Driven Autonomous Governance
+# On-Demand Autonomous Engineering
 
-Human-Issue-Only：Human myaiwouldbemine 定義 WHAT／WHY／DONE 及邊界，保留管理、需求修改及緊急停止權。工程 Agent 自主完成其餘生命週期，不使用 L0–L3，不再要求 Plan、Implementation、Ready、Merge、Deployment 或 Closure 的重複 Human Approval。Issue／PR 是記錄與追溯，不是人工審批程序。
+On-Demand：Human myaiwouldbemine 在需要時啟動 Codex App／本機 Agent，定義 WHAT／WHY／DONE 及邊界，保留管理、需求修改及緊急停止權。工程 Agent 自主完成其餘生命週期，不使用 L0–L3，不再要求 Plan、Implementation、Ready、Merge、Deployment 或 Closure 的重複 Human Approval。Issue／PR 是記錄與追溯，不是人工審批程序。
 
 ## 責任與教材
 
@@ -32,7 +32,7 @@ Merge、Deployment、Archive、Closure 各有獨立結果。必要工程與部�
 
 失敗即停止受影響操作並留下 Blocker Evidence；Agent 在既有權限內自主修正、有限重試，不要求一般修正逐項核准。不得任意擴張 Token 權限、未授權讀取或外洩 Secrets。
 
-實作與啟用分開驗證；只有 Runner、權限、CI、main 保護、重試及回復路徑確認後才正式啟用。技術條件缺少時如實 BLOCKED；安裝開關只用於首次啟用與緊急停止，不是每個 Issue 的核准 Token。需要管理員才能完成的設定列明精確操作，不假裝已完成。詳見 INSTALL.md 與 docs/development/AUTONOMOUS_OPERATIONS.md。
+實作與啟用分開驗證；只有本機執行環境、既有 gh auth 權限、CI、main 保護、重試及回復路徑確認後才正式啟用。正常流程不需額外 OPENAI_API_KEY／CLH_AUTOMATION_TOKEN；App 登入與 GitHub 登入分開驗證。沒有 hosted Issue Agent、排程工程或背景 Merge；關閉 App 後停止工程，已送出的 CI／Pages 可完成，重啟時讀回遠端狀態並重新自審，不重複 Merge。技術條件缺少時如實 BLOCKED；本機停止操作及必要時取消已送出的 Pages 工作即可停止新動作；不需要自動化啟用變數或每個 Issue 的核准 Token。需要管理員才能完成的設定列明精確操作，不假裝已完成。詳見 INSTALL.md 與 docs/development/AUTONOMOUS_OPERATIONS.md。
 
 回復用適用測試及自審的 revert PR，保留歷史，不 reset／force push main。Human 可主動停止任務或調整需求。
 

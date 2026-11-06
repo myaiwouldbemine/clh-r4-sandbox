@@ -4,11 +4,11 @@
 
 **繁體中文**
 
-先讀 GOVERNANCE.md 與 Issue 的 WHAT／WHY／DONE／邊界。Human myaiwouldbemine 保留管理權，只需開立工程 Issue；範圍內的調查、規劃、實作、測試、自審、PR、Ready、Merge、部署、歸檔及結案由 Agent 自主完成，不需重複 Human 核准。
+先讀 GOVERNANCE.md 與 Issue 的 WHAT／WHY／DONE／邊界。Human myaiwouldbemine 保留管理權，開立工程 Issue 並在需要時啟動 Codex App／本機 Agent；範圍內的調查、規劃、實作、測試、自審、PR、Ready、Merge、部署、歸檔及結案由 Agent 自主完成，不需重複 Human 核准。
 
 **English**
 
-Read GOVERNANCE.md and the Issue WHAT/WHY/DONE/boundary. Human myaiwouldbemine retains administration and only needs to open an engineering Issue; the Agent autonomously performs investigation, planning, implementation, tests, Self-Review, PR, Ready, merge, deployment, archival and closure within scope, without repeated Human approval.
+Read GOVERNANCE.md and the Issue WHAT/WHY/DONE/boundary. Human myaiwouldbemine retains administration, opens an engineering Issue and starts Codex App / the local Agent when needed; the Agent autonomously performs investigation, planning, implementation, tests, Self-Review, PR, Ready, merge, deployment, archival and closure within scope, without repeated Human approval.
 
 ## 02. 單一 Builder
 
@@ -134,11 +134,11 @@ Never push main directly, force push, bypass protections, arbitrarily expand tok
 
 **繁體中文**
 
-分開驗證實作與正式啟用。確認 Runner、權限、CI、保護規則、重試與回復路徑後才啟用；缺少技術條件如實標記 BLOCKED，不虛構完成或要求逐項工程核准。Human 可修改需求或主動停止；回復用經適用測試的 revert PR，不重寫 Git 歷史。
+分開驗證實作與正式啟用。採 On-Demand Autonomous Engineering，不要求關機或 App 關閉後繼續工程；正常本機流程使用既有 App 登入與 gh auth，不依賴額外 OPENAI_API_KEY 或 CLH_AUTOMATION_TOKEN。確認本機執行環境、權限、CI、保護規則、重試與回復路徑後才啟用；中斷後重新讀取遠端 head／base、Issue、PR、部署與歸檔狀態再恢復，不重複合併；缺少技術條件如實標記 BLOCKED，不虛構完成或要求逐項工程核准。Human 可修改需求或主動停止；回復用經適用測試的 revert PR，不重寫 Git 歷史。
 
 **English**
 
-Verify implementation separately from activation. Enable only after confirming the runner, permissions, CI, protection rules, retries and rollback path; report missing technical prerequisites as BLOCKED, never fabricate completion or demand per-step engineering approval. Human may change requirements or stop work; roll back through a revert PR with applicable tests, without rewriting Git history.
+Verify implementation separately from activation. Use On-Demand Autonomous Engineering; engineering need not continue when the computer or App is off. The normal local workflow uses existing App sign-in and gh auth without an additional OPENAI_API_KEY or CLH_AUTOMATION_TOKEN. Enable only after confirming the local execution environment, permissions, CI, protection rules, retries and rollback path; after interruption, reread remote head/base, Issue, PR, deployment and archive state before resuming, without merging again; report missing technical prerequisites as BLOCKED, never fabricate completion or demand per-step engineering approval. Human may change requirements or stop work; roll back through a revert PR with applicable tests, without rewriting Git history.
 
 ## 15. 輕量治理
 

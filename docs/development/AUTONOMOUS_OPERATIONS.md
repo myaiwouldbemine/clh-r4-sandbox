@@ -1,52 +1,89 @@
-# Autonomous engineering operation
+# On-Demand Autonomous Engineering
 
-Policy: GOVERNANCE.md and paired bilingual AGENTS.md. Status: implementation candidate; activation and live E2E are blocked until the installation prerequisites below are proven. Issue #20 / PR #21 record the migration; #18/#19 remain historical and untouched.
+Human + ChatGPT plan/approve educational content and create an engineering Issue. Human starts Codex App when needed. One recorded accountable Builder handles planning, implementation, tests, Self-Review, PR and gated lifecycle autonomously. No routine Human merge or per-step approval. GOVERNANCE.md and the complete paired bilingual AGENTS.md remain controlling policy.
 
-## Startup and credentials
+繁體中文摘要：按需啟動本機 Builder；保留原有安全與驗證標準。電腦或 App 關閉時不執行新工程，已送出的 GitHub CI／Pages 工作可完成。重啟時讀回遠端實況，不把舊審查當作新 SHA 的證據。教材語義仍由 ChatGPT＋Human 核准。
 
-Owner creates an Engineering Task with WHAT/WHY/DONE/boundary. `Issue Agent` runs the official pinned openai/codex-action on a GitHub-hosted runner. It reads the current Issue, checks protection, uses deterministic `codex/issue-N`, commits an attempt marker, and runs Codex without a GitHub write token. Publishing uses a separate job, trusted main scripts, a Git bundle and normal non-force push. AI-generated code is not executed by the publish/merge jobs. Codex and Claude Code may follow the same evidence contract; the supplied hosted adapter currently runs Codex only.
+## Login and execution boundary
 
-`OPENAI_API_KEY` supplies model access. `CLH_AUTOMATION_TOKEN` is an existing, repository-scoped automation transport with contents/pull-requests/issues write, Actions/checks/statuses/Pages read, metadata read, and workflow update permission only if engineering workflows must be modified. Do not copy the current local gh OAuth credential into Actions, broaden its scopes, create a new governance App or disclose secret values. Prefer native rulesets so runtime does not need administration permission. The optional traditional branch-protection read API needs Administration:read; if unavailable, configure equivalent readable rulesets rather than expand runtime permissions. No Administration:write is required. A suitable transport is needed because ordinary GITHUB_TOKEN events do not reliably trigger autonomous downstream CI/push workflows; current GitHub behavior may require approval for PRs it creates. Missing credentials are BLOCKED, not a claim of Agent startup.
+Existing App sign-in provides model access; existing `gh auth` provides GitHub access in the local shell. These are separate. [Official authentication documentation](https://learn.chatgpt.com/docs/auth) describes ChatGPT sign-in. Do not inspect credential files or copy tokens into Actions. Check `gh auth status`, repository access and protection with read-only calls; an authenticated account does not prove permission for every mutation. The normal workflow does not require `OPENAI_API_KEY`, `CLH_AUTOMATION_TOKEN` or `CLH_AUTONOMY_ENABLED`.
 
-CI failure on an Agent branch triggers another attempt, at most three recorded attempt commits. Edits/reopened Issues may trigger processing but do not reset that budget. Global concurrency prevents simultaneous Builders. A failed runner before publication may consume a workflow run without persisting its attempt marker; it leaves a failed run, never a merge. No periodic model retries occur. Requirement changes invalidate the body digest. Closed Issues or closed/merged PRs stop publication.
+Hosted Issue Agent and Autonomous Lifecycle workflows are inert manual-only tombstones with skipped jobs; they cannot react to Issues, CI or schedules. Historical `agent_job.py` library and tests remain for provenance, but its CLI is blocked. No model is launched in GitHub Actions. Use ordinary non-force branch push and PR tools from the active session.
+
+Local lifecycle locking requires WSL/Linux (`fcntl`). It locks the common Git directory across worktrees and releases on process exit/crash. It is not a cross-machine lock; only one accountable Builder may operate on the task at a time. Do not start another machine/session until the outgoing operation's outcome is read back.
+
+## Start, implement and review
+
+1. Read latest Issue WHAT/WHY/DONE/boundary, all comments, PR/head/base, governance and records. Record Builder and scope. Stop for unapproved educational semantics.
+2. Reuse the existing Issue branch/PR, or create a `codex/` branch and Draft PR. Never reset away local work or force push. Commit a necessary formal Plan independently before implementation; write Result afterward. Revision records use a new prefix and an explicit revision starting commit.
+3. Implement, run applicable tests, strict MkDocs, workflow lint and diff check. Push normally and inspect actual current-head CI. Review actual changes, scope and evidence against full head/base. Changed head/base requires fresh tests/review; unresolved blockers retain Draft.
+4. Record actual work, Claim/Source/Method/Evidence, findings, verdict and Fresh-Context Challenge inclusion/omission rationale. Review is Builder Self-Review, not independent approval or identity proof. Do not add complete=true before all applicable work is actually complete.
+
+Normal local commands (replace placeholders with observed values):
+
+```bash
+python3 scripts/autonomous_lifecycle.py preflight --repo OWNER/REPO
+python3 scripts/autonomous_lifecycle.py check --repo OWNER/REPO --pr NUMBER --head FULL_HEAD_SHA --base FULL_BASE_SHA
+```
+
+`check` is read-only on GitHub, including on a merged PR; it does not mark Ready, deploy, archive or close. On an already merged PR it reports only observation, not deployment/closure acceptance. The local advisory lock file is not engineering evidence.
 
 ## PR evidence contract
 
-After final commit and Self-Review, the Builder appends one block to its PR body (not a file that changes its own head). Replace example strings with real values:
+After final commit/Self-Review, add exactly one block to the PR body (not a file that changes its own head):
 
 ```text
 <!-- clh-lifecycle {"issue": 123, "builder": "Codex", "head": "FULL_40_HEX_HEAD", "base": "FULL_40_HEX_MAIN", "issue_body_sha256": "SHA256_OF_EXACT_CURRENT_ISSUE_BODY", "scope_verified": true, "self_review": true, "complete": true, "deployment": true, "evidence": "Actual commands, results, findings, immutable evidence links and scope justification"} -->
 ```
 
-This is Builder Self-Review evidence, not Human approval, an approval token, independent review or a semantic classifier. Missing requirements, unapproved educational semantics or blockers mean `complete` must not be true. The executor checks metadata, current Issue body, head/base, real CI, required native protection, unresolved threads and requested changes. GitHub still enforces native merge restrictions. All latest checks must succeed (neutral/skipped are not success). Required checks are `docs-check` and `governance-tests`. New head/base requires new evidence. The GitHub merge API receives the exact head SHA; native strict checks protect the concurrent-base window.
+The block is a Builder record, not an approval token or automatic proof of semantic scope. The digest covers the Issue body; the Builder must separately read all latest comments and stop requests. Do not use auto-closing keywords in PR or commit messages. `Issue: #N` is safe. Site path changes require deployment; non-site tasks do not require unrelated publication.
 
-No auto-closing keywords in PR/commit text. `Issue: #N` is safe. Website paths force deployment applicability; other changes can request deployment when the task requires it. The executor checks code paths but cannot prove semantic scope automatically.
+## Merge gate and explicit local execution
 
-## Merge, deployment, archival and closure
+When the task permits lifecycle execution and all required verification is complete, the Builder autonomously runs:
 
-`Autonomous Lifecycle` runs after CI/deployment completion, every fifteen minutes for recovery, and on dispatch. It reads current state from GitHub using main code only. Draft becomes Ready only after the gates pass. Merge is an API operation respecting native checks; GitHub's separate `allow_auto_merge` feature is not required.
+```bash
+python3 scripts/autonomous_lifecycle.py run --repo OWNER/REPO --pr NUMBER --head FULL_HEAD_SHA --base FULL_BASE_SHA
+```
 
-For site tasks, a main push triggers native Pages build/deploy. The artifact includes `deployment-sha.txt`. Verification reads the configured HTTPS Pages URL and requires the exact merge SHA, with three bounded readback attempts. A deployment comment records the run ID and URL. Lifecycle independently requires that exact Pages workflow run to finish successfully for the merge SHA before archive/close. Non-site tasks skip unrelated deployment.
+One explicit PR and expected full SHAs are mandatory. No broad reconciliation CLI exists. It verifies native main protection, current Issue/PR/scope record, required docs-check/governance-tests, all current check/status results, resolved threads, no requested changes, mergeability and exact head/base. Missing/failing/pending/skipped/cancelled evidence blocks. It marks Ready, rereads state and CI/reviews, then calls the merge API with exact head SHA. GitHub enforces protection; no admin/bypass option is used. Native `allow_auto_merge` is not needed for this direct gated merge.
 
-Archive comments use PR + full merge SHA keys and are read back before closure. Retry reuses the existing archive and merged commit. Changed evidence causes a blocker rather than overwriting history. Final Issue state is read back after closure. Comments are engineering evidence, not trusted identity attestation. Failure to read or write GitHub data fails closed; failed workflow logs and deduplicated PR blocker comments remain available. If even blocker posting lacks permission, the failed run is the evidence.
+REST has no atomic expected-base input. Fresh base reads and strict native up-to-date checks mitigate the final race; they are not a distributed transaction binding Self-Review to an immutable base. The Builder must not claim stronger guarantees. An ambiguous network outcome requires remote merge readback before retry. No automatic network mutation retries occur.
 
-## Installation and activation
+## Pages and SHA readback
 
-1. Configure an existing provider credential and narrowly scoped automation transport as the two named Actions secrets. Confirm the token can perform normal branch/PR/check operations without bypass. Repository default token permission stays read-only.
-2. Protect main with PR-only, strict required `docs-check` and `governance-tests`, resolved conversations, no force pushes/deletions and no bypass actors. Required approving reviews can be zero; no Human approval gate is introduced. Traditional protection must enforce administrators too. Do not alter the isolated canary ruleset.
-3. Configure Settings → Pages → Build and deployment → Source: GitHub Actions. Ensure github-pages environment allows main deployment without routine reviewers. Preserve unrelated environment/settings restrictions; report incompatible restrictions rather than bypassing them.
-4. Validate CI and negative-case tests on the candidate. Merge the installation only when its applicable completion conditions are satisfied. The new workflows must exist on default branch for automatic Issue triggers.
-5. With prerequisites verified and a rollback path available, set Actions repository variable `CLH_AUTONOMY_ENABLED=true` once. This installation/emergency switch is not a per-Issue approval. Run the documented live E2E with an owner-created engineering fixture, collect run URLs and SHA evidence. Do not claim production readiness until it passes.
+For website work, the first run merges and reports deployment PENDING, keeping the Issue open. Builder reads the merge SHA and current main, then dispatches:
 
-Initial audit found no secrets/variables/runners, no main protection and no Pages. After implementation tests passed, the migration configured native main ruleset 26702419 (strict required checks, zero required approvals, no bypass) and Pages Actions source using existing administrator access. Readback and exact responses are recorded in records/ISSUE-20. No model/transport credentials or activation variable were added. The actual missing credentials cannot be manufactured by code. First-install live E2E remains BLOCKED until the prerequisites and default-branch installation are available; local tests do not resolve that blocker.
+```bash
+gh workflow run pages.yml --repo OWNER/REPO --ref main -f expected_sha=FULL_MERGE_SHA
+```
 
-## Rollback
+This is a Builder engineering action, not a Human approval step. The workflow must first be installed on main. It accepts only main and exact dispatch SHA, verifies native protection and a merged PR requiring deployment. An advanced main blocks old-SHA dispatch; investigate and prepare a current reviewed recovery PR rather than falsely crediting another SHA. Pages jobs serialize, build strict MkDocs, embed `deployment-sha.txt`, upload artifact and deploy with native GITHUB_TOKEN/OIDC (`pages:write`, `id-token:write` only deployment job). No off-device AI runs.
 
-Stop new work by setting the activation variable false or disabling Issue Agent / Autonomous Lifecycle / Pages workflows; cancel queued/running affected jobs (a running merge cannot be undone by cancellation). Create a revert PR for the offending commit, run required CI and Self-Review, merge normally without bypass. For website rollback, build/deploy the revert commit and read back its SHA; never claim the previous deployment was restored merely because Git reverted. Keep Issues open until recovery evidence is archived. Preserve all prior comments, Plan/Result and Git history. Verify settings after code revert: Git changes do not undo GitHub settings. Avoid restoring the obsolete premature-close workflow as an active recovery path.
+The verify job reads the configured HTTPS Pages URL with bounded retries and records a merge-SHA/run marker. The local Builder observes the exact run to completion, then repeats the targeted `run` command with the original reviewed head/base. Already merged PRs reuse their merge SHA; no second merge. The executor verifies successful Pages workflow path/main/merge SHA, configured URL and **fresh remote SHA bytes** before archival. A marker alone is insufficient. Deployment denial, failed run, stale published bytes or missing evidence leave the Issue open.
 
-## Primary technical references
+[GitHub Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) supports native token/OIDC deployment. [GitHub event documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow) explains GITHUB_TOKEN downstream-event restrictions; explicit local dispatch avoids depending on a hosted merge triggering another workflow.
 
-- [Official Codex Action](https://github.com/openai/codex-action): pinned action/input contract and provider credentials.
-- [GitHub event triggering](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow): token/event recursion restrictions.
-- [Branch protection API](https://docs.github.com/en/rest/branches/branch-protection): traditional protection read requires Administration:read.
-- [Pages API](https://docs.github.com/en/rest/pages/pages): Pages settings/read permissions.
+## Archive, close and interruption recovery
+
+Archive uses PR + full merge SHA as a stable key, stores separate merge/deployment/closure results and reads the exact comment back. Changed archive data blocks rather than overwriting. Current Issue digest and PR evidence are checked again before close; then the Issue's closed state is read back. These records do not imply learning mastery or content approval.
+
+| Interrupted stage | Resume action |
+|---|---|
+| Editing / before push | Inspect worktree and commits; preserve work, reread scope/head/base, test and push normally |
+| Pushed / CI pending | Read actual new-head CI; fix bounded failures and invalidate stale review |
+| Ready or merge request with lost response | Fetch PR; if unmerged revalidate all gates, if merged use existing merge SHA |
+| Merged / Pages not dispatched | Read main and existing runs; dispatch only if exact-SHA run absent and main matches |
+| Pages running / App off | Existing job may finish; next session reads run and remote SHA |
+| Archive write/close response lost | Read existing merge-SHA archive, verify bytes, reuse it, then read Issue state |
+| Conflicting archive / changed requirements | Stop, record blocker; no overwrite, duplicate merge or false closure |
+
+For an unchanged failure, record at most three repair attempts with cause/action/outcome before leaving BLOCKED. New investigation or changed conditions can justify a new bounded attempt; merely restarting App does not erase the record. If permissions prevent posting blocker evidence, keep local output and push a record when permitted. Error logs must not expose raw tokens/API secrets. Do not run other Builder sessions concurrently; comment APIs offer no atomic create-if-absent guarantee across machines.
+
+## Installation, acceptance and rollback
+
+Keep CI contents:read and main PR-only, strict required checks, resolved threads, no bypass/force/delete. Pages source must be Actions and its environment main-only. Read settings rather than assuming documentation configures them. Do not add credentials, expand scopes or weaken rules to make validation pass.
+
+PR #21 remains Draft for this revision. The architecture instruction prohibits Merge, Deploy and Issue #20 closure during this task. Real branch publication, CI and read-only gate tests are distinct from full live lifecycle E2E, which remains BLOCKED/NOT RUN. Original #18/#19 and Issue #20 evidence remain historical; new ON-DEMAND-REVISION records describe this design.
+
+Before merge, stopping the session causes no production installation. After future installation, stop local operations, inspect/cancel affected queued Pages jobs, then use a tested revert PR with current Self-Review/required CI and normal merge. Redeploy and read back the revert SHA for website recovery. Do not restore hosted agent/scheduler or the obsolete premature-close path as an active rollback. Git revert does not undo remote settings. Keep the Issue open until recovery evidence is archived and read back; never rewrite history.

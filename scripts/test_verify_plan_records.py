@@ -35,6 +35,19 @@ class RecordTests(unittest.TestCase):
         with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, formal_plan=True)
     def test_invalid_issue(self):
         with self.assertRaises(ValueError): verify(self.base, "HEAD", -1)
+    def test_named_revision_order(self):
+        self.write("records/ISSUE-4/ON-DEMAND-REVISION-PLAN.md", "\n".join(FIELDS) + " /issues/4")
+        self.commit()
+        self.write("app.py", "print(1)"); self.commit()
+        self.write("records/ISSUE-4/ON-DEMAND-REVISION-RESULT.md", "\n".join(RESULT_FIELDS) + " /pull/5")
+        self.commit()
+        self.assertIn("PASS", verify(self.base, "HEAD", 4, True, "ON-DEMAND-REVISION-"))
+    def test_named_revision_backfill_rejected(self):
+        self.write("app.py", "print(1)"); self.commit()
+        self.write("records/ISSUE-4/ON-DEMAND-REVISION-PLAN.md", "\n".join(FIELDS) + " /issues/4")
+        self.write("records/ISSUE-4/ON-DEMAND-REVISION-RESULT.md", "\n".join(RESULT_FIELDS) + " /pull/5")
+        self.commit()
+        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, True, "ON-DEMAND-REVISION-")
     def test_valid_order(self):
         self.plan(); self.commit()
         self.write("app.py", "print(1)"); self.result(); self.commit()

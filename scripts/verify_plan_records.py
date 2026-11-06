@@ -13,15 +13,17 @@ RESULT_FIELDS = ("results", "evidence", "pr", "commit", "deviations", "unfinishe
 def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip()
 
-def verify(base, head, issue, formal_plan=False):
+def verify(base, head, issue, formal_plan=False, record_prefix=""):
     if type(issue) is not int or issue <= 0:
         raise ValueError("invalid issue")
     # Validate revisions as commit objects before using them in Git expressions.
     base = git("rev-parse", "--verify", base + "^{commit}")
     head = git("rev-parse", "--verify", head + "^{commit}")
     git("merge-base", "--is-ancestor", base, head)
+    if record_prefix and (not record_prefix.endswith("-") or not all(c.isupper() or c.isdigit() or c == "-" for c in record_prefix)):
+        raise ValueError("invalid record prefix")
     prefix = f"records/ISSUE-{issue}/"
-    plan, result = prefix + "PLAN.md", prefix + "RESULT.md"
+    plan, result = prefix + record_prefix + "PLAN.md", prefix + record_prefix + "RESULT.md"
     files = git("ls-tree", "-r", "--name-only", head).splitlines()
     required = formal_plan or plan in files
     if not required:
@@ -54,5 +56,6 @@ if __name__ == "__main__":
     p.add_argument("base"); p.add_argument("head")
     p.add_argument("issue", type=int)
     p.add_argument("--formal-plan", action="store_true")
+    p.add_argument("--record-prefix", default="")
     a = p.parse_args()
-    print(verify(a.base, a.head, a.issue, a.formal_plan))
+    print(verify(a.base, a.head, a.issue, a.formal_plan, a.record_prefix))
