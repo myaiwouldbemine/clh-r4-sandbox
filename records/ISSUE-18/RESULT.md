@@ -55,3 +55,16 @@ Learning Record 包含八項學習資訊，其中三項初始資訊必填、五�
 - 瀏覽器視覺檢查與不適用的歷史測試 runner 為 NOT RUN，理由詳見 VERIFICATION.md。
 - 無已知授權範圍內未解實作缺陷；最終 CI／readback 以 PR 最新完整 head 證據為準。
 - PR 必須維持 Draft；Ready、Merge、Close Issue #18、Deployment 均未授權。未執行上述操作。
+
+
+## Plan v1.2 雙語化補充 Results（2026-11-06）
+
+本段追加記錄；以上 Phase 2 歷史不覆寫。Codex 為唯一 accountable Builder，L3。
+
+- Plan Commit：`f0353b0ee784f60319ae54b89086321c7d20e634`。Human 在本聊天分別核准固定 Plan 與三檔實作；[Timeline 授權參考](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/18#issuecomment-6686502162) 已遠端讀回。
+- Implementation Commit：`88e109756faa84ed852e8f135fb33319e29a5e58`，僅 AGENTS.md。此補充 Result 於實作 commit 之後建立，後續 records commit 保留真實順序。
+- Results：17 條按原順序，各自完整繁中與 English；三向語義矩陣 17/17 PASS，無新增語言優先權或治理語義變更。
+- Evidence：[BILINGUAL-EVIDENCE.md](BILINGUAL-EVIDENCE.md) 保存原文／繁中／English 全文、逐條判讀、情境與適用性。27 tests PASS，MkDocs strict PASS，diff 格式 PASS；現行文件一致性未發現此次翻譯衝突。
+- PR：[Draft PR #19](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/19)。本補充提交時最新 Head CI／Git 順序檢查／遠端 readback 為 PENDING，待提交後以 PR 綁定完整 Head 的 Self-Review 記錄實際結果，不虛構事前完成。
+- Deviations：無。Plan 原核准版本、其他正式檔、Scripts／Workflows、歷史 Records、Archived Platform 保留；舊 Result bytes prefix 不變。
+- Unfinished：GitHub Issue Forms 合併後 UI 為 PENDING；Browser visual 與 Deployment 為 NOT RUN。無已知語義疑義。未沿用舊 READY_ELIGIBLE；Ready／Merge／Close／Deploy 均未授權，維持 Draft，等待 Human 審閱最新 Head。
