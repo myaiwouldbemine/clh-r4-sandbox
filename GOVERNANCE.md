@@ -36,7 +36,7 @@ Review 在 PR 留下實際 Builder／Reviewer、完整受審 Commit SHA、相關
 ## 驗證與 Merge
 執行適用測試與 CI；網站建置使用 MkDocs strict。Build、教材內容／來源／授權與視覺驗證分開記錄。
 適用檢查失敗、缺失、pending、skipped、cancelled、證據過期、未解決的阻擋 Review／評論／Thread，或必要授權／記錄缺少，皆禁止 Merge。CI 成功不代表 Review 或授權完成。
-必要實作、驗證與 Result 完成後才可提出 Ready；是否切換 PR 狀態依任務邊界。本次 PR #5 必須保持 Draft。
+必要實作、驗證與 Result 完成後才可提出 Ready；是否切換 PR 狀態依各 PR 的任務邊界及有效授權。
 只有非 Draft、適用驗證與 Review 完成、阻擋問題已解決、範圍與授權有效時，才由具備權限且已獲操作授權的執行者 Merge。L1 不要求 Human 逐次內容核准；Merge 操作權限與內容核准分開。
 本政策不授權啟用 Auto-Merge、不新增 merge executor，也不假定上述條件已由 GitHub 自動強制。不得 bypass 現有保護、force push 或直接 push main。
 重大範圍／風險變動須重新評估 Plan、Review 與 Human 授權，必要時回到 Draft。

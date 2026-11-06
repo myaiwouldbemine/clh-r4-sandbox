@@ -9,7 +9,7 @@
 - Distinguish Bot Summary, native GitHub Review and Human Approval. No mandatory native APPROVED conversion, App/Registry/Attestation/Control Plane/second Human. Do not claim automated trusted identity verification.
 - Run applicable tests/CI and strict MkDocs for site changes. Report build/content/provenance/visual/deployment separately. Missing, failed, skipped, pending, stale evidence or unresolved blockers prevents Merge.
 - New head requires Review reconfirmation; base/scope/risk changes require reassessment and renewed authorization where necessary.
-- Ready requires completed implementation, applicable verification and conditional Result; follow explicit PR status boundaries. PR #5 remains Draft in this task.
+- Ready requires completed implementation, applicable verification and conditional Result; follow explicit PR status boundaries and authorization.
 - Merge only with explicit operation authority, non-Draft and all applicable conditions met. L1 has no mandatory per-PR Human content approval. No direct main push, force push, bypass, unauthorized Merge/deployment or Auto-Merge activation.
 - Roll back using an authorized revert PR and applicable checks. Human handles L2 Plan/L3 action approval and emergency stop.
 - Archived platform designs/tests and historical records are evidence, not active instructions. C3-C5 and later platform work are stopped. Do not provision new governance infrastructure.
