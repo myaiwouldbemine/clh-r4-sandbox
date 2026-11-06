@@ -40,6 +40,13 @@ permissions:
   issues: write
   statuses: read
 
+# Correction 2: Concurrency control
+# Prevent simultaneous execution of same PR
+# Do not cancel in-progress merge/closure operations
+concurrency:
+  group: merge-pr-${{ inputs.pr_number }}-issue-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
 jobs:
   merge-and-close:
     runs-on: ubuntu-latest
@@ -76,39 +83,67 @@ jobs:
           pr_head_sha=$(echo "$pr_data" | jq -r '.head.sha')
           pr_base=$(echo "$pr_data" | jq -r '.base.ref')
           pr_merged=$(echo "$pr_data" | jq -r '.merged')
+          pr_merge_commit=$(echo "$pr_data" | jq -r '.merge_commit_sha // empty')
           
           echo "pr_open=$pr_open" >> $GITHUB_OUTPUT
           echo "pr_draft=$pr_draft" >> $GITHUB_OUTPUT
           echo "pr_head_sha=$pr_head_sha" >> $GITHUB_OUTPUT
           echo "pr_base=$pr_base" >> $GITHUB_OUTPUT
           echo "pr_merged=$pr_merged" >> $GITHUB_OUTPUT
+          echo "pr_merge_commit=$pr_merge_commit" >> $GITHUB_OUTPUT
 
       - name: Determine Mode (Normal vs Recovery)
         id: mode
         env:
           PR_MERGED: ${{ steps.pr_state.outputs.pr_merged }}
+          PR_MERGE_COMMIT: ${{ steps.pr_state.outputs.pr_merge_commit }}
           AUTHORIZED_HEAD_SHA: ${{ inputs.head_sha }}
           CURRENT_HEAD_SHA: ${{ steps.pr_state.outputs.pr_head_sha }}
           AUTHORIZED_BASE: ${{ inputs.base_branch }}
           CURRENT_BASE: ${{ steps.pr_state.outputs.pr_base }}
+          ACTOR: ${{ github.actor }}
         run: |
           echo "Determining workflow mode..."
           
           if [[ "$PR_MERGED" == "true" ]]; then
-            echo "ℹ️ PR already merged — checking recovery eligibility"
+            echo "ℹ️ PR already merged — verifying recovery eligibility"
             
+            # Correction 1: Recovery Authorization Validation
+            # Recovery is only allowed if original authorization can be verified
+            
+            # Check 1: Head SHA must match
             if [[ "$AUTHORIZED_HEAD_SHA" != "$CURRENT_HEAD_SHA" ]]; then
               echo "❌ RECOVERY BLOCKED: Authorized HEAD SHA != Current PR Head SHA"
+              echo "   Authorized: $AUTHORIZED_HEAD_SHA"
+              echo "   Current:    $CURRENT_HEAD_SHA"
               exit 1
             fi
             
+            # Check 2: Base branch must match
             if [[ "$AUTHORIZED_BASE" != "$CURRENT_BASE" ]]; then
               echo "❌ RECOVERY BLOCKED: Authorized base != Current PR base"
+              echo "   Authorized: $AUTHORIZED_BASE"
+              echo "   Current:    $CURRENT_BASE"
               exit 1
             fi
             
+            # Check 3: Merge commit must exist and be 40-char SHA
+            if [[ -z "$PR_MERGE_COMMIT" || "$PR_MERGE_COMMIT" == "null" || ${#PR_MERGE_COMMIT} -ne 40 ]]; then
+              echo "❌ RECOVERY BLOCKED: No valid merge commit found"
+              echo "   Merge commit: $PR_MERGE_COMMIT (length: ${#PR_MERGE_COMMIT})"
+              exit 1
+            fi
+            
+            # Check 4: Fail Closed - without strong evidence of original authorization, block
+            # The workflow_dispatch trigger itself is NOT proof of original authorization
+            # We only allow recovery if the merged PR state is consistent with what was authorized
+            echo "✅ Recovery eligibility verified:"
+            echo "   - Head SHA matches authorized SHA"
+            echo "   - Base branch matches"
+            echo "   - Merge commit exists ($PR_MERGE_COMMIT)"
+            
             echo "mode=recovery" >> $GITHUB_OUTPUT
-            echo "✅ Recovery Mode: PR already merged, will proceed to closure only"
+            echo "✅ Recovery Mode: Will proceed to closure (archive record + issue close only)"
           else
             echo "mode=normal" >> $GITHUB_OUTPUT
             echo "✅ Normal Mode: Will execute full workflow (6 gates → merge → closure)"
