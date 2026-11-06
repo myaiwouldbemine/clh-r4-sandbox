@@ -105,3 +105,26 @@ All levels: Draft, missing merge-operation authority, failed/pending/skipped/can
 No new infrastructure, settings, App, keys, secrets or second Human required. No existing Canary resources/PRs/settings altered. No independent Reviewer was available/claimed for this implementation; next step is opposite-Agent Review at current head, not activation research. PR #1 dependency/base and any future Merge permission remain separate. Issue #4 remains open; READY FOR REVIEW means implementation can be reviewed, not Ready status, merge eligibility or production readiness.
 
 Revision 6 CI follow-up: implementation 5711ad9ee14bf682c636e879642fb31739717d79 governance-tests SUCCESS https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/actions/runs/42056888340/job/127347588045 ; docs-check SUCCESS https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/actions/runs/42056886823/job/127347586201 . Actual-branch Plan/Result structure and Git order PASS. PR API confirms Draft=true and auto_merge=null. Independent cross-Agent Review remains pending. Final documentation-head checks remain GitHub evidence; no self-referential SHA embedded.
+
+## Revision 7 — Post-Merge Documentation Cleanup (2026-11-06)
+
+Status: IMPLEMENTED / DRAFT REVIEW PENDING. Previous records above are historical snapshots and remain unchanged. This section supersedes their outdated current-status statements; it does not retrospectively change their evidence.
+
+### Verified merge outcomes
+- PR #1 Project Bootstrap: merged into main, merge commit `488c84c9bff1c83ef40af2b77658d0dcd374a157`. Reviewed head `f4a429c9ea51f1542c85d92571b5d4a5c15e86b5`.
+- PR #5 Minimal Governance: merged into main, merge commit `a9f85ffd7b1d676015c371404c60be864cd0fbf4`. Reviewed head `1e94ead33ce2a27ec52b001779fccae75ce72962`.
+- Claude Code review was reported PASS at the reviewed PR #5 head and posted via the Human GitHub account (not an independently verified Agent GitHub actor).
+- The active policy is LIGHT Minimal Governance (Revision 6). Archived collector/attestation platform remains NOT ACTIVE. Neither PR merge was a Pages deployment or Auto-Merge activation.
+
+### Revision 7 cleanup results
+- Pre-implementation Plan: `records/ISSUE-4/PLAN.md` Revision 7, committed ahead of edits (`bf48411e6dbee75551e0744e75d6ff44777da945`).
+- Removed the now-obsolete PR #5 Draft-only clause from `GOVERNANCE.md` and `AGENTS.md`; retained generic Ready / approval / Merge controls without changing their semantics.
+- Preserved earlier Plan/Result history and Canary evidence; appended this dated, explicit current-status record instead of altering historical assertions.
+- Issue #4 remains OPEN pending issue closure decision. PR #8 is Draft; not authorized to Merge, deploy, enable Auto-Merge or modify repository settings.
+
+### Verification and unfinished
+- GitHub API read-back of both merge commits and the main head: VERIFIED in the 2026-11-06 Post-Merge QA.
+- PR #8 changed-file diff and CI: PENDING final inspection.
+- Strict MkDocs build of PR #8: NOT RUN at record creation.
+- Opposite-Agent cross-review of PR #8: PENDING.
+- No new Apps, Secrets, governance platform, or Actions deployment triggered by this cleanup.
