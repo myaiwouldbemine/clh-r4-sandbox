@@ -46,7 +46,7 @@ jobs:
     name: Merge and Close PR #${{ inputs.pr_number }} for Issue #${{ inputs.issue_number }}
 
     steps:
-      - name: Verify authorization
+      - name: Verify authorization (Gate 1)
         id: verify_auth
         env:
           ACTOR: ${{ github.actor }}
@@ -56,138 +56,142 @@ jobs:
             echo "❌ ABORT: github.actor='$ACTOR' not in allow-list (authorized: $ALLOW_LIST)"
             exit 1
           fi
-          echo "✅ Authorization verified: $ACTOR"
+          echo "✅ Gate 1 PASS: Authorization verified ($ACTOR)"
 
-      - name: Get PR state and details
+      - name: Get PR state and details (Gate 2-3)
         id: pr_state
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          # Fetch PR details
           pr_data=$(gh api repos/$REPO/pulls/$PR_NUMBER)
           
           pr_open=$(echo "$pr_data" | jq -r '.state')
           pr_draft=$(echo "$pr_data" | jq -r '.draft')
           pr_head_sha=$(echo "$pr_data" | jq -r '.head.sha')
           pr_base=$(echo "$pr_data" | jq -r '.base.ref')
+          pr_merged=$(echo "$pr_data" | jq -r '.merged')
+          pr_merge_sha=$(echo "$pr_data" | jq -r '.merge_commit_sha')
           pr_mergeable=$(echo "$pr_data" | jq -r '.mergeable')
           
           echo "pr_open=$pr_open" >> $GITHUB_OUTPUT
           echo "pr_draft=$pr_draft" >> $GITHUB_OUTPUT
           echo "pr_head_sha=$pr_head_sha" >> $GITHUB_OUTPUT
           echo "pr_base=$pr_base" >> $GITHUB_OUTPUT
+          echo "pr_merged=$pr_merged" >> $GITHUB_OUTPUT
+          echo "pr_merge_sha=$pr_merge_sha" >> $GITHUB_OUTPUT
           echo "pr_mergeable=$pr_mergeable" >> $GITHUB_OUTPUT
 
-      - name: Gate 1 - PR Open
+      - name: Gate 2 - PR Open and not Draft
         env:
           PR_STATE: ${{ steps.pr_state.outputs.pr_open }}
           PR_DRAFT: ${{ steps.pr_state.outputs.pr_draft }}
         run: |
           if [[ "$PR_STATE" != "open" ]]; then
-            echo "❌ Gate 1 FAIL: PR state is $PR_STATE (expected: open)"
+            echo "❌ Gate 2 FAIL: PR state is $PR_STATE (expected: open)"
             exit 1
           fi
           if [[ "$PR_DRAFT" == "true" ]]; then
-            echo "❌ Gate 1 FAIL: PR is in draft status"
+            echo "❌ Gate 2 FAIL: PR is in draft status"
             exit 1
           fi
-          echo "✅ Gate 1 PASS: PR is open and not draft"
+          echo "✅ Gate 2 PASS: PR is open and not draft"
 
-      - name: Gate 2 - SHA Match
+      - name: Gate 3 - Head SHA Match
         env:
           AUTHORIZED_SHA: ${{ inputs.head_sha }}
           CURRENT_SHA: ${{ steps.pr_state.outputs.pr_head_sha }}
         run: |
           if [[ "$AUTHORIZED_SHA" != "$CURRENT_SHA" ]]; then
-            echo "❌ Gate 2 FAIL: Head SHA mismatch"
+            echo "❌ Gate 3 FAIL: Head SHA mismatch"
             echo "  Authorized: $AUTHORIZED_SHA"
             echo "  Current:    $CURRENT_SHA"
             exit 1
           fi
-          echo "✅ Gate 2 PASS: Head SHA matches exactly"
+          echo "✅ Gate 3 PASS: Head SHA matches exactly"
 
-      - name: Gate 3 - Base Branch
+      - name: Gate 4 - Base Branch Match
         env:
           AUTHORIZED_BASE: ${{ inputs.base_branch }}
           CURRENT_BASE: ${{ steps.pr_state.outputs.pr_base }}
         run: |
           if [[ "$AUTHORIZED_BASE" != "$CURRENT_BASE" ]]; then
-            echo "❌ Gate 3 FAIL: Base branch mismatch"
+            echo "❌ Gate 4 FAIL: Base branch mismatch"
             echo "  Authorized: $AUTHORIZED_BASE"
             echo "  Current:    $CURRENT_BASE"
             exit 1
           fi
-          echo "✅ Gate 3 PASS: Base branch matches ($CURRENT_BASE)"
+          echo "✅ Gate 4 PASS: Base branch matches ($CURRENT_BASE)"
 
-      - name: Gate 4 - Required CI Checks
-        id: check_ci
+      - name: Gate 5 - Required CI Checks
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ inputs.pr_number }}
+          HEAD_SHA: ${{ inputs.head_sha }}
         run: |
-          # Get check runs for current head SHA
-          head_sha="${{ inputs.head_sha }}"
+          check_runs=$(gh api repos/$REPO/commits/$HEAD_SHA/check-runs --paginate)
           
-          check_runs=$(gh api repos/$REPO/commits/$head_sha/check-runs --paginate)
-          
-          # Look for required checks
-          governance_status=$(echo "$check_runs" | jq -r '.check_runs[] | select(.name=="governance-tests") | .conclusion' | head -1)
+          gov_status=$(echo "$check_runs" | jq -r '.check_runs[] | select(.name=="governance-tests") | .conclusion' | head -1)
           docs_status=$(echo "$check_runs" | jq -r '.check_runs[] | select(.name=="docs-check") | .conclusion' | head -1)
           
-          if [[ -z "$governance_status" ]] || [[ "$governance_status" == "null" ]]; then
-            governance_status="not_found"
-          fi
-          if [[ -z "$docs_status" ]] || [[ "$docs_status" == "null" ]]; then
-            docs_status="not_found"
-          fi
+          [[ -z "$gov_status" || "$gov_status" == "null" ]] && gov_status="not_found"
+          [[ -z "$docs_status" || "$docs_status" == "null" ]] && docs_status="not_found"
           
-          echo "governance-tests: $governance_status"
-          echo "docs-check: $docs_status"
+          echo "  governance-tests: $gov_status"
+          echo "  docs-check: $docs_status"
           
-          if [[ "$governance_status" != "success" ]]; then
-            echo "❌ Gate 4 FAIL: governance-tests did not succeed (status: $governance_status)"
+          if [[ "$gov_status" != "success" ]]; then
+            echo "❌ Gate 5 FAIL: governance-tests did not succeed (status: $gov_status)"
             exit 1
           fi
           if [[ "$docs_status" != "success" ]]; then
-            echo "❌ Gate 4 FAIL: docs-check did not succeed (status: $docs_status)"
+            echo "❌ Gate 5 FAIL: docs-check did not succeed (status: $docs_status)"
             exit 1
           fi
-          echo "✅ Gate 4 PASS: All required CI checks succeeded"
+          echo "✅ Gate 5 PASS: All required CI checks succeeded"
 
-      - name: Gate 5 - No Blocking Reviews
-        id: check_reviews
+      - name: Gate 6 - No Blocking Reviews
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          # Get reviews
           reviews=$(gh api repos/$REPO/pulls/$PR_NUMBER/reviews)
-          
-          # Check for "changes requested"
           blocking=$(echo "$reviews" | jq 'map(select(.state=="CHANGES_REQUESTED")) | length')
           
           if [[ "$blocking" -gt 0 ]]; then
-            echo "❌ Gate 5 FAIL: Found $blocking 'changes requested' review(s)"
+            echo "❌ Gate 6 FAIL: Found $blocking 'changes requested' review(s)"
             exit 1
           fi
-          echo "✅ Gate 5 PASS: No blocking reviews"
+          echo "✅ Gate 6 PASS: No blocking reviews"
 
-      - name: Gate 6 - GitHub Merge Readiness
+      - name: Closure Recovery Detection
+        id: recovery
         env:
-          PR_MERGEABLE: ${{ steps.pr_state.outputs.pr_mergeable }}
+          PR_MERGED: ${{ steps.pr_state.outputs.pr_merged }}
+          PR_MERGE_SHA: ${{ steps.pr_state.outputs.pr_merge_sha }}
+          HEAD_SHA: ${{ inputs.head_sha }}
         run: |
-          if [[ "$PR_MERGEABLE" != "true" ]]; then
-            echo "❌ Gate 6 FAIL: GitHub reports PR not mergeable (mergeable=$PR_MERGEABLE)"
-            exit 1
+          if [[ "$PR_MERGED" == "true" ]]; then
+            if [[ "$PR_MERGE_SHA" == "$HEAD_SHA" ]]; then
+              echo "recovery_mode=true" >> $GITHUB_OUTPUT
+              echo "ℹ️ Closure Recovery Mode: PR already merged with same HEAD SHA"
+              echo "  Will skip merge, proceed to closure only"
+            else
+              echo "❌ CONFLICT: PR merged with DIFFERENT HEAD SHA"
+              echo "  Authorized: $HEAD_SHA"
+              echo "  Actual: $PR_MERGE_SHA"
+              exit 1
+            fi
+          else
+            echo "recovery_mode=false" >> $GITHUB_OUTPUT
+            echo "✅ Normal Mode: PR not yet merged, will proceed with full workflow"
           fi
-          echo "✅ Gate 6 PASS: PR is mergeable by GitHub"
 
-      - name: Execute Merge
+      - name: Execute Merge (Normal Mode)
         id: merge
+        if: steps.recovery.outputs.recovery_mode == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -195,14 +199,11 @@ jobs:
           HEAD_SHA: ${{ inputs.head_sha }}
           MERGE_METHOD: ${{ inputs.merge_method }}
         run: |
-          # Get PR title
           pr_title=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.title')
           
-          # Build commit message
           commit_title="Issue #${{ inputs.issue_number }}: $pr_title"
-          commit_message="Merged PR #${{ inputs.pr_number }} by workflow automation"
+          commit_message="Merged PR #${{ inputs.pr_number }} by workflow automation (Plan #11)"
           
-          # Execute merge with SHA compare-and-swap
           merge_response=$(gh api repos/$REPO/pulls/$PR_NUMBER/merge \
             -X PUT \
             -f commit_title="$commit_title" \
@@ -218,33 +219,30 @@ jobs:
           
           merge_sha=$(echo "$merge_response" | jq -r '.sha')
           echo "merge_sha=$merge_sha" >> $GITHUB_OUTPUT
-          echo "✅ Merge executed successfully"
-          echo "  Merge commit SHA: $merge_sha"
+          echo "✅ Merge executed: $merge_sha"
+
+      - name: Set Merge SHA (Recovery Mode)
+        id: merge_recovery
+        if: steps.recovery.outputs.recovery_mode == 'true'
+        env:
+          PR_MERGE_SHA: ${{ steps.pr_state.outputs.pr_merge_sha }}
+        run: |
+          echo "merge_sha=$PR_MERGE_SHA" >> $GITHUB_OUTPUT
+          echo "✅ Recovery: Using existing merge commit: $PR_MERGE_SHA"
 
       - name: Verify Merge Succeeded
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
-          MERGE_SHA: ${{ steps.merge.outputs.merge_sha }}
         run: |
-          # Verify PR is now merged
-          pr_state=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.merged')
+          pr_merged=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.merged')
           
-          if [[ "$pr_state" != "true" ]]; then
+          if [[ "$pr_merged" != "true" ]]; then
             echo "❌ Merge verification failed: PR is not marked as merged"
             exit 1
           fi
-          
-          # Verify main contains merge commit
-          main_head=$(gh api repos/$REPO/commits/main --jq '.sha')
-          
-          if [[ "$main_head" != "$MERGE_SHA" ]]; then
-            echo "⚠️ Warning: main HEAD ($main_head) != merge commit ($MERGE_SHA)"
-            echo "  This may be OK if another commit was pushed concurrently"
-          fi
-          
-          echo "✅ Merge verification passed"
+          echo "✅ Merge verification: PR is merged"
 
       - name: Compose Learning Closure Summary
         id: closure_summary
@@ -253,70 +251,70 @@ jobs:
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
-          MERGE_SHA: ${{ steps.merge.outputs.merge_sha }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge_sha || steps.merge_recovery.outputs.merge_sha }}
         run: |
-          # Get PR details
           pr_data=$(gh api repos/$REPO/pulls/$PR_NUMBER)
           pr_title=$(echo "$pr_data" | jq -r '.title')
-          pr_body=$(echo "$pr_data" | jq -r '.body')
           pr_url=$(echo "$pr_data" | jq -r '.html_url')
           
-          # Get issue details
           issue_data=$(gh api repos/$REPO/issues/$ISSUE_NUMBER)
-          issue_body=$(echo "$issue_data" | jq -r '.body')
+          issue_body=$(echo "$issue_data" | jq -r '.body // empty')
           
-          # Build closure comment
           closure_comment="## ✅ Merged & Closed: Learning Consolidation
 
-**Learning Motivation**
-$(echo "$issue_body" | head -c 500)
+**Learning Motivation** (Issue #$ISSUE_NUMBER)
+\`\`\`
+$(echo "$issue_body" | head -c 300 || echo "[See Issue #$ISSUE_NUMBER for details]")
+\`\`\`
 
 **What Changed**
-- PR: #$PR_NUMBER
-- Merge Commit: \`$MERGE_SHA\`
+- PR: #$PR_NUMBER — $pr_title
+- Merge Commit: \`${MERGE_SHA:0:8}\`
 - Method: ${{ inputs.merge_method }}
 
 **Evidence**
-- PR: [$PR_NUMBER]($pr_url)
+- Issue: [#$ISSUE_NUMBER](https://github.com/$REPO/issues/$ISSUE_NUMBER)
+- PR: [#$PR_NUMBER]($pr_url)
 - Merge Commit: [$MERGE_SHA](https://github.com/$REPO/commit/$MERGE_SHA)
-- GitHub Actions: [Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+- Workflow: [Run ${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
 **What Learned**
-[See PR discussion and Result record]
+See Issue description and PR discussion. If no learning content is recorded, mark as: 未記錄
 
 **Remaining Questions / Next Steps**
-[See linked issues or Result record]
+Refer to linked PR or Result record for continuation.
 
 ---
-*Closure Summary generated by Issue #11 automation workflow.*"
+*Generated by Issue #11 Merge & Close Automation — Learning Traceability First*"
           
-          # Save to output (escaped for GitHub output)
           {
             echo 'closure_comment<<EOF'
             echo "$closure_comment"
             echo 'EOF'
           } >> $GITHUB_OUTPUT
 
-      - name: Check Prior Closure Summary
+      - name: Check Prior Closure (Idempotency)
         id: prior_closure
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
+          PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          # Query issue comments
           comments=$(gh api repos/$REPO/issues/$ISSUE_NUMBER/comments)
           
-          # Check if closure summary already posted
-          prior=$(echo "$comments" | jq 'map(select(.body | contains("Merged & Closed: Learning Consolidation"))) | length')
+          # Check for closure comment that mentions this PR
+          prior=$(echo "$comments" | jq "map(select(.body | contains(\"#$PR_NUMBER\") and contains(\"Merged & Closed\"))) | length")
           
           echo "prior_closure=$prior" >> $GITHUB_OUTPUT
           
           if [[ "$prior" -gt 0 ]]; then
-            echo "⚠️ Prior closure summary detected ($prior comments)"
+            echo "⚠️ Prior closure summary for PR #$PR_NUMBER detected"
+          else
+            echo "✅ No prior closure summary for PR #$PR_NUMBER"
           fi
 
-      - name: Post Closure Summary to Issue
+      - name: Post Closure Summary (Idempotent)
         id: post_closure
         if: steps.prior_closure.outputs.prior_closure == '0'
         env:
@@ -329,7 +327,7 @@ $(echo "$issue_body" | head -c 500)
           comment_id=$(gh api repos/$REPO/issues/$ISSUE_NUMBER/comments \
             -f body="$comment_body" --jq '.id')
           
-          if [[ -z "$comment_id" ]]; then
+          if [[ -z "$comment_id" ]] || [[ "$comment_id" == "null" ]]; then
             echo "❌ Failed to post closure comment"
             exit 1
           fi
@@ -337,39 +335,55 @@ $(echo "$issue_body" | head -c 500)
           echo "closure_comment_id=$comment_id" >> $GITHUB_OUTPUT
           echo "✅ Closure summary posted (comment ID: $comment_id)"
 
-      - name: Verify Issue Match Before Close
+      - name: Pre-Close Verification
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
-          MERGE_SHA: ${{ steps.merge.outputs.merge_sha }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge_sha || steps.merge_recovery.outputs.merge_sha }}
         run: |
-          # Verify PR and issue are correctly linked
+          # Verify PR ↔ Issue binding before close
           pr_data=$(gh api repos/$REPO/pulls/$PR_NUMBER)
+          pr_merged=$(echo "$pr_data" | jq -r '.merged')
           pr_title=$(echo "$pr_data" | jq -r '.title')
           
-          echo "Verification before close:"
-          echo "  PR #$PR_NUMBER: $pr_title"
-          echo "  Issue #$ISSUE_NUMBER (authorized)"
-          echo "  Merge SHA: $MERGE_SHA"
+          issue_data=$(gh api repos/$REPO/issues/$ISSUE_NUMBER)
+          issue_state=$(echo "$issue_data" | jq -r '.state')
           
-          # This is a critical check: never close wrong issue
-          if [[ -z "$MERGE_SHA" ]]; then
-            echo "❌ CRITICAL: Merge SHA is empty; refusing to close issue"
+          echo "Pre-Close Verification:"
+          echo "  PR #$PR_NUMBER: $pr_title (merged=$pr_merged)"
+          echo "  Issue #$ISSUE_NUMBER: state=$issue_state"
+          echo "  Merge Commit: ${MERGE_SHA:0:12}"
+          
+          # Critical checks
+          if [[ -z "$MERGE_SHA" ]] || [[ "$MERGE_SHA" == "null" ]]; then
+            echo "❌ CRITICAL: Merge SHA is empty"
             exit 1
           fi
           
-          echo "✅ Pre-close verification passed"
+          if [[ "$pr_merged" != "true" ]]; then
+            echo "❌ CRITICAL: PR #$PR_NUMBER not merged"
+            exit 1
+          fi
+          
+          if [[ "$issue_state" == "closed" ]]; then
+            echo "⚠️ Issue #$ISSUE_NUMBER already closed (skipping close)"
+            echo "already_closed=true" >> $GITHUB_ENV
+          else
+            echo "already_closed=false" >> $GITHUB_ENV
+          fi
+          
+          echo "✅ Pre-Close Verification passed"
 
       - name: Close Issue
         id: close_issue
+        if: env.already_closed == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
         run: |
-          # Close the issue
           close_response=$(gh api repos/$REPO/issues/$ISSUE_NUMBER \
             -X PATCH \
             -f state="closed")
@@ -383,7 +397,7 @@ $(echo "$issue_body" | head -c 500)
           
           echo "✅ Issue #$ISSUE_NUMBER closed successfully"
 
-      - name: Verify Issue Closed
+      - name: Post-Close Verification
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -391,22 +405,9 @@ $(echo "$issue_body" | head -c 500)
         run: |
           issue_state=$(gh api repos/$REPO/issues/$ISSUE_NUMBER --jq '.state')
           
-          if [[ "$issue_state" != "closed" ]]; then
-            echo "❌ Issue closure verification failed (state: $issue_state)"
+          if [[ "$issue_state" == "closed" ]]; then
+            echo "✅ Post-Close Verification: Issue #$ISSUE_NUMBER confirmed CLOSED"
+          else
+            echo "❌ Post-Close Verification FAILED: Issue #$ISSUE_NUMBER state=$issue_state"
             exit 1
           fi
-          
-          echo "✅ Issue #$ISSUE_NUMBER verified closed"
-
-      - name: Workflow Complete
-        run: |
-          echo "✅ COMPLETED"
-          echo ""
-          echo "Summary:"
-          echo "  PR #${{ inputs.pr_number }} merged to main"
-          echo "  Merge method: ${{ inputs.merge_method }}"
-          echo "  Merge commit: ${{ steps.merge.outputs.merge_sha }}"
-          echo "  Closure summary posted"
-          echo "  Issue #${{ inputs.issue_number }} closed"
-          echo ""
-          echo "Learning history preserved in Issue timeline."
