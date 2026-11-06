@@ -11,11 +11,16 @@ Rollback:
 Commands, results and evidence (PENDING / NOT RUN when applicable):
 Content / provenance / visual checks, if applicable:
 
-## Review
-Opposite Agent / pending / L0 not required:
-Reviewed full commit SHA and relevant base/scope:
-Findings / result / evidence link:
-Bot Summary, native GitHub Review and Human Approval are distinct.
+## Self-Review and Evidence
+Builder Self-Review procedure and Evidence:
+Claim / Source / Method / Evidence checklist / Commit SHA:
+
+Fresh-Context Challenge (if applicable):
+Risk assessment / execution reason or rationale for omission:
+
+## Human Approval
+L2 Plan approval reference:
+L3 specific action/scope authorization reference:
 
 ## Records / authorization (only if applicable)
 Plan / pre-implementation commit:

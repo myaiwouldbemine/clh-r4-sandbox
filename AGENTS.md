@@ -1,11 +1,12 @@
 # Agent Instructions — Minimal Learning Hub
 
-- Read GOVERNANCE.md and the Issue boundary. Human myaiwouldbemine is the sole administrator; Codex and Claude Code are peers.
-- Use Issue → Draft PR → conditional Plan → Implementation → conditional Result → Review → authorized Merge. Open Draft early; Draft grants no implementation or merge authority.
+- Read GOVERNANCE.md and the Issue boundary. Human myaiwouldbemine is the sole administrator; Claude Code is the designated Builder.
+- Use Issue → Draft PR → conditional Plan → Implementation → conditional Result → Self-Review → authorized Merge. Open Draft early; Draft grants no implementation or merge authority.
 - Classify actual impact: L0 nonsemantic typo/formatting, L1 substantive content/code, L2 major architecture/provenance, L3 security/governance/permissions/deployment/irreversible operations. Unknown risk blocks clarification-dependent work.
-- L0 needs no mandatory Plan/Result or independent Review. L1 needs opposite-Agent cross-review. L2/L3 need pre-implementation Plan and Human approval; L3 also needs specific action/scope authorization.
+- L0 needs no mandatory Plan/Result or Self-Review evidence. L1 needs traceable Self-Review with documented Evidence. L2/L3 need pre-implementation Plan and Human approval; L3 also needs specific action/scope authorization.
+- Fresh-Context Challenge: Optional verification per risk; not mandatory daily review. Claude Code evaluates necessity and documents reason for inclusion or omission. Human-mandated challenges cannot be skipped. Not an Agent Handoff or governance platform.
 - Formal Plans go in records/ISSUE-<number>/PLAN.md and must be committed before their implementation; preserve history. If a formal Plan exists, write RESULT.md after implementation. Do not fabricate historical ordering.
-- Record actual Reviewer, full reviewed commit, relevant base/scope, findings/verdict and evidence in the PR. Self-review is not cross-review. Another login/shared Human token alone proves no independence. If opposite-Agent execution is unconfirmed, review remains pending.
+- Record actual Builder work, full reviewed commit, relevant base/scope, findings/verdict and evidence in the PR. Self-review is not cross-review; distinguish Self-Review Evidence from independent Review. Document Fresh-Context Challenge if applied.
 - Distinguish Bot Summary, native GitHub Review and Human Approval. No mandatory native APPROVED conversion, App/Registry/Attestation/Control Plane/second Human. Do not claim automated trusted identity verification.
 - Run applicable tests/CI and strict MkDocs for site changes. Report build/content/provenance/visual/deployment separately. Missing, failed, skipped, pending, stale evidence or unresolved blockers prevents Merge.
 - New head requires Review reconfirmation; base/scope/risk changes require reassessment and renewed authorization where necessary.
