@@ -398,3 +398,189 @@ if __name__ == "__main__":
     print("merge_lifecycle.py loaded successfully")
     print("Provides gate validation, API helpers, closure summary composition")
     print("All learning outcomes are evidence-based (never fabricated)")
+
+
+def verify_pr_issue_linkage(pr_body: str, target_issue_number: int) -> Tuple[bool, str]:
+    """
+    Verify explicit PR ↔ Issue linkage using precise pattern matching.
+    
+    Args:
+        pr_body: PR description text
+        target_issue_number: Target Issue number (e.g., 11)
+    
+    Returns:
+        Tuple of (linkage_valid, reason)
+        - linkage_valid: True if PR explicitly references target Issue
+        - reason: Explanation string
+    
+    Unambiguous patterns required:
+    - "#N" (exact issue number)
+    - "Fixes #N" (keyword + exact number)
+    - "Closes #N" (keyword + exact number)
+    - "Resolves #N" (keyword + exact number)
+    
+    Rejected patterns:
+    - "fixes something" without "#N"
+    - "Fixes #99" when target is #11
+    - Keywords without explicit number
+    """
+    if not pr_body or not pr_body.strip():
+        return False, "PR body is empty"
+    
+    # Pattern 1: "Fixes #N" / "Closes #N" / "Resolves #N" (case-insensitive)
+    import re
+    
+    # Build precise regex: keyword + space + exact issue number
+    patterns = [
+        rf'\b(Fixes|Closes|Resolves)\s+#{target_issue_number}\b',  # Keyword + #N
+        rf'(?:^|\s)#{target_issue_number}(?:\s|$|\.|\n)',  # Bare #N (with boundaries)
+    ]
+    
+    for pattern in patterns:
+        if re.search(pattern, pr_body, re.IGNORECASE | re.MULTILINE):
+            return True, f"PR body contains explicit reference to Issue #{target_issue_number}"
+    
+    # Failed: Check what references exist
+    issue_refs = re.findall(r'(?:Fixes|Closes|Resolves|#)(?:\s)?#?(\d+)', pr_body, re.IGNORECASE)
+    if issue_refs:
+        return False, f"PR body references issues {set(issue_refs)}, not #{target_issue_number}"
+    
+    return False, "PR body contains no explicit issue reference (no 'Fixes #N' or '#N' pattern)"
+
+
+def extract_learning_outcome(issue_body: str, pr_body: str, result_content: Optional[str] = None) -> Tuple[str, str]:
+    """
+    Extract learning outcome from actual content (not keyword-only detection).
+    
+    Args:
+        issue_body: Issue description
+        pr_body: PR description
+        result_content: RESULT.md content (optional)
+    
+    Returns:
+        Tuple of (learning_outcome, source)
+        - learning_outcome: Actual outcome text or "未記錄"
+        - source: "Issue" / "PR" / "RESULT.md" / "" (empty if未記錄)
+    """
+    import re
+    
+    # Keywords indicating learning content
+    learning_keywords = [
+        "learned", "discover", "understand", "found", "insight",
+        "realized", "recognized", "achieved", "accomplished"
+    ]
+    
+    # Function to extract sentences/clauses around keywords
+    def extract_context(text, keywords):
+        """Extract text containing first matching keyword."""
+        if not text:
+            return None
+            
+        for kw in keywords:
+            # Look for word containing keyword (case-insensitive)
+            pattern = rf'\b\w*{kw}\w*\b'
+            if re.search(pattern, text, re.IGNORECASE):
+                # Extract sentence containing keyword
+                sentences = re.split(r'[.!?\n]+', text)
+                for sent in sentences:
+                    if re.search(pattern, sent, re.IGNORECASE):
+                        sent_clean = sent.strip()
+                        if sent_clean:
+                            return sent_clean
+        return None
+    
+    # Try Issue first
+    if issue_body:
+        outcome = extract_context(issue_body, learning_keywords)
+        if outcome:
+            return outcome, "Issue"
+    
+    # Try PR
+    if pr_body:
+        outcome = extract_context(pr_body, learning_keywords)
+        if outcome:
+            return outcome, "PR"
+    
+    # Try RESULT.md
+    if result_content:
+        outcome = extract_context(result_content, learning_keywords)
+        if outcome:
+            return outcome, "RESULT.md"
+    
+    # No evidence found
+    return "未記錄", ""
+
+
+def detect_prior_closure(comments: List[Dict], pr_number: int, merge_sha_full: str) -> bool:
+    """
+    Detect if a closure summary already exists for this PR+Issue+Merge combination.
+    
+    Args:
+        comments: List of issue comments from GitHub API
+        pr_number: PR number being merged
+        merge_sha_full: Complete merge commit SHA (40 chars)
+    
+    Returns:
+        True if prior closure found (should skip reposting)
+    
+    Matching criteria (must match ALL):
+    - Comment body contains PR number reference
+    - Comment body contains merge commit short SHA (first 8 chars)
+    - Comment body contains "Merged & Closed" or similar closure marker
+    """
+    if not comments or not isinstance(comments, list):
+        return False
+    
+    merge_sha_short = merge_sha_full[:8] if len(merge_sha_full) >= 8 else merge_sha_full
+    
+    for comment in comments:
+        body = comment.get("body", "")
+        
+        # Check ALL three conditions
+        has_pr_ref = f"#{pr_number}" in body or f"PR #{pr_number}" in body
+        has_merge_ref = merge_sha_short in body or merge_sha_full in body
+        has_closure_marker = "Merged & Closed" in body or "merged" in body.lower()
+        
+        if has_pr_ref and has_merge_ref and has_closure_marker:
+            return True
+    
+    return False
+
+
+def validate_recovery_authorization(
+    authorized_head_sha: str,
+    current_head_sha: str,
+    authorized_base: str,
+    current_base: str,
+    authorized_issue: int,
+    target_issue: int,
+) -> Tuple[bool, str]:
+    """
+    Validate recovery path: verify all authorization parameters still match.
+    
+    Recovery should only proceed if:
+    - Head SHA hasn't changed (PR branch tip)
+    - Base branch is still the same
+    - Issue is still the same
+    
+    Args:
+        authorized_head_sha: SHA from original authorization
+        current_head_sha: PR's current head SHA
+        authorized_base: Base from original authorization
+        current_base: PR's current base
+        authorized_issue: Issue from original authorization
+        target_issue: Target Issue for closure
+    
+    Returns:
+        Tuple of (valid, reason)
+    """
+    if authorized_head_sha != current_head_sha:
+        return False, f"Head SHA changed (authorized: {authorized_head_sha[:8]}, current: {current_head_sha[:8]})"
+    
+    if authorized_base != current_base:
+        return False, f"Base branch changed (authorized: {authorized_base}, current: {current_base})"
+    
+    if authorized_issue != target_issue:
+        return False, f"Issue number changed (authorized: {authorized_issue}, target: {target_issue})"
+    
+    return True, "All authorization parameters match"

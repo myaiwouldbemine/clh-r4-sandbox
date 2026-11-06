@@ -492,3 +492,165 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+def test_pr_issue_linkage_precision():
+    """Test: PR-Issue linkage with precise pattern matching (not just 'fixes')."""
+    
+    from merge_lifecycle import verify_pr_issue_linkage
+    
+    def exact_match():
+        # PR with "Fixes #11"
+        pr_body = "This fixes the parsing issue.\nFixes #11"
+        valid, reason = verify_pr_issue_linkage(pr_body, 11)
+        assert valid, reason
+    
+    def wrong_issue():
+        # PR mentions "fixes" but wrong issue
+        pr_body = "Fixes #99 by refactoring"
+        valid, reason = verify_pr_issue_linkage(pr_body, 11)
+        assert not valid, "Should reject wrong issue number"
+    
+    def bare_issue_number():
+        # PR with bare #11 reference
+        pr_body = "Addresses #11\nSee #11 for details"
+        valid, reason = verify_pr_issue_linkage(pr_body, 11)
+        assert valid, reason
+    
+    def no_reference():
+        # PR with "fixes" but no issue
+        pr_body = "Fixes a bug in the workflow"
+        valid, reason = verify_pr_issue_linkage(pr_body, 11)
+        assert not valid, "Should reject 'fixes' without issue number"
+    
+    exact_match()
+    wrong_issue()
+    bare_issue_number()
+    no_reference()
+
+
+def test_learning_outcome_extraction():
+    """Test: Extract actual learning outcome, not just keyword detection."""
+    
+    from merge_lifecycle import extract_learning_outcome
+    
+    def with_actual_learning():
+        issue_body = "We discovered that imports must be at the top of the file."
+        pr_body = ""
+        
+        outcome, source = extract_learning_outcome(issue_body, pr_body)
+        assert "discovered" in outcome.lower() or "imports" in outcome.lower(), f"Should extract content: {outcome}"
+        assert source in ["Issue", "PR", "RESULT.md"], f"Source should be identified: {source}"
+    
+    def no_learning_evidence():
+        issue_body = "Fix typo in README"
+        pr_body = "Minor formatting change"
+        
+        outcome, source = extract_learning_outcome(issue_body, pr_body)
+        assert outcome == "未記錄", f"Should mark as not recorded: {outcome}"
+        assert source == "", "Source should be empty when not recorded"
+    
+    def from_result():
+        issue_body = ""
+        pr_body = ""
+        result = "### Learning\nRealized the importance of test coverage."
+        
+        outcome, source = extract_learning_outcome(issue_body, pr_body, result)
+        assert "realized" in outcome.lower() or "importance" in outcome.lower(), f"Should extract from RESULT: {outcome}"
+        assert source == "RESULT.md", f"Source should be RESULT.md: {source}"
+    
+    with_actual_learning()
+    no_learning_evidence()
+    from_result()
+
+
+def test_recovery_authorization_validation():
+    """Test: Recovery path validates complete authorization state."""
+    
+    from merge_lifecycle import validate_recovery_authorization
+    
+    def all_match():
+        valid, reason = validate_recovery_authorization(
+            authorized_head_sha="abc123abc123abc123abc123abc123abc123abc1",
+            current_head_sha="abc123abc123abc123abc123abc123abc123abc1",
+            authorized_base="main",
+            current_base="main",
+            authorized_issue=11,
+            target_issue=11
+        )
+        assert valid, reason
+    
+    def head_changed():
+        valid, reason = validate_recovery_authorization(
+            authorized_head_sha="abc123abc123abc123abc123abc123abc123abc1",
+            current_head_sha="def456def456def456def456def456def456def4",
+            authorized_base="main",
+            current_base="main",
+            authorized_issue=11,
+            target_issue=11
+        )
+        assert not valid, "Should reject changed head"
+    
+    def base_changed():
+        valid, reason = validate_recovery_authorization(
+            authorized_head_sha="abc123abc123abc123abc123abc123abc123abc1",
+            current_head_sha="abc123abc123abc123abc123abc123abc123abc1",
+            authorized_base="main",
+            current_base="develop",
+            authorized_issue=11,
+            target_issue=11
+        )
+        assert not valid, "Should reject changed base"
+    
+    def issue_changed():
+        valid, reason = validate_recovery_authorization(
+            authorized_head_sha="abc123abc123abc123abc123abc123abc123abc1",
+            current_head_sha="abc123abc123abc123abc123abc123abc123abc1",
+            authorized_base="main",
+            current_base="main",
+            authorized_issue=11,
+            target_issue=99
+        )
+        assert not valid, "Should reject changed issue"
+    
+    all_match()
+    head_changed()
+    base_changed()
+    issue_changed()
+
+
+def test_prior_closure_deduplication():
+    """Test: Detect prior closure using PR + Merge SHA + closure marker."""
+    
+    from merge_lifecycle import detect_prior_closure
+    
+    def prior_exists():
+        comments = [
+            {
+                "body": "## ✅ Merged & Closed\nPR #10 ... Merge Commit abc12345"
+            }
+        ]
+        found = detect_prior_closure(comments, 10, "abc12345def456abc123def456abc123def456ab")
+        assert found, "Should detect prior closure"
+    
+    def different_pr():
+        comments = [
+            {
+                "body": "## ✅ Merged & Closed\nPR #9 ... Merge Commit abc12345"
+            }
+        ]
+        found = detect_prior_closure(comments, 10, "abc12345def456abc123def456abc123def456ab")
+        assert not found, "Should not detect closure for different PR"
+    
+    def different_merge():
+        comments = [
+            {
+                "body": "## ✅ Merged & Closed\nPR #10 ... Merge Commit def56789"
+            }
+        ]
+        found = detect_prior_closure(comments, 10, "abc12345def456abc123def456abc123def456ab")
+        assert not found, "Should not detect closure for different merge commit"
+    
+    prior_exists()
+    different_pr()
+    different_merge()
