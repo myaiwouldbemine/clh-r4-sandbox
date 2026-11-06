@@ -845,3 +845,329 @@ Docs Check (mkdocs strict):
 **Commit**: db77022a4f3dbaa332d1d1c874422913d8cfbcf6  
 **Branch**: issue-11-implementation  
 **All Tests**: 15 Mock + 10 Governance = 25/25 PASS  
+
+---
+
+## 3. FUNCTIONAL REFINEMENT: Verification Logic Extraction (Commit 479402c)
+
+**Baseline**: Commit be1e32d  
+**Refinement Commit**: 479402c  
+**Date**: Latest  
+**Purpose**: Extract real verification logic from YAML into Python helpers; ensure actual implementation matches test coverage  
+
+### 3.1 Problem Statement
+
+Previous implementation used abstract helper functions defined only in tests, while the actual workflow still contained inline BASH logic with the following defects:
+
+1. **PR-Issue Linkage** (workflow line ~303): Used OR-based grep
+   ```bash
+   grep -iq "fixes\|closes\|resolves\|#$ISSUE_NUMBER"
+   ```
+   **Defect**: Would pass for PR containing "fixes something" without target issue number
+   
+2. **Learning Outcome** (workflow line ~358): Keyword-only detection
+   ```bash
+   grep -iq "learned\|discover\|understand\|realize\|found\|insight"
+   ```
+   **Defect**: Would output placeholder text even when no actual evidence exists
+   
+3. **Prior Closure Check** (workflow line ~481): Used short SHA for deduplication
+   ```bash
+   contains(\"${MERGE_SHA:0:8}\")
+   ```
+   **Defect**: Could match unrelated merge commits with collision in short SHA space
+
+4. **Recovery Mode** (workflow line ~116): Checked only HEAD SHA and Base
+   **Defect**: Did not verify issue number unchanged; could close wrong issue on retry
+
+### 3.2 Implemented Solutions
+
+#### Fix 1: PR-Issue Linkage Verification
+
+**New Function**: `verify_pr_issue_linkage(pr_body: str, target_issue_number: int) -> Tuple[bool, str]`
+
+**Location**: `scripts/merge_lifecycle.py` (lines ~432-487)
+
+**Implementation**:
+```python
+def verify_pr_issue_linkage(pr_body: str, target_issue_number: int) -> Tuple[bool, str]:
+    # Pattern 1: "Fixes #N" / "Closes #N" / "Resolves #N" (case-insensitive)
+    # Pattern 2: Bare "#N" (with word boundaries)
+    # Returns (linkage_valid, reason)
+    # FAILS if: Issue mentioned but number wrong, or keyword without number
+```
+
+**Negative Test Cases** (all passing ✅):
+- ❌ `"Fixes #99"` when target is #11 → REJECTED ("wrong issue number")
+- ❌ `"Fixes a bug"` when target is #11 → REJECTED ("no explicit reference")
+- ✅ `"Fixes #11"` when target is #11 → ACCEPTED
+- ✅ `"#11"` when target is #11 → ACCEPTED
+
+**Workflow Integration** (line ~291-329):
+```yaml
+- name: Verify Real PR ↔ Issue Linkage
+  run: |
+    python3 << 'LINKAGE_EOF'
+    from merge_lifecycle import verify_pr_issue_linkage
+    valid, reason = verify_pr_issue_linkage(pr_body, issue_number)
+    # Store result for gate validation
+```
+
+#### Fix 2: Evidence-Based Learning Outcome Extraction
+
+**New Function**: `extract_learning_outcome(issue_body, pr_body, result_content) -> Tuple[str, str]`
+
+**Location**: `scripts/merge_lifecycle.py` (lines ~451-507)
+
+**Implementation**:
+- Search for learning keywords: "learned", "discovered", "understood", "found", "realized", "insight", etc.
+- Extract actual sentence/clause containing keyword (not just keyword match)
+- Priority order: Issue → PR → RESULT.md
+- Return `("未記錄", "")` if no evidence found (not placeholder)
+
+**Negative Test Cases** (all passing ✅):
+- ❌ `"Minor fix"` + `"Small change"` → returns `("未記錄", "")` (NOT placeholder)
+- ✅ `"We discovered imports matter"` → returns extracted sentence + `"Issue"` source
+- ✅ `"Realized the pattern"` (in PR) → returns extracted text + `"PR"` source
+- ✅ `"Found that tests help"` (in RESULT.md) → extracted + `"RESULT.md"` source
+
+**Workflow Integration** (line ~336-389):
+```yaml
+- name: Extract Learning Evidence
+  run: |
+    python3 << 'EVIDENCE_EOF'
+    from merge_lifecycle import extract_learning_outcome
+    outcome, source = extract_learning_outcome(issue_body, pr_body, result_md)
+    # Use actual outcome text, not placeholder
+```
+
+**Closure Summary Change** (line ~420-434):
+```yaml
+# OLD: Placeholder
+learning_section="Learning content detected..."
+
+# NEW: Actual content or "未記錄"
+if [[ -n "$LEARNING_OUTCOME" ]] && [[ "$LEARNING_OUTCOME" != "未記錄" ]]; then
+  learning_section="**From $LEARNING_SOURCE:** $LEARNING_OUTCOME"
+else
+  learning_section="**未記錄** — No learning outcome documented..."
+fi
+```
+
+#### Fix 3: Recovery Authorization Validation
+
+**New Function**: `validate_recovery_authorization(...) -> Tuple[bool, str]`
+
+**Location**: `scripts/merge_lifecycle.py` (lines ~582-616)
+
+**Implementation**:
+- Verifies all authorization parameters (Head SHA, Base, Issue) unchanged
+- Prevents recovery if any parameter changed (stale authorization)
+- Returns `(valid, reason)` with clear error message
+
+**Negative Test Cases** (all passing ✅):
+- ❌ Head SHA changed → BLOCKED ("Head SHA changed")
+- ❌ Base branch changed → BLOCKED ("Base branch changed")  
+- ❌ Issue number changed → BLOCKED ("Issue number changed")
+- ✅ All params match → ALLOWED
+
+**Workflow Integration** (line ~100-151):
+```yaml
+- name: Determine Mode (Normal vs Recovery)
+  run: |
+    python3 << 'RECOVERY_EOF'
+    from merge_lifecycle import validate_recovery_authorization
+    valid, reason = validate_recovery_authorization(
+        authorized_head, current_head,
+        authorized_base, current_base,
+        authorized_issue, target_issue
+    )
+    # Block if any mismatch
+```
+
+#### Fix 4: Prior Closure Deduplication
+
+**New Function**: `detect_prior_closure(comments, pr_number, merge_sha_full) -> bool`
+
+**Location**: `scripts/merge_lifecycle.py` (lines ~547-579)
+
+**Implementation**:
+- Match THREE conditions ALL together: PR number + full Merge SHA + "Merged & Closed" marker
+- Prevents false positives from short SHA collisions
+- Returns `True` only if prior closure found; `False` otherwise
+
+**Negative Test Cases** (all passing ✅):
+- ❌ Different PR number → NOT matched
+- ❌ Different merge commit SHA → NOT matched  
+- ❌ Same PR + SHA but NO closure marker → NOT matched
+- ✅ Identical PR + SHA + closure marker → MATCHED
+
+**Workflow Integration** (line ~469-504):
+```yaml
+- name: Check Prior Closure (Idempotency)
+  run: |
+    python3 << 'PRIOR_EOF'
+    from merge_lifecycle import detect_prior_closure
+    prior_found = detect_prior_closure(comments, pr_number, merge_sha_full)
+    # Skip repost if prior closure detected
+```
+
+### 3.3 Comprehensive Test Coverage
+
+**Test Suite**: `scripts/test_merge_lifecycle.py` (updated)
+
+**Test Results**: ✅ 20/20 comprehensive tests passing
+
+```
+LINKAGE VERIFICATION (6 tests):
+  ✅ Exact match 'Fixes #11'
+  ✅ Wrong issue rejected
+  ✅ Bare '#11' accepted
+  ✅ 'Fixes' without issue rejected
+  ✅ Case-insensitive match
+  ✅ Empty body rejected
+
+LEARNING OUTCOME EXTRACTION (5 tests):
+  ✅ Extract from Issue
+  ✅ Extract from PR
+  ✅ Extract from RESULT.md
+  ✅ No evidence → 未記錄 (not placeholder)
+  ✅ Prioritize Issue over PR
+
+RECOVERY VALIDATION (4 tests):
+  ✅ All matching params accepted
+  ✅ Reject changed head
+  ✅ Reject changed base
+  ✅ Reject changed issue
+
+PRIOR CLOSURE DEDUPLICATION (5 tests):
+  ✅ Find prior closure
+  ✅ Different PR not matched
+  ✅ Different merge not matched
+  ✅ Empty comments handled
+  ✅ Requires closure marker
+```
+
+### 3.4 Verification Results
+
+✅ **All Helper Functions Tested**: Each Python function invoked directly, not mocked
+
+✅ **Workflow Logic Updated**: YAML now calls Python helpers instead of inline BASH
+
+✅ **Negative Tests Passing**: Unrelated issues, wrong patterns, mismatched auth all correctly rejected
+
+✅ **GitHub Actions CI**: governance-tests passing ✅, docs-check passing ✅
+
+✅ **MkDocs Strict**: Documentation builds without errors ✅
+
+✅ **Remote Verification**:
+```
+Previous head: be1e32d85907031992dc58a74c0b8752aaf2590b (targeted QA)
+Refinement commit: 479402c9f15dd5a39e03a6b5175df5ca8d18b445 (logic extraction)
+Remote push: ✅ confirmed
+```
+
+### 3.5 Design Rationale
+
+**Why Extract to Python Helpers?**
+- Testable independently from workflow
+- Complex logic (regex, multi-source search) clearer in Python
+- Easier to verify correctness in isolation
+- Reusable if workflow definition changes
+- Clear separation: YAML orchestrates, Python verifies
+
+**Why 20 Comprehensive Tests Instead of Mocks?**
+- Tests invoke actual verification functions
+- Negative cases (wrong issue, wrong pattern, mismatched auth) all covered
+- Evidence of correctness independent of workflow parsing
+- Fail-closed behavior validated at function level
+
+**Why Full Merge SHA for Deduplication?**
+- Short SHA (8 chars) can collide in large repos (~1 in 65536 commits)
+- Full SHA (40 chars) has negligible collision probability
+- Cost of passing full SHA through GitHub API is minimal
+- Prior closure detection must be 100% certain
+
+---
+
+## 4. Outstanding Questions
+
+1. **Workflow Activation Authorization**: When can the workflow_dispatch be enabled for public use?
+   - Answer: Only after Human explicitly authorizes GitHub Settings changes
+
+2. **Error Recovery**: What should workflow do if learning evidence extraction times out?
+   - Answer: Current design falls back to "未記錄"; no timeout currently set
+
+3. **Merge Metadata Storage**: How to preserve original merge method for recovery path?
+   - Answer: Currently recovered from PR merged state + method encoded in merge commit type; future enhancement possible
+
+---
+
+## 5. Known Limitations
+
+1. **Comment Parsing**: Closure Summary detection relies on string matching in comment body
+   - Mitigation: Full Merge SHA included; unlikely to match unrelated comments
+
+2. **Learning Evidence Extraction**: Keyword search is still pattern-based, not ML
+   - Mitigation: Returns "未記錄" for ambiguous cases; manual review recommended for L2/L3
+
+3. **GitHub API Rate Limiting**: No retry logic for rate limit errors
+   - Mitigation: workflow_dispatch typically runs <10 times/hour; rate limit is 5000/hour
+
+---
+
+## 6. Acceptance Criteria Status
+
+All planned acceptance criteria met:
+
+- ✅ Precise PR-Issue linkage verification
+- ✅ Evidence-based learning outcome extraction (not keyword-only)
+- ✅ Complete recovery path validation
+- ✅ Full-SHA deduplication
+- ✅ Comprehensive negative test coverage
+- ✅ All four fixes integrated into live workflow
+- ✅ Helper functions callable from workflow
+- ✅ No workflow activation yet (Draft PR status maintained)
+- ✅ No live merge/close tested
+- ✅ Remote readback confirmed
+
+---
+
+## 7. Recommendations for Next Phase
+
+**Phase: Human Review (Draft PR #12)**
+
+1. Review the four verification functions for correctness
+2. Approve the workflow YAML changes
+3. Verify remote readback confirms commit 479402c contains correct code
+4. Decide on workflow activation (GitHub Settings + Secrets management)
+5. Decide on first live merge test parameters and authorization
+
+**Phase: Live Testing (if approved)**
+
+1. Create test PR with controlled learning content
+2. Manually trigger workflow_dispatch
+3. Verify six gates execute correctly
+4. Verify learning evidence correctly extracted
+5. Verify closure summary posted
+6. Verify issue closed with correct status
+
+**Phase: Production (if live testing succeeds)**
+
+1. Document workflow usage procedures
+2. Train authorized users on workflow_dispatch parameters
+3. Enable public access to workflow_dispatch UI
+4. Monitor first 10 runs for issues
+5. Adjust error messages / recovery logic based on real-world usage
+
+---
+
+**STATUS: DRAFT PR #12 — HUMAN REVIEW REQUIRED**
+
+**No implementation authorization granted.**  
+**No workflow activation authorized.**  
+**No live merge/close authorized.**  
+**No GitHub settings changes authorized.**
+
+Next step: Return to Human for review of Commit 479402c.
+
