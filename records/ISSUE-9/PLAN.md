@@ -1,15 +1,15 @@
 # Issue #9 — LIGHT Governance v2: Claude Code Single-Builder + Self-Verification
 
-## Formal Plan v3.1 (Revised — Issue Timeline Publication Rule Correction)
+## Formal Plan v3.1 (Revised — Final Consistency Fix)
 
 **Issue**: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/9  
 **Builder**: Claude Code  
 **Risk Level**: L3 (Governance policy semantic change)  
 **Status**: PLAN PENDING HUMAN APPROVAL — NO IMPLEMENTATION AUTHORIZED  
-**Date**: 2026-11-06 (v3.1 Revision: 2026-11-06 11:49 UTC+8)  
-**Current Main HEAD**: a50e687e45f94ee4b27f06c3ab3c46ae65ff9c8b (Plan v3 committed)  
+**Date**: 2026-11-06 (v3.1 Final Fix: 2026-11-06 12:00 UTC+8)  
+**Current Main HEAD**: abe27fb6804f1e59519358f040cd8b41fbb52ac6 (Plan v3.1 current)  
 **Records Location**: records/ISSUE-9/PLAN.md  
-**GitHub Issue Timeline**: Currently NO Approved Plan post (awaiting Human approval)
+**GitHub Issue Timeline**: NO Timeline post yet (awaiting Human approval before APPROVED PLAN publication)
 
 ---
 
@@ -26,13 +26,13 @@
 **Previous Timeline Posts**:
 - ✅ Plan v2 (commit cdab0f8, 2026-11-06 11:29) → Status: PENDING (historical draft, not approved)
 - ❌ Plan v3 (commit a50e687, 2026-11-06 11:37) → Status: PENDING (deleted; premature publication)
-- ⏳ Plan v3.1 (commit 53fe2f15c1062949d24111044cc11bde72660285, 2026-11-06 11:49) → Status: PENDING (awaiting Human approval before Timeline "APPROVED PLAN" publication)
+- ⏳ Plan v3.1 (commit abe27fb, 2026-11-06 11:54) → Status: PENDING (no Timeline post yet; awaiting Human approval before APPROVED PLAN publication per §12.F)
 
 **v1 Disposition**: CHANGES REQUESTED (Human feedback on accuracy)
 
-**v2 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md)
+**v2 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md; posted to Timeline as candidate, not yet approved)
 
-**v3 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md; Timeline post deleted per correction)
+**v3 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md; Timeline post deleted per Human correction)
 
 ---
 
@@ -329,7 +329,7 @@ Human L3 Specific Action Authorization (if applicable): [Issue comment, scope]
 
 ## 6. Implementation Sequence (Awaiting Approval)
 
-**Formal Plan v3.1 already committed to records/ (commit 53fe2f1, 2026-11-06 11:49 UTC+8).**
+**Formal Plan v3.1 already committed to records/ (commit abe27fb, 2026-11-06 11:54 UTC+8).**
 
 **Upon Human explicit approval of Plan v3.1, the following implementation commits will be created:**
 
@@ -341,7 +341,7 @@ Human L3 Specific Action Authorization (if applicable): [Issue comment, scope]
 
 **Co-authored**: Copilot <223556219+Copilot@users.noreply.github.com>
 
-**Sequence constraint**: Plan commit (53fe2f1) precedes all implementation commits. Result commit (3) only created after implementation commits pass CI and Human verification.
+**Sequence constraint**: Plan commit (abe27fb) precedes all implementation commits. Result commit (3) only created after implementation commits pass CI and Human verification.
 
 ---
 
@@ -435,10 +435,10 @@ Human L3 Specific Action Authorization (if applicable): [Issue comment, scope]
 Revert: LIGHT Governance v2 implementation (Issue #9)
 
 This reverts commits [impl-commit-1], [impl-commit-2].
-(Plan commit 53fe2f1 and Result commit preserved in history.)
+(Plan commit abe27fb and Result commit preserved in history.)
 
 Reason: [specific technical or governance reason]
-References: Issue #9, Formal Plan at records/ISSUE-9/PLAN.md @ commit 53fe2f1
+References: Issue #9, Formal Plan at records/ISSUE-9/PLAN.md @ commit abe27fb
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
@@ -468,7 +468,7 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 | 2026-11-06 12:xx | Plan v1 | (local) | CHANGES REQUESTED | Incorrectly claimed 01-agent-task.yml does not exist; did not verify current main HEAD (corrected in v2) |
 | 2026-11-06 11:29 | Plan v2 | cdab0f8 | PENDING APPROVAL | Corrected v1: verified main HEAD cdab0f8; Issue template confirmed MODIFY (66 lines); refined Self-Verification; posted to Issue #9 Timeline as candidate |
 | 2026-11-06 11:37 | Plan v3 | a50e687 | PENDING APPROVAL (Timeline post deleted) | Incorporated F-01 to F-06: corrected template details, clarified commit sequence, fixed Rollback strategy, distinguished current ↔ future policies, enhanced verification specs, added Dual Persistence rule; posted prematurely to Timeline (removed per Human correction) |
-| 2026-11-06 11:49 | Plan v3.1 | 53fe2f15c1062949d24111044cc11bde72660285 | PENDING APPROVAL — AWAITING HUMAN APPROVAL BEFORE TIMELINE PUBLICATION | Added Section 12.F: Formal Plan Issue Timeline Publication Gate; clarified: Timeline posts only after Human explicit approval; Draft versions stay in records/ only; posted PENDING status to Timeline (not yet approved) |
+| 2026-11-06 11:49 | Plan v3.1 | abe27fb | PENDING APPROVAL — AWAITING HUMAN APPROVAL BEFORE TIMELINE PUBLICATION | Added Section 12.F: Formal Plan Issue Timeline Publication Gate; clarified: Timeline posts only after Human explicit approval; Draft versions stay in records/ only; **no Timeline post yet** (awaiting Human approval before APPROVED PLAN publication) |
 
 ---
 
@@ -494,46 +494,63 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 - Commit SHA immutable; linked from Timeline guarantees historical accuracy.
 - Future readers/auditors can verify: when was this Plan written, by whom, and what was approved.
 
-### B. GitHub Issue Timeline Requirement
+### B. GitHub Issue Timeline Requirement (Updated per §12.F Rule)
+
+**IMPORTANT**: Per §12.F Issue Timeline Publication Gate, only **Human-approved Plans** are posted to Timeline. Draft and pending-review versions remain in Records only.
 
 **Location**: Issue #9 comment (independent comment, not buried in PR description)
 
-**Timing**: Posted when Formal Plan ready for Human review (not on every draft revision; consolidate final version before posting).
+**Timing & Publication Gate**:
+- **Draft Versions (v1, v2, v3, …)**: Committed to Records; **NOT posted to Timeline** until Human explicit approval.
+- **Human Approval Gate**: Human reviews candidate Plan via fixed Records Commit SHA link; explicitly approves (or requests revisions).
+- **Approved Plan Only**: Builder posts "APPROVED PLAN" comment to Timeline ONLY AFTER Human explicit approval.
+- Consolidate multiple draft revisions in Records; only final approved version published to Timeline.
 
-**Minimum Content**:
-- **Plan Version** (e.g., "Formal Plan v3.1")
-- **Status** (PENDING HUMAN APPROVAL / APPROVED / IMPLEMENTATION IN PROGRESS / COMPLETED)
-- **Fixed Commit SHA** reference (e.g., "records/ISSUE-9/PLAN.md @ commit 53fe2f1")
-- **Complete link** (e.g., `https://github.com/myaiwouldbemine/.../blob/53fe2f15c1062949d24111044cc11bde72660285/records/ISSUE-9/PLAN.md`)
-- **Scope summary** (2–3 bullet points: what files change, goal)
-- **Human Decisions Required** (link or inline list)
-- **Version progression** (if v2/v3/v3.1: "v1 had [issue]; v2 corrected to [X]; v3 adds [Y]; v3.1 clarifies [Z]")
+**Minimum Content** (for APPROVED PLAN comment):
+- **Plan Version** (e.g., "Formal Plan v3.1 — APPROVED")
+- **Status** (APPROVED / IMPLEMENTATION IN PROGRESS / COMPLETED)
+- **Human Approval Reference** (date, statement, or issue comment link confirming approval)
+- **Fixed Commit SHA** reference (e.g., "records/ISSUE-9/PLAN.md @ commit abe27fb")
+- **Complete link** (e.g., `https://github.com/myaiwouldbemine/.../blob/abe27fb.../records/ISSUE-9/PLAN.md`)
+- **Scope summary** (2–3 bullet points: what files change, goal, key decisions)
+- **Version progression** (if v2/v3/v3.1: "v1 had [issue]; v2 corrected to [X]; v3 adds [Y]; v3.1 [Human approved]")
 
 **Why**:
 - GitHub Timeline is the official audit trail for Issues.
-- Timeline leaves permanent history of Plan evolution.
+- Timeline reflects only Human-approved governance decisions (no draft/pending versions).
 - Fixed Commit SHA prevents "moving target" problem (main branch updates).
-- Future Issues can reference prior governance decisions by Timeline comment.
+- Future Issues can reference prior approved governance decisions by Timeline comment.
 
-### C. Remote Readback Verification (F-05 Enhanced)
+### C. Remote Readback Verification (Staged per §12.F)
 
-**Post-commit requirement**: After pushing Plan to main, verify both persistence locations are live.
+**Stage 1: Draft Commitment** (before Human approval)
+- After pushing Plan commit to main:
+  - [ ] `git log origin/main --oneline | head -5` shows Plan commit
+  - [ ] `curl` confirms records/ISSUE-9/PLAN.md accessible at fixed Commit SHA
+  - **Declaration**: "PLAN DRAFT PERSISTENCE VERIFIED — Records: [commit SHA]"
+  - **Timeline Status**: No Timeline post yet (awaiting Human approval)
 
-**Readback Checklist**:
-- [ ] `git log origin/main --oneline | head -5` shows Plan commit in last 5.
-- [ ] `curl` or GitHub API confirms records/ISSUE-9/PLAN.md exists at commit SHA.
-- [ ] Issue #9 Timeline shows Plan comment with fixed SHA link.
-- [ ] Plan Version, Status, and Scope in Timeline match Records PLAN.md.
-- [ ] No redirect or "file not found" when accessing fixed commit link.
+**Stage 2: Approved Plan Publication** (after Human explicit approval, ONLY)
+- Builder posts "APPROVED PLAN" comment to Timeline (per §12.F.3 format)
+- Then verify both locations:
+  - [ ] Repository: `git show <sha1>:records/ISSUE-<n>/PLAN.md` readable
+  - [ ] Issue Timeline: Fixed comment exists with approval statement and Commit SHA
+  - [ ] Plan Version, Status, Human Approval reference, and Scope all match Records
+  - [ ] No redirect or "file not found" when accessing fixed commit link
 
-**Declaration**: Only after both checks pass:
+**Declaration** (only after Stage 2 completion):
 ```
-PLAN PERSISTENCE VERIFIED (Records + Timeline)
-- Records: [commit SHA]
-- Timeline: Issue #9 comment [comment URL]
+APPROVED PLAN PERSISTENCE VERIFIED
+- Records Commit SHA: [fixed sha1]
+- Timeline Comment: [issue URL#comment-id]
+- Human Approval Reference: [approval date/statement]
+- Status: APPROVED FOR IMPLEMENTATION (pending action/scope authorization)
 ```
 
-**Clarification**: This ≠ PLAN APPROVED (approval is Human decision).
+**Clarification**:
+- Stage 1 verification ≠ PLAN APPROVED (approval is Human decision)
+- Stage 2 can only proceed AFTER Human explicit "APPROVED" statement
+- No Timeline publication at Stage 1; only at Stage 2 post-approval
 
 ### D. Applicability
 
