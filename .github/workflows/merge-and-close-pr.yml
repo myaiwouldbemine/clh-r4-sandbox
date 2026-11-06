@@ -285,46 +285,50 @@ jobs:
             *) echo "❌ Invalid merge method: $MERGE_METHOD"; exit 1 ;;
           esac
           
-          merge_payload=$(cat <<EOF
-          {
-            "commit_title": "Merge PR #$PR_NUMBER (Archive Consolidation)",
-            "commit_message": "Automatic merge via Issue #11 workflow",
-            "sha": "$AUTHORIZED_HEAD_SHA",
-            "merge_method": "$merge_method_json"
-          }
-          EOF
-          )
-          
-          merge_api_result=$(gh api repos/$REPO/pulls/$PR_NUMBER/merge \
+          # Use conditional assignment to properly handle errors with bash -e
+          # When gh api fails, the if condition catches the failure
+          if merge_api_result=$(gh api repos/$REPO/pulls/$PR_NUMBER/merge \
             -X PUT \
             -f commit_title="Merge PR #$PR_NUMBER (Archive Consolidation)" \
             -f commit_message="Automatic merge via Issue #11 workflow" \
             -f sha="$AUTHORIZED_HEAD_SHA" \
-            -f merge_method="$merge_method_json" 2>&1)
-          
-          if [[ $? -ne 0 ]]; then
-            echo "❌ Merge API failed: $merge_api_result"
+            -f merge_method="$merge_method_json" 2>&1); then
+            # Success: Extract merge commit SHA from API response
+            merge_sha=$(echo "$merge_api_result" | jq -r '.sha // empty')
+            
+            if [[ -z "$merge_sha" || "$merge_sha" == "null" ]]; then
+              echo "❌ Merge API returned no SHA in response"
+              echo "API response: $(echo "$merge_api_result" | jq -r '.message // "No message"')"
+              exit 1
+            fi
+            
+            # Verify SHA is 40 characters (full commit hash)
+            if [[ ${#merge_sha} -ne 40 ]]; then
+              echo "❌ Merge SHA is not 40 chars: $merge_sha (length: ${#merge_sha})"
+              exit 1
+            fi
+            
+            echo "merge_sha=$merge_sha" >> $GITHUB_OUTPUT
+            echo "✅ Merge completed with atomic SHA verify"
+            echo "  Head SHA: $AUTHORIZED_HEAD_SHA"
+            echo "  Merge Commit: $merge_sha"
+          else
+            api_exit=$?
+            echo "❌ Merge API failed with exit status $api_exit"
+            # Extract HTTP status and error message safely (never output raw response which may contain token)
+            http_status=$(echo "$merge_api_result" | jq -r '.status // "unknown"' 2>/dev/null)
+            error_message=$(echo "$merge_api_result" | jq -r '.message // "Unknown error"' 2>/dev/null)
+            echo "HTTP Status: $http_status"
+            echo "Error: $error_message"
+            # Additional diagnostics without exposing full response
+            if echo "$merge_api_result" | jq . >/dev/null 2>&1; then
+              errors=$(echo "$merge_api_result" | jq -r '.errors[]?.message // empty' 2>/dev/null)
+              if [[ -n "$errors" ]]; then
+                echo "Details: $errors"
+              fi
+            fi
             exit 1
           fi
-          
-          # Extract merge commit SHA from API response
-          merge_sha=$(echo "$merge_api_result" | jq -r '.sha // empty' 2>/dev/null)
-          
-          if [[ -z "$merge_sha" || "$merge_sha" == "null" ]]; then
-            echo "❌ Merge API returned no SHA in response"
-            exit 1
-          fi
-          
-          # Verify SHA is 40 characters (full commit hash)
-          if [[ ${#merge_sha} -ne 40 ]]; then
-            echo "❌ Merge SHA is not 40 chars: $merge_sha (length: ${#merge_sha})"
-            exit 1
-          fi
-          
-          echo "merge_sha=$merge_sha" >> $GITHUB_OUTPUT
-          echo "✅ Merge completed with atomic SHA verify"
-          echo "  Head SHA: $AUTHORIZED_HEAD_SHA"
-          echo "  Merge Commit: $merge_sha"
 
       - name: Merge Recovery (If Already Merged)
         id: merge_recovery
