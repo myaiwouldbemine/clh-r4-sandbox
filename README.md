@@ -161,19 +161,9 @@ ChatGPT＋Human 保有 V2 Knowledge Consolidation／V3 Code-First Deep Dive 的�
 
 ## 9. Project Status｜目前進度
 
-**CLH-001 — Project Bootstrap**
+Issue #20 的自主治理遷移使用獨立 PR #21；既有 Issue #18／PR #19 的雙語化與學習表單歷史保留。main 已設定必要 CI、PR-only、無 bypass 的原生規則，Pages 已設定 Actions 來源；這不代表網站已部署。
 
-- [x] Git Repository 初始化。
-- [x] Feature Branch 建立。
-- [x] Python / MkDocs 環境安裝。
-- [x] 基本網站建置驗證。
-- [ ] Governance v1.1 合併至 main。
-- [ ] GitHub Actions CI/CD 驗證。
-- [ ] 首次 Pull Request 審查及合併。
-- [ ] GitHub Pages 部署驗收。
-- [ ] 匯入第一份完整 Code-First 學習教材。
-
-以上進度依目前已提供的開發證據整理。
+自動化仍未啟用：缺少模型與工程自動化傳輸憑證，真實 Agent → Merge → Deploy → Archive → Close E2E 尚未完成。最新完整 SHA、CI、Result 與阻擋原因以 PR #21 為準。
 
 ## 10. Roadmap｜未來發展
 

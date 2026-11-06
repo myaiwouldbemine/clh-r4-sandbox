@@ -38,7 +38,7 @@ Archive comments use PR + full merge SHA keys and are read back before closure. 
 4. Validate CI and negative-case tests on the candidate. Merge the installation only when its applicable completion conditions are satisfied. The new workflows must exist on default branch for automatic Issue triggers.
 5. With prerequisites verified and a rollback path available, set Actions repository variable `CLH_AUTONOMY_ENABLED=true` once. This installation/emergency switch is not a per-Issue approval. Run the documented live E2E with an owner-created engineering fixture, collect run URLs and SHA evidence. Do not claim production readiness until it passes.
 
-Current audit found no secrets/variables/runners, no main protection and no Pages. No settings have been changed by the migration implementation. The actual missing credential cannot be manufactured by code. First-install live E2E remains BLOCKED until the prerequisites and default-branch installation are available; local tests do not resolve that blocker.
+Initial audit found no secrets/variables/runners, no main protection and no Pages. After implementation tests passed, the migration configured native main ruleset 26702419 (strict required checks, zero required approvals, no bypass) and Pages Actions source using existing administrator access. Readback and exact responses are recorded in records/ISSUE-20. No model/transport credentials or activation variable were added. The actual missing credentials cannot be manufactured by code. First-install live E2E remains BLOCKED until the prerequisites and default-branch installation are available; local tests do not resolve that blocker.
 
 ## Rollback
 
