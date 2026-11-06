@@ -1,75 +1,93 @@
-"""Local checklist helper for Minimal Governance.
-Inputs are assessed evidence, not authenticated facts. No network, registry,
-signature verification, check publication or merge capability.
+#!/usr/bin/env python3
 """
-from dataclasses import dataclass
+Issue #11 Merge Lifecycle Helper Functions (Archive Record Focus)
+
+Provides minimal utilities for archive closure automation:
+- PR-Issue linkage verification
+- Prior closure deduplication
+
+Learning Hub governance: Records learning archives without enforcing learning quality.
+Issue closure indicates upload/archive completion, not learning conclusion.
+"""
+
+import re
+from typing import List, Tuple, Optional, Dict
 
 
-@dataclass(frozen=True)
-class State:
-    draft: bool = True
-    implementation_complete: bool = False
-    verification_complete: bool = False
-    formal_plan: bool = False
-    records_complete: bool = False
-    risk: int = 0
-    plan_authorized: bool = False
-    action_authorized: bool = False
-    merge_authorized: bool = False
-    builder: str = ""
-    reviewer: str = ""
-    review_complete: bool = False
-    review_reference: str = ""
-    head: str = ""
-    reviewed_head: str = ""
-    blocking_review: bool = False
-    checks: tuple = ()
-    evidence_current: bool = False
-    material_change_reassessed: bool = False
+def verify_pr_issue_linkage(pr_body: str, target_issue_number: int) -> Tuple[bool, str]:
+    """
+    Verify explicit PR ↔ Issue linkage using precise pattern matching.
+    
+    Args:
+        pr_body: PR description text
+        target_issue_number: Target Issue number (e.g., 11)
+    
+    Returns:
+        Tuple of (linkage_valid, reason)
+        - linkage_valid: True if PR explicitly references target Issue
+        - reason: Explanation string
+    
+    Required patterns:
+    - "#N" (exact issue number)
+    - "Fixes #N", "Closes #N", "Resolves #N" (keyword + exact number)
+    """
+    if not pr_body or not pr_body.strip():
+        return False, "PR body is empty"
+    
+    # Pattern 1: "Fixes #N" / "Closes #N" / "Resolves #N" (case-insensitive)
+    patterns = [
+        rf'\b(Fixes|Closes|Resolves)\s+#{target_issue_number}\b',
+        rf'(?:^|\s)#{target_issue_number}(?:\s|$|\.|\n)',
+    ]
+    
+    for pattern in patterns:
+        if re.search(pattern, pr_body, re.IGNORECASE | re.MULTILINE):
+            return True, f"PR body contains explicit reference to Issue #{target_issue_number}"
+    
+    # Check what references exist
+    issue_refs = re.findall(r'(?:Fixes|Closes|Resolves|#)(?:\s)?#?(\d+)', pr_body, re.IGNORECASE)
+    if issue_refs:
+        return False, f"PR body references issues {set(issue_refs)}, not #{target_issue_number}"
+    
+    return False, "PR body contains no explicit issue reference"
 
 
-def known_risk(risk):
-    return type(risk) is int and risk in range(4)
-
-
-def ready_blockers(s):
-    if not known_risk(s.risk):
-        return ["unknown risk"]
-    reasons = []
-    if s.implementation_complete is not True:
-        reasons.append("implementation incomplete")
-    if s.verification_complete is not True:
-        reasons.append("verification incomplete")
-    if (s.formal_plan or s.risk >= 2) and s.records_complete is not True:
-        reasons.append("records incomplete")
-    if s.risk >= 2 and s.plan_authorized is not True:
-        reasons.append("Human Plan approval missing")
-    if s.risk == 3 and s.action_authorized is not True:
-        reasons.append("Human specific action approval missing")
-    return reasons
-
-
-def merge_blockers(s):
-    reasons = ready_blockers(s)
-    if not known_risk(s.risk):
-        return reasons
-    if s.draft is not False:
-        reasons.append("draft")
-    if s.merge_authorized is not True:
-        reasons.append("merge operation not authorized")
-    if not s.checks or any(c != "success" for c in s.checks):
-        reasons.append("checks not all successful")
-    if s.risk >= 1:
-        if (s.review_complete is not True
-                or {s.builder, s.reviewer} != {"codex", "claude"}
-                or not isinstance(s.review_reference, str) or not s.review_reference.strip()
-                or not isinstance(s.head, str) or not s.head
-                or s.reviewed_head != s.head):
-            reasons.append("traceable cross-Agent review incomplete")
-    if s.blocking_review is not False:
-        reasons.append("blocking review/comment/thread unresolved or unknown")
-    if s.evidence_current is not True:
-        reasons.append("stale or unconfirmed evidence")
-    if s.material_change_reassessed is not True:
-        reasons.append("scope/risk not assessed")
-    return reasons
+def detect_prior_closure(comments: List[Dict], pr_number: int, merge_sha_full: str) -> bool:
+    """
+    Detect if an archive closure record already exists for this PR+Merge combination.
+    
+    Args:
+        comments: List of issue comments from GitHub API
+        pr_number: PR number being merged
+        merge_sha_full: Complete merge commit SHA (must be 40 chars)
+    
+    Returns:
+        True if prior closure record found (should skip reposting)
+    
+    Matching criteria (must match ALL):
+    - Comment body contains PR number reference
+    - Comment body contains merge commit SHA (full 40-char form)
+    - Comment body contains archive/closure marker
+    
+    Raises:
+        ValueError: If merge_sha_full is not exactly 40 characters
+    """
+    # Validate SHA first, before processing comments
+    if not merge_sha_full or len(merge_sha_full) != 40:
+        raise ValueError(f"merge_sha_full must be exactly 40 chars, got {len(merge_sha_full) if merge_sha_full else 0}")
+    
+    if not comments or not isinstance(comments, list):
+        return False
+    
+    for comment in comments:
+        body = comment.get("body", "")
+        
+        # Check all three conditions for precise matching
+        has_pr_ref = f"#{pr_number}" in body or f"PR #{pr_number}" in body
+        has_merge_ref = merge_sha_full in body  # Use full 40-char SHA only
+        has_archive_marker = "Archive Closure" in body or "Archive" in body.lower() or "Merged & Closed" in body
+        
+        if has_pr_ref and has_merge_ref and has_archive_marker:
+            return True
+    
+    return False
