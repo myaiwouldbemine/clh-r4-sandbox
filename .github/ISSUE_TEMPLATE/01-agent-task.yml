@@ -5,12 +5,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Human 定義需求；Codex 與 Claude Code 對等協作
+        ## Human 定義需求；Claude Code 為指定 Builder
         請填寫需求、理由、驗收標準與工作邊界；不必自行選擇 Agent 或預先指定風險等級。
 
-        Agent 依實際影響判斷 L0–L3；錯字格式 L0、實質教材與一般程式 L1、重大架構 L2、權限／治理／部署等 L3。
-        L1 起需要另一 Agent 可追溯的交叉 Review。L2／L3 必須有事前 Plan、Human 對 Plan／範圍的核准與事後 Result；L3 另需 Human 對具體操作授權。
-        提早建立 Draft PR 不代表已獲實作或合併授權。適用測試及 CI、Review、未解阻擋與 Merge 操作授權須分別確認。
+        Builder Claude Code 依實際影響判斷 L0–L3；錯字格式 L0、實質教材與一般程式 L1、重大架構 L2、權限／治理／部署等 L3。
+        L1 起需要 Claude Code 可追溯的 Self-Review 及 Evidence。L2／L3 必須有事前 Plan、Human 對 Plan／範圍的核准與事後 Result；L3 另需 Human 對具體操作授權。
+        提早建立 Draft PR 不代表已獲實作或合併授權。適用測試及 CI、Self-Review、未解阻擋與 Merge 操作授權須分別確認。
         目前 Auto-Merge 與自動部署均未啟用；Issue Form 不授予任何合併、部署或高風險操作權限。
         以目前 main 的 GOVERNANCE.md 與 AGENTS.md 為準。
 
