@@ -1,526 +1,987 @@
-# Issue #11 — Formal Plan v1 SUMMARY
+# Issue #11 — Formal Plan v2 Security & Consistency Revision
 
 ## Revision History
-- v1: 2026-11-06 13:13 UTC+8 — Initial Plan Draft
+- v1: 2026-11-06 13:13 UTC+8 — Initial Plan Draft (526 lines)
+- v2: 2026-11-06 13:35 UTC+8 — Security & Consistency Revision (F-01～F-06 corrections)
+  - F-01: Trusted Human Authorization boundary clarification
+  - F-02: Complete Merge Gates (10 → 12 checks, SHA compare-and-swap, stale evidence detection)
+  - F-03: Safe Live Testing (Mock vs Live separation, Human testing authorization)
+  - F-04: Closure & Recovery (5-state machine, idempotency, remote readback before retry)
+  - F-05: Rollback Strategy (Executor-only, preserve history, no v1 governance reversion)
+  - F-06: Permissions & Operational Simplicity (minimal token scope, explicit GitHub settings changes)
 
 ---
 
 ## 1. Goal / WHY
-After PR #10 merged LIGHT Governance v2, Merge → Readback → Closure Summary → Issue Close still requires manual Human intervention for each step.
 
-**Goal**: Automate steps 2–5 (Merge execution, CI readback, Closure Summary, Issue Close) while preserving:
-- Human decision authority on Merge (not delegated to AI)
-- Complete audit trail & evidence
-- Fail-Closed behavior
-- Single-Builder + Self-Verification model
+After PR #10 merged LIGHT Governance v2, the Merge → Readback → Closure workflow still requires manual Human intervention between each step.
+
+**Goal**: Enable Human to authorize Merge once, then automatically execute:
+- Merge validation (precondition checks)
+- PR merge
+- Merge verification (read-back)
+- Closure Summary publication
+- Issue close
+- State recovery on failure
+
+**Non-Goals**:
+- Delegate Merge authorization to AI or GitHub Actions alone
+- Implement pull-based recovery without Human awareness
+- Bypass GitHub's native Branch Protection / Rulesets
+- Add trust boundaries outside Human + identified GitHub Actions workflow
 
 ---
 
 ## 2. Risk Level
-**L3** — Governance / Merge Executor / Issue Close / Authorization Gate
+**L3** — Governance / Merge Executor / Issue Close Authorization
 
 Requires:
-- L2: Pre-implementation Formal Plan + Human Plan approval
-- L3: Specific action/scope authorization (per Merge execution)
+- Pre-implementation: L3 Formal Plan + explicit Human Plan approval
+- Per-execution: Specific Human Merge authorization (PR#, Head SHA, Base, Scope, Merge Method, Target Issue)
 
 ---
 
 ## 3. Current-State Evidence
-- PR #10: Merged @ 2799d97 (2026-11-06 04:49:21Z) by myaiwouldbemine
-- GOVERNANCE.md v2: Active on main, but L1 risk clause contains old "Cross-Agent Review" text (inconsistency #1)
-- AGENTS.md v2: Reflects Single-Builder model
-- scripts/merge_lifecycle.py: Local checklist only, NO GitHub permissions
-- GitHub Actions: governance-tests.yml, docs-check.yml, pages.yml all active
-- Repository: main branch protection unknown (need Human verification)
-- GitHub Token: Merge + Close permissions UNKNOWN (need testing)
+
+**Already Deployed**:
+- ✅ PR #10 merged @ 2799d97 (2026-11-06 04:49:21Z) — LIGHT Governance v2 active
+- ✅ AGENTS.md v2 — Single-Builder + Self-Verification model confirmed
+- ✅ scripts/merge_lifecycle.py — Local checklist helper (NO GitHub permissions)
+- ✅ GitHub Actions — governance-tests.yml, docs-check.yml, pages.yml all active
+
+**Known Issues**:
+- ⚠️ GOVERNANCE.md L1 risk clause still contains "Cross-Agent Review" (contradicts v2 Single-Builder model)
+- ⚠️ Branch Protection rules unknown (need Human verification)
+- ⚠️ GitHub Actions token permissions unknown (need Human configuration)
 
 ---
 
-## 4. Design Comparison: Two Options
+## 4. Design Decision: Option A (workflow_dispatch) as Primary
 
-### OPTION A: GitHub Actions workflow_dispatch + Manual Human Trigger
-
-**Flow**:
-1. Human goes to GitHub repo Settings → Actions
-2. Selects `merge-and-close-pr` workflow
-3. Inputs: PR#, approved Head SHA, base, merge method, target Issue#
-4. Hits "Run workflow"
-5. GitHub Actions runs: Precondition checks → Merge → Readback → Closure Summary → Close Issue
-
-**Pros**:
-- GitHub-native authorization boundary (Human's GitHub account + workflow_dispatch permission)
-- Persistent audit trail (workflow run logs, triggered by human login)
-- Can be audited via GitHub UI
-- Familiar interface for repository operators
-
-**Cons**:
-- Requires new workflow file + GitHub Actions permissions review
-- Does NOT automatically prevent stale/old SHAs (Human must copy-paste correctly)
-- workflow_dispatch UI does not enforce SHA format validation
-- Cannot distinguish "approved authorization" from "accidental re-trigger"
-- Requires separate Human action (no single-point approval)
-- Workflow logs may have sensitive commit SHAs (public if repo is public)
-
-**Assumptions to Test**:
-- GitHub Actions has sufficient permissions to: github.event.pull_request.merge()
-- github.event.pull_request.merge() respects Branch Protection
-- Issue.close() can be invoked by Actions with repo token
-- Token permissions can be scoped to this workflow only
-
----
-
-### OPTION B: Claude Code Authorized One-Shot Execution (Same Session)
-
-**Flow**:
-1. Human explicitly approves PR#, Head SHA, base, scope, Merge method in chat
-2. Claude Code validates approval message against explicit criteria (contains exact SHA, PR#, base, scope, merge method)
-3. In same session, Claude Code calls GitHub API:
-   - github-mcp-server-pull_request_read (verify PR state, head, base, merge status)
-   - github-mcp-server-merge (execute merge with SHA compare-and-swap if available)
-   - [closure workflow: issue read, comment, close]
-4. Readback to Human: Full evidence of each step
-
-**Pros**:
-- Single Human action = authorization point
-- No new infrastructure (GitHub Actions, tokens, secrets)
-- Idempotent per session (can retry safely within same session with same evidence)
-- Evidence collected in real-time in chat
-- Clear authorization -> execution -> readback chain
-
-**Cons**:
-- Cross-session: Human must approve in same session; if session closes, authorization evidence lost
-- GitHub MCP tool availability: Merge + Close via MCP? (Not confirmed; may only be read-only)
-- Session interruption: Cannot resume stalled execution in new session without re-approval
-- No persistent audit trail in GitHub (approval only visible in chat session)
-- Burden on Human to provide full, exact SHA every time
-- If session token expires, operations fail with unclear auth error
-
-**Assumptions to Test**:
-- github-mcp-server has write methods for Merge + Close (not just read)
-- GitHub MCP authenticates as Human (not service bot)
-- Token inherits Human's permissions (can Merge if Human can)
-- Session persistence across network/interruption (likely NO — session-bound)
-
----
-
-## 5. Recommended Approach
-
-**HYBRID**: Use Option A (GitHub Actions workflow_dispatch) as primary, with fallback to Option B for single-session testing.
+### Recommended: Option A — GitHub Actions workflow_dispatch
 
 **Rationale**:
-- Option A provides durable, auditable authorization boundary
-- Option B adds risk of session-bound state loss without clear recovery
-- Combination allows testing Option A workflows before full rollout
+1. **Trusted boundary**: Explicit Human action in GitHub UI with GitHub account authentication
+2. **Audit trail**: All workflow runs logged in GitHub with triggerer identity
+3. **Persistence**: Cross-session execution (Human approves once; workflow executes independently)
+4. **Recoverability**: If workflow interrupted, can inspect run logs and retry safely
+5. **No new infrastructure**: Uses existing GitHub Actions, no new services
+6. **Governance alignment**: Aligns with "Human authorization → Automatic execution" model
 
-**Minimum Viable Scope**:
-1. New file: `.github/workflows/merge-and-close-pr.yml`
-   - Inputs: pr_number, head_sha (full), base_branch, merge_method, issue_number
-   - Precondition checks (via merge_lifecycle.py)
-   - Merge execution with SHA validation
-   - Closure Summary + Issue Close
-   - Failure handling
+**Option B (Claude Code one-shot)**: Kept in records for reference; not implemented here.
+- Benefit: Single Human action within session
+- Drawback: Session-bound, not cross-session persistent; GitHub MCP write methods unconfirmed
 
-2. Governance.md L1 consistency fix:
-   - Replace "Cross-Agent Review" → "Self-Review + Evidence"
-   - Update Merge Executor reference (currently says "no merge executor")
-
-3. Updated scripts/merge_lifecycle.py:
-   - New function: merge_preconditions_final() — detailed final checks before Merge
-   - No network calls; only local state validation
-
-4. Tests in scripts/test_merge_lifecycle.py:
-   - Mock workflow execution flow
-   - Live GitHub API tests (if authorized by Human)
-
-5. Documentation: `records/ISSUE-11/MERGE-EXECUTOR-GUIDE.md`
-   - How Human triggers workflow_dispatch
-   - What to verify before authorizing
-   - What happens if Merge fails
-   - How to recover
-
----
-
-## 6. Merge Preconditions (Fail-Closed Gate)
-
-Must ALL pass before executing Merge:
-
-1. [ ] PR is OPEN (not already merged, not closed)
-2. [ ] Head SHA **exactly** matches approved SHA (full 40-char)
-3. [ ] Base branch matches approved base
-4. [ ] PR has not changed risk classification
-5. [ ] Formal Plan exists and is approved by Human
-6. [ ] RESULT.md exists with evidence (if L2+)
-7. [ ] All required GitHub Actions checks are SUCCESS on that exact Head SHA
-8. [ ] No unresolved Blocking Review or Thread
-9. [ ] No stale evidence (checks older than X hours)
-10. [ ] Human explicitly approved BOTH Merge authorization AND closure scope
-
-**If ANY condition fails**: ABORT. Do not Merge. Record reason and stop.
-
----
-
-## 7. Post-Merge Closure Workflow
+### Selected Implementation Model
 
 ```
-Merge Execute
-  ↓
-[SUCCESS] → Read PR: merged=true, merge_commit_sha
-  ↓
-Read main branch: does it contain merge_commit_sha?
-  ↓
-[YES] → Verify GOVERNANCE.md, AGENTS.md, records/ intact
-  ↓
-Publish Closure Summary to Issue:
-  - Head SHA (approved)
-  - Merge SHA (actual)
-  - CI checks (all names + status)
-  - Plan/Result links
-  - Human decision reference
-  - Completed items
-  ↓
-[SUCCESS] → Close Issue
-  ↓
-Readback: Issue state = CLOSED
-  ↓
-DONE
-```
+Human Action (GitHub UI):
+  1. Visit: Settings → Actions → "Merge and Close PR" workflow
+  2. Click: "Run workflow"
+  3. Inputs:
+     - PR Number (e.g., 10)
+     - Approved Head SHA (full 40-char, e.g., abc123...xyz)
+     - Target Base (e.g., "main")
+     - Merge Method (e.g., "squash", "merge", "rebase")
+     - Target Issue Number (e.g., 9)
+  4. Click: "Run workflow"
 
-**Failure Recovery**:
-- Merge success + Closure Summary fail → Mark CLOSURE_PENDING, allow safe retry
-- Closure Summary success + Close fail → Same; CLOSURE_PENDING
-- Any failure → Do NOT auto-recover; log and wait for Human to acknowledge
+GitHub Actions Execution:
+  1. Verify triggerer has write permissions (fail if not)
+  2. Validate inputs (Head SHA format, Base exists, etc.)
+  3. Fetch PR and verify (open, correct base, head matches input SHA)
+  4. Run Merge Preconditions Gate (12 checks)
+  5. Execute merge (GitHub API with SHA compare-and-swap)
+  6. Verify merge in main
+  7. Publish Closure Summary to issue
+  8. Close issue
+  9. Log all evidence
 
----
-
-## 8. Governance Consistency Fixes
-
-### Current Issue
-`main/GOVERNANCE.md` line ~25 (L1 risk clause):
-```
-| L1 | 教材語意、一般程式或網站行為 | 適用驗證＋不同 Agent 的可追溯交叉 Review |
-```
-
-**But** Issue #9 / LIGHT v2 removed Cross-Agent requirement. Inconsistency.
-
-### Fix (Issue #11 scope)
-Replace with:
-```
-| L1 | 教材語意、一般程式或網站行為 | 適用驗證＋Claude Code Self-Review with traced Evidence |
-```
-
-Also update Merge section reference from "不授權啟用 Auto-Merge、不新增 merge executor" to:
-```
-不授權全域 Auto-Merge; 允許 Human-Authorization-Bound PR Merge executor 
-（於 Plan 明確設計且經 Human L3 具體核准後）
+On Failure:
+  - Fail Closed (stop immediately)
+  - Publish failure summary to PR with recovery instructions
+  - Preserve all evidence (logs, API responses)
+  - Human must review and decide next step
 ```
 
 ---
 
-## 9. GitHub Permissions Required
+## 5. F-01: Trusted Human Authorization
 
-**New Permissions** (to request from Human):
-- `actions` permission to register new `merge-and-close-pr.yml` workflow
-- GitHub Actions on `merge-and-close-pr.yml` can:
-  - `contents:write` (to merge PR)
-  - `pull-requests:write` (to comment / manage PR state)
-  - `issues:write` (to close Issue)
+### Authorization Boundary Definition
 
-**Not Requested** (remaining limits):
-- No Personal Access Token outside GitHub Actions
-- No new Secrets stored in repo
-- No modification to branch protection rules
-- No direct main push
+**Who can trigger**:
+- Only users with GitHub repository "maintain" or "admin" role (configurable)
+- Must authenticate to GitHub
+- GitHub Actions workflow_dispatch logs user identity
 
----
+**How authorization is verified**:
+1. GitHub Actions runtime provides `github.actor` (authenticated GitHub username)
+2. Compare against allow-list of authorized users (stored in Repository Settings or workflow file)
+3. If not in allow-list → Fail Closed with error message
 
-## 10. Testing Strategy
+**How to prevent impersonation**:
+- ❌ Do NOT trust: Issue comments, PR body, CI status, commit author
+- ❌ Do NOT trust: Any input that is user-editable without Git history
+- ✅ DO trust: GitHub Actions `github.actor` (comes from GitHub runtime, not user input)
+- ✅ DO trust: Fixed allow-list in repository settings or protected workflow file
 
-### Phase 1: Mock Tests (local, no GitHub)
-- Test merge_preconditions_final() with various State combinations
-- Verify Fail-Closed logic
-- Mock GitHub API responses
+**How to confirm trusted workflow version**:
+- Workflow file must be in `main` branch
+- GitHub Actions cannot execute workflow from PR branch (security default)
+- Workflow file SHA checked via GitHub Actions context
+- If workflow modified in PR, it is NOT executed (only merged version runs)
 
-### Phase 2: Staged Live Tests (if Human approves)
-- Create test PR on non-main branch
-- Run workflow_dispatch with test PR
-- Verify checks without actually merging
-- Mock Closure Summary (do NOT close actual Issue)
+**Input binding to PR / Scope**:
+- User inputs: PR#, Head SHA, Base, Merge Method, Issue#
+- Validator checks:
+  1. PR# exists and is open
+  2. Head SHA is exactly 40-char hex (not alias like "latest" or "HEAD")
+  3. Head SHA from PR.head.sha is verified to match input SHA (byte-for-byte)
+  4. Base branch matches input (e.g., "main")
+  5. Merge Method is in ["merge", "squash", "rebase"]
+  6. Issue# exists and is open
+  7. PR and Issue are linked (check PR body, linked issues field, or previous closure summary)
 
-### Phase 3: Production Merge (Human-Authorized)
-- Same workflow but with real PR → issue pairing
-- Full execution with live GitHub API
-- Readback verification
-
----
-
-## 11. Acceptance Criteria (From Issue #11)
-
-- [x] 唯讀 Recon 完成
-- [x] 設計方案比較 (Option A/B)
-- [x] Merge Preconditions 清單
-- [x] Post-Merge Closure 工作流
-- [x] Governance consistency 修正確認
-- [x] GitHub 權限需求列明
-- [ ] Formal Plan committed to records/ISSUE-11/PLAN.md
-- [ ] Human approves Plan + Scope + Permissions
-- [ ] Approved Plan published to Issue Timeline (only after Human approval)
-- [ ] Implementation & Testing (FUTURE - not in PLAN stage)
+**Fail Closed**:
+- If any input validation fails → DO NOT MERGE
+- If `github.actor` not in allow-list → DO NOT MERGE
+- If Head SHA does not match PR state → DO NOT MERGE
+- Publish detailed error to PR with "MERGE AUTHORIZATION FAILED" label
+- Stop execution; require Human review
 
 ---
 
-## 12. Human Decisions Required (BLOCKING)
+## 6. F-02: Complete Merge Gates (12-Item Fail-Closed Check)
 
-1. **Option Selection**: Option A (workflow_dispatch) or Option B (One-Shot) or Hybrid?
-2. **Governance Consistency Fix**: Approve proposed GOVERNANCE.md L1 + Merge section updates?
-3. **GitHub Permissions**: Authorize new GitHub Actions workflow + Token permissions?
-4. **Merge Preconditions**: Approve the 10-item Fail-Closed gate list?
-5. **Test Scope**: Live tests on real/test PR, or mock-only before implementation?
+### Precondition Validation
 
----
+All checks must PASS. Any UNKNOWN or FAIL → ABORT and Fail Closed.
 
-## 13. Implementation Scope (NEXT STAGE - if approved)
+```
+1. AUTHORIZATION
+   - github.actor in authorized users list → PASS
+   - Fail if not in list
 
-Estimated changes:
-- NEW: `.github/workflows/merge-and-close-pr.yml` (~80 lines)
-- EDIT: `scripts/merge_lifecycle.py` (+~30 lines)
-- EDIT: `scripts/test_merge_lifecycle.py` (+~50 lines)
-- NEW: `records/ISSUE-11/MERGE-EXECUTOR-GUIDE.md` (~100 lines)
-- EDIT: `main/GOVERNANCE.md` (~5 lines)
-- NEW: Draft PR with above + tests
+2. PR EXISTS & OPEN
+   - PR (from PR#) exists in repository → PASS
+   - PR.state == "open" → PASS
+   - Fail if closed, merged, or not found
 
----
+3. HEAD SHA MATCH (Byte-for-Byte)
+   - PR.head.sha == input Head SHA (both 40-char hex)
+   - Fail if not exact match (prevents stale SHA merge)
 
-## 14. Rollback Strategy
+4. BASE MATCH
+   - PR.base.ref == input Base (e.g., "main")
+   - Fail if different branch
 
-If implementation introduces issues:
-1. Revert `.github/workflows/merge-and-close-pr.yml` (disable workflow)
-2. Revert `GOVERNANCE.md` changes (restore Cross-Agent language if needed)
-3. Restore previous `merge_lifecycle.py` (fallback to local-only checks)
-4. Preserve all records/ history (no deletion)
+5. MERGE METHOD VALID
+   - Merge Method in ["merge", "squash", "rebase"]
+   - Fail if invalid or not specified
 
----
+6. DIFF SCOPE UNCHANGED
+   - Compute current PR diff (file list + line counts)
+   - Compare to last-known approved diff in Plan or Result
+   - If files/scope differ significantly → UNKNOWN (require Human re-approval)
+   - If scope identical → PASS
 
-## 15. Revision History
+7. REQUIRED CHECKS SUCCESS
+   - Fetch all Check Runs for this Head SHA
+   - For each check in approved list (e.g., "governance-tests", "docs-check"):
+     a. Check Run exists for this Head SHA
+     b. Check Run.status == "completed" (not "queued" or "in_progress")
+     c. Check Run.conclusion == "success" (not "failure", "skipped", "neutral")
+   - Fail if any check missing, pending, failed, or skipped
+   - Stale check (created > 2 hours ago) → UNKNOWN; re-run CI if available
 
-- v1 (2026-11-06 13:13): Initial comprehensive Plan Draft
+8. NO BLOCKING REVIEWS
+   - Fetch all reviews on this PR
+   - For this Head SHA, check if any review has state "changes_requested"
+   - Fail if unresolved changes_requested found
+   - "approve" reviews → note count (may be useful for audit)
 
+9. NO MERGE CONFLICTS
+   - GitHub PR.mergeable field:
+     a. mergeable == true → PASS
+     b. mergeable == false → FAIL (has conflicts)
+     c. mergeable == null (unknown) → UNKNOWN; recompute via GitHub API
 
----
+10. PLAN & RESULT EVIDENCE
+    - Merge Plan (records/ISSUE-X/PLAN.md) exists and is committed to main
+    - Merge Result (records/ISSUE-X/RESULT.md) exists, documents evidence
+    - Human Merge Authorization is documented (comment SHA in Issue or Plan)
+    - Fail if Plan or Result missing or outdated
 
-## APPENDIX A: Option A vs Option B Detailed Comparison
+11. ISSUE EXISTS & OPEN
+    - Issue (from Issue#) exists in repository
+    - Issue.state == "open"
+    - Fail if closed, not found, or issue number mismatch
 
-| Aspect | Option A (workflow_dispatch) | Option B (One-Shot) | Winner |
-|--------|------------------------------|-------------------|--------|
-| **Authorization boundary** | GitHub account + Actions (verifiable) | Chat approval (session-bound) | A |
-| **Audit trail persistence** | Workflow logs (GitHub UI) | Session logs only | A |
-| **Human effort** | 1 manual action (click "Run") | 1 message approval | B |
-| **Cross-session recovery** | Yes (workflow logs) | No (session ends) | A |
-| **Token management** | Centralized (repo secrets) | Session-based | B |
-| **Infrastructure needed** | New workflow file + permissions | No new infra | B |
-| **Idempotent retry** | Safe (stateless workflow) | Within session only | A |
-| **Spoofing risk** | Low (GitHub account verifiable) | High (chat text forgery) | A |
-| **Implementation time** | ~2-3 hours | ~1 hour | B |
-| **Long-term maintainability** | High (standard GH practice) | Low (session-dependent) | A |
+12. PR-ISSUE LINKAGE
+    - PR.linked_issues contains Issue# (or vice versa)
+    - OR PR body contains "fixes #<Issue#>" / "closes #<Issue#>"
+    - OR previous Closure Summary comment exists on Issue mentioning PR#
+    - Fail if no clear linkage found (prevents closing wrong issue)
 
-**Consensus**: Option A is better for production. Option B acceptable for testing/validation only.
+```
 
----
+### Merge Execution (SHA compare-and-swap)
 
-## APPENDIX B: Failure Recovery Scenarios & Handling
+**Before merge**:
+1. Re-fetch PR.head.sha
+2. Compare with stored Head SHA from input
+3. If different → FAIL (prevents TOCTOU race)
 
-### Scenario 1: PR state changed before Merge
+**Merge call**:
+```
+POST /repos/{owner}/{repo}/pulls/{pr_number}/merge
+{
+  "merge_method": "squash",  (from input)
+  "sha": "{input_head_sha}"   (compare-and-swap safety)
+}
+```
 
-**Condition**: Head SHA changed (new commit pushed after approval)  
-**Detection**: Pre-merge check fails (current head ≠ approved SHA)  
-**Action**: ABORT, log new SHA, notify Human  
-**Recovery**: Human re-approves new SHA, re-triggers workflow
-
-### Scenario 2: Merge API succeeds but response lost
-
-**Condition**: API call times out or network dropped  
-**Detection**: Retry Merge → PR already merged  
-**Check**: Read PR.merged == true  
-**Action**: Extract merge_commit_sha from PR, continue to Closure Summary  
-**Recovery**: Idempotent — no duplicate merge, proceed to step 2
-
-### Scenario 3: Merge success, CI checks changed (pending/failed)
-
-**Condition**: CI workflow triggered AFTER Merge (race condition)  
-**Detection**: Pre-merge checks show SUCCESS, post-merge checks show PENDING  
-**Action**: Log the race condition; Closure Summary will note checks were SUCCESS at time of merge  
-**Recovery**: Re-run CI manually; if fails, document in Closure Summary as "post-merge check failure"
-
-### Scenario 4: Merge success, Closure Summary publish fails
-
-**Condition**: Issue.create_comment() fails (permissions, rate limit, etc)  
-**Detection**: API error response  
-**Action**: ABORT post-merge closure; mark Issue as `CLOSURE_PENDING`  
-**Recovery**: Manual retry (Human or Claude Code in new session); post Closure Summary manually if needed
-
-### Scenario 5: Closure Summary success, Issue.close() fails
-
-**Condition**: Issue.close() fails (wrong Issue ID, already closed, etc)  
-**Detection**: API error  
-**Action**: ABORT; mark as `CLOSURE_PENDING`; Closure Summary already published  
-**Recovery**: Retry close() with verified Issue ID; update Closure Summary if needed
-
-### Scenario 6: Duplicate workflow trigger (Human re-ran by accident)
-
-**Condition**: workflow_dispatch triggered twice with same PR#/SHA  
-**Detection**: Second run reads PR.merged == true  
-**Action**: Skip merge; go directly to Closure Summary check  
-**Recovery**: If Closure Summary already exists, verify content; if not, regenerate; do NOT duplicate Issue comment
-
-### Scenario 7: Wrong Issue# provided in workflow input
-
-**Condition**: Workflow tries to close Issue #99 but PR is for Issue #10  
-**Detection**: PR body scanned for "Closes #10", finds no match  
-**Action**: ABORT; log mismatch; do NOT close Issue #99  
-**Recovery**: Correct Issue # and retry; manually verify Issue #99 state
-
-### Scenario 8: Workflow cancelled mid-execution
-
-**Condition**: Human or GitHub cancels workflow run  
-**Detection**: Workflow status = `cancelled`  
-**Action**: Stop all pending operations; record last successful step  
-**Recovery**: Manual review of logs; verify PR.merged status; retry from last known point (Merge check or Closure Summary)
+**After merge**:
+1. Fetch PR again
+2. Verify PR.merged == true
+3. Verify PR.merged_by == GitHub Actions runner
+4. Get PR.merge_commit_sha (record for audit)
+5. Fetch main branch HEAD
+6. Verify commit reachable from main (PR changes now in main)
 
 ---
 
-## APPENDIX C: Example Merge Preconditions Checklist (Automated)
+## 7. F-03: Safe Live Testing
+
+### Test Phases
+
+**Phase 1: Mock Tests (No GitHub Access)**
+- Input validation (SHA format, branch names, etc.)
+- Merge gate logic (all 12 checks) with dummy data
+- Closure and recovery state machine
+- All run locally or in CI environment
+- NO live GitHub API calls
+- ✅ Can proceed without Human testing authorization
+
+**Phase 2: Staged Live Tests (Isolated Resources)**
+- Use dedicated test repository or test branch
+- Test GitHub API calls (PR read, merge, issue close) on test data
+- Verify GitHub Actions token permissions
+- Verify workflows execute correctly
+- Do NOT use real business PRs or Issues
+- ⚠️ Requires explicit Human testing authorization and governance approval
+
+**Phase 3: Integration with Real Workflow**
+- After Phase 2 passes, integrate into main branch workflow file
+- Deploy to production repository
+- ⚠️ Requires explicit Human implementation authorization (separate from Plan approval)
+
+### Authorization for Each Phase
+
+**Mock Tests**:
+- No Human authorization needed (no external side effects)
+- Part of normal implementation review
+
+**Live Tests (Phase 2)**:
+- ✅ Requires explicit Human "test authorization" (separate prompt/form)
+- Must specify: test repository/branch, test PR#, test Issue#
+- Human confirms: does NOT affect main branch, production PRs, or deployed automation
+- Must include: cleanup plan (delete test PR/issue after testing)
+
+**Production Deployment**:
+- ✅ Requires explicit Human "production deployment authorization"
+- Separate from Plan approval (Plan is design; deployment is execution)
+- Must confirm: workflow file location, token permissions, allowed users
+
+---
+
+## 8. F-04: Closure & Recovery State Machine
+
+### State Definitions
+
+```
+MERGE_PENDING
+  Description: Merge authorization received; precondition checks running
+  Transitions:
+    → BLOCKED (if any precondition fails)
+    → MERGED_VERIFIED (if merge succeeds and verified)
+
+MERGED_VERIFIED
+  Description: Merge API succeeded; commit verified in main
+  Transitions:
+    → CLOSURE_PENDING (proceed to closure)
+    → BLOCKED (if verification fails, e.g., commit not in main)
+
+CLOSURE_PENDING
+  Description: Closure Summary publishing; Issue close in progress
+  Transitions:
+    → CLOSED_VERIFIED (if issue closes successfully)
+    → BLOCKED (if closure summary fails or issue close fails)
+
+CLOSED_VERIFIED
+  Description: Entire workflow complete; Issue closed, evidence recorded
+  Transitions:
+    → COMPLETED (end state)
+
+BLOCKED
+  Description: Failure occurred; workflow stopped
+  Transitions:
+    → MERGE_PENDING (Human re-approves after fix)
+    → COMPLETED (Human decides to abort)
+  Contains: error code, stage, evidence, recovery instructions
+```
+
+### Idempotency & Recovery
+
+**Merge idempotency**:
+- If merge already succeeded (PR.merged == true):
+  → Skip merge API call; proceed to Closure_PENDING
+  → Do NOT re-merge
+
+**Closure idempotency**:
+- If Closure Summary already posted:
+  → Check for duplicate comments (do NOT re-post)
+  → Proceed to close issue
+
+**Issue close idempotency**:
+- If Issue already closed:
+  → Log as success (not a failure)
+  → Do NOT attempt to re-close
+
+**Remote readback before retry**:
+- If workflow interrupted (timeout, cancellation):
+  → DO NOT blindly retry
+  → Human must inspect logs and confirm state
+  → Re-run workflow with same inputs; idempotency prevents double-merge
+
+---
+
+## 9. F-05: Rollback Strategy
+
+### Rollback Scope
+
+Rollback reverts only:
+1. `.github/workflows/merge-and-close-pr.yml` (new workflow file)
+2. Any GitHub Actions token permission grants (if added)
+3. Any repository settings changes (e.g., allow-list of authorized users)
+4. `scripts/merge_lifecycle.py` extensions (if added)
+
+Rollback does NOT:
+- ❌ Revert LIGHT Governance v2 (stable, already merged in PR #10)
+- ❌ Revert GOVERNANCE.md L1 fix (separate decision)
+- ❌ Revert PLAN.md or Result records (evidence preservation)
+- ❌ Undo any actual PR merges (those are business decisions, not implementation artifacts)
+
+### Rollback Execution
+
+1. Create revert PR (Human-authored or Claude Code draft)
+2. Revert commits in order:
+   - Remove workflow file addition
+   - Remove token permission grants
+   - Remove scripts extensions
+3. Human reviews and approves revert PR
+4. Merge revert PR
+5. Disable workflow (if not yet removed)
+6. Preserve all commit history, logs, records
+
+---
+
+## 10. F-06: Permissions & Operational Simplicity
+
+### Minimum GitHub Actions Token Permissions
+
+**Required scopes** (narrow scope, Actions-only):
+```
+permissions:
+  contents: write     (Needed to: verify merge, read main branch)
+  pull-requests: write (Needed to: check PR state, execute merge, add comments)
+  issues: write       (Needed to: post Closure Summary, close issue)
+```
+
+**NOT needed**:
+- ❌ admin / full repo access
+- ❌ workflow permission (read-only)
+- ❌ deployments, pages, secrets access
+
+**Token scope enforcement**:
+- GitHub Actions token is automatically scoped to workflow job (cannot use for other APIs)
+- Token expires at end of workflow run (automatic)
+- No permanent credentials needed
+
+### GitHub Settings Changes Required
+
+**Checklist** (Human must verify / configure):
+
+| Setting | Current | Required | Action | L3 Decision |
+|---------|---------|----------|--------|------------|
+| Repository Visibility | Unknown | Public or Private | Confirm | Human verify |
+| Branch Protection (main) | Unknown | Enforced (required) | Verify; do not modify | Human verify |
+| Required Checks | Unknown | governance-tests, docs-check | Confirm in Branch Protection | Human verify |
+| Rulesets | Unknown | Not bypassed by Actions | Verify; may need Actions exemption | Human decide |
+| GitHub Actions | Active | Enabled + workflow_dispatch | Enable if not already | Human enable |
+| Token Permissions | Unknown | contents/pull-requests/issues write | Verify in workflow settings | Human configure |
+| Authorized Users (Trigger) | N/A | List of allowed GitHub usernames | Define in workflow allow-list | Human decide |
+
+### Operational Simplicity
+
+**For Human**:
+- One-time setup:
+  1. Enable GitHub Actions (if not already)
+  2. Verify/grant minimal token permissions (automatic in v2.5+)
+  3. Define allow-list of authorized users (edit workflow file or settings)
+  4. Confirm Branch Protection rules
+
+- Per-merge authorization:
+  1. Visit workflow_dispatch UI
+  2. Copy-paste: PR#, Head SHA (from GitHub PR page), Base, Merge Method, Issue#
+  3. Click "Run workflow"
+  4. Monitor in Actions tab (optional; automatic email if failure)
+
+**For Implementation**:
+- Workflow file is human-readable YAML
+- No complex secrets or external services
+- No database or state management
+- Idempotent (safe to re-run if interrupted)
+
+**What Claude Code does NOT do**:
+- ❌ No automatic Merge (always requires explicit workflow_dispatch)
+- ❌ No background polling
+- ❌ No email/Slack notifications (GitHub Actions does this by default)
+- ❌ No changes to GOVERNANCE.md enforcement
+- ❌ No new GitHub Apps or OAuth applications
+
+---
+
+## 11. Workflow Architecture (Minimal)
+
+### .github/workflows/merge-and-close-pr.yml
+
+```yaml
+name: Merge and Close PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to merge (e.g., 10)'
+        required: true
+        type: string
+      head_sha:
+        description: 'Approved full Head SHA (40-char hex, e.g., abc123...)'
+        required: true
+        type: string
+      base_branch:
+        description: 'Target base branch (e.g., main)'
+        required: true
+        type: string
+        default: 'main'
+      merge_method:
+        description: 'Merge method'
+        required: true
+        type: choice
+        options:
+          - merge
+          - squash
+          - rebase
+      issue_number:
+        description: 'Target Issue number to close (e.g., 9)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  merge_and_close:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate authorization
+        run: |
+          AUTHORIZED_USERS="myaiwouldbemine"  # Comma-separated list
+          if [[ ! "$AUTHORIZED_USERS" =~ "${{ github.actor }}" ]]; then
+            echo "ERROR: User ${{ github.actor }} not authorized to trigger merge"
+            exit 1
+          fi
+          echo "✓ Authorized user: ${{ github.actor }}"
+
+      - name: Validate inputs
+        run: |
+          # PR number
+          if ! [[ "${{ inputs.pr_number }}" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: PR number must be numeric"
+            exit 1
+          fi
+          
+          # Head SHA: 40-char hex
+          if ! [[ "${{ inputs.head_sha }}" =~ ^[a-f0-9]{40}$ ]]; then
+            echo "ERROR: Head SHA must be 40-char hex"
+            exit 1
+          fi
+          
+          # Merge method
+          if ! [[ "${{ inputs.merge_method }}" =~ ^(merge|squash|rebase)$ ]]; then
+            echo "ERROR: Invalid merge method"
+            exit 1
+          fi
+          
+          echo "✓ All inputs valid"
+
+      - name: Run merge precondition gate
+        run: |
+          python3 scripts/merge_lifecycle.py \
+            --check-preconditions \
+            --pr-number "${{ inputs.pr_number }}" \
+            --head-sha "${{ inputs.head_sha }}" \
+            --base-branch "${{ inputs.base_branch }}" \
+            --issue-number "${{ inputs.issue_number }}" \
+            --token "${{ secrets.GITHUB_TOKEN }}"
+          
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Precondition gate failed"
+            exit 1
+          fi
+
+      - name: Execute merge
+        run: |
+          python3 scripts/merge_lifecycle.py \
+            --execute-merge \
+            --pr-number "${{ inputs.pr_number }}" \
+            --head-sha "${{ inputs.head_sha }}" \
+            --merge-method "${{ inputs.merge_method }}" \
+            --token "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Verify merge
+        run: |
+          python3 scripts/merge_lifecycle.py \
+            --verify-merge \
+            --pr-number "${{ inputs.pr_number }}" \
+            --base-branch "${{ inputs.base_branch }}" \
+            --token "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Publish closure summary
+        run: |
+          python3 scripts/merge_lifecycle.py \
+            --publish-closure-summary \
+            --pr-number "${{ inputs.pr_number }}" \
+            --issue-number "${{ inputs.issue_number }}" \
+            --merge-commit "${{ env.MERGE_COMMIT }}" \
+            --token "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Close issue
+        run: |
+          python3 scripts/merge_lifecycle.py \
+            --close-issue \
+            --issue-number "${{ inputs.issue_number }}" \
+            --token "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Log success
+        run: |
+          echo "✓ Merge and close workflow completed successfully"
+          echo "PR #${{ inputs.pr_number }} merged to ${{ inputs.base_branch }}"
+          echo "Issue #${{ inputs.issue_number }} closed"
+
+  on_failure:
+    runs-on: ubuntu-latest
+    needs: merge_and_close
+    if: failure()
+    steps:
+      - name: Report failure
+        run: |
+          echo "ERROR: Merge workflow failed at: ${{ job.status }}"
+          echo "See logs for details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+```
+
+### scripts/merge_lifecycle.py (Extended)
 
 ```python
-def final_merge_preconditions(pr_number, approved_sha, base_branch, issue_number):
-    """
-    Fail-Closed precondition check. Returns (pass: bool, blockers: list, evidence: dict)
-    """
-    evidence = {}
-    blockers = []
+#!/usr/bin/env python3
+"""
+Merge Lifecycle: Preconditions, Execution, Verification, Closure
+"""
+
+import sys
+import subprocess
+import json
+from dataclasses import dataclass
+from typing import Optional, Dict, List
+
+@dataclass
+class MergeContext:
+    pr_number: int
+    head_sha: str
+    base_branch: str
+    merge_method: str
+    issue_number: int
+    token: str
+
+class MergeGate:
+    """12-item fail-closed merge precondition gate"""
     
-    # 1. PR is OPEN
-    pr = github_read_pr(pr_number)
-    evidence['pr_state'] = pr['state']
-    if pr['state'] != 'OPEN':
-        blockers.append(f"PR #{pr_number} is {pr['state']}, not OPEN")
+    def __init__(self, ctx: MergeContext):
+        self.ctx = ctx
+        self.checks = []
     
-    # 2. Head SHA exactly matches approved SHA
-    evidence['current_head_sha'] = pr['head']['sha']
-    evidence['approved_sha'] = approved_sha
-    if pr['head']['sha'] != approved_sha:
-        blockers.append(f"Head SHA mismatch: current {pr['head']['sha'][:7]} != approved {approved_sha[:7]}")
+    def check_authorization(self) -> bool:
+        """Check 1: Authorization"""
+        # Handled by workflow YAML (github.actor)
+        # This is a placeholder for extended logic
+        return True
     
-    # 3. Base branch matches
-    evidence['current_base'] = pr['base']['ref']
-    evidence['approved_base'] = base_branch
-    if pr['base']['ref'] != base_branch:
-        blockers.append(f"Base branch mismatch: current {pr['base']['ref']} != approved {base_branch}")
+    def check_pr_exists_and_open(self) -> bool:
+        """Check 2: PR exists and is open"""
+        result = subprocess.run([
+            'gh', 'pr', 'view', str(self.ctx.pr_number),
+            '--repo', f'{os.getenv("GITHUB_REPOSITORY")}',
+            '--json', 'state,number'
+        ], capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            return False
+        
+        data = json.loads(result.stdout)
+        return data['state'] == 'OPEN'
     
-    # 4. All required checks are SUCCESS
-    checks = github_read_checks(pr_number, approved_sha)
-    evidence['checks'] = {c['name']: c['status'] for c in checks}
-    failed_checks = [c['name'] for c in checks if c['status'] != 'SUCCESS']
-    if failed_checks:
-        blockers.append(f"Checks failed/pending: {failed_checks}")
+    def check_head_sha_match(self) -> bool:
+        """Check 3: Head SHA matches exactly"""
+        result = subprocess.run([
+            'gh', 'pr', 'view', str(self.ctx.pr_number),
+            '--repo', f'{os.getenv("GITHUB_REPOSITORY")}',
+            '--json', 'headRefOid'
+        ], capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            return False
+        
+        data = json.loads(result.stdout)
+        return data['headRefOid'].lower() == self.ctx.head_sha.lower()
     
-    # 5. No unresolved blocking reviews
-    reviews = github_read_reviews(pr_number)
-    blocking = [r for r in reviews if r['state'] == 'CHANGES_REQUESTED']
-    if blocking:
-        blockers.append(f"Blocking reviews from: {[r['user'] for r in blocking]}")
-    evidence['blocking_reviews'] = blocking
+    def check_required_checks_success(self) -> bool:
+        """Check 7: All required checks passed on current Head"""
+        result = subprocess.run([
+            'gh', 'pr', 'checks', str(self.ctx.pr_number),
+            '--repo', f'{os.getenv("GITHUB_REPOSITORY")}',
+            '--required'
+        ], capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            return False
+        
+        # Parse check runs: all must be 'success'
+        lines = result.stdout.strip().split('\n')
+        for line in lines:
+            if not line or 'PASS' not in line:
+                return False
+        
+        return True
     
-    # 6. Formal Plan exists
-    plan_file = f"records/ISSUE-{issue_number}/PLAN.md"
-    if not file_exists(plan_file):
-        blockers.append(f"Plan not found: {plan_file}")
-    evidence['plan_exists'] = file_exists(plan_file)
+    def check_no_blocking_reviews(self) -> bool:
+        """Check 8: No unresolved blocking reviews"""
+        result = subprocess.run([
+            'gh', 'pr', 'reviews', str(self.ctx.pr_number),
+            '--repo', f'{os.getenv("GITHUB_REPOSITORY")}',
+            '--json', 'state'
+        ], capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            return False
+        
+        # Look for 'CHANGES_REQUESTED'
+        return 'CHANGES_REQUESTED' not in result.stdout
     
-    # 7. RESULT.md exists (if L2+)
-    result_file = f"records/ISSUE-{issue_number}/RESULT.md"
-    issue_risk = determine_risk(issue_number)
-    if issue_risk >= 2 and not file_exists(result_file):
-        blockers.append(f"Result not found for L{issue_risk} issue: {result_file}")
-    evidence['result_exists'] = file_exists(result_file)
-    evidence['risk_level'] = issue_risk
+    def run_all_checks(self) -> Dict[str, bool]:
+        """Run all 12 checks; return results"""
+        checks = {
+            'authorization': self.check_authorization(),
+            'pr_exists_open': self.check_pr_exists_and_open(),
+            'head_sha_match': self.check_head_sha_match(),
+            # ... (additional checks)
+            'required_checks': self.check_required_checks_success(),
+            'no_blocking_reviews': self.check_no_blocking_reviews(),
+        }
+        
+        return checks
     
-    # 8. No stale evidence (checks < 30 min old)
-    check_age_minutes = (now() - pr['updated_at']).total_seconds() / 60
-    evidence['check_age_minutes'] = check_age_minutes
-    if check_age_minutes > 30:
-        blockers.append(f"Checks are stale ({check_age_minutes:.0f} min old)")
+    def all_pass(self) -> bool:
+        """All checks passed?"""
+        results = self.run_all_checks()
+        return all(results.values())
+
+
+def merge_preconditions_final(ctx: MergeContext) -> bool:
+    """Execute complete merge gate; return True if ready to merge"""
+    gate = MergeGate(ctx)
+    results = gate.run_all_checks()
     
-    return (len(blockers) == 0, blockers, evidence)
+    # Log results
+    for check, passed in results.items():
+        status = "✓" if passed else "✗"
+        print(f"{status} {check}")
+    
+    if not gate.all_pass():
+        print("ERROR: Merge precondition gate FAILED")
+        return False
+    
+    print("✓ All preconditions passed; ready to merge")
+    return True
+
+# ... (additional functions for merge, verify, closure, etc.)
 ```
 
 ---
 
-## APPENDIX D: Closure Summary Template
+## 12. Human Decisions (Revised — 5 Blocking Items)
 
-```markdown
-## Closure Summary: Issue #<N> — PR #<M> Merged
+**H-D1: Design Approach**
+- Question: Accept Option A (workflow_dispatch) as primary, with Option B retained for reference only?
+- Options:
+  - ✓ Option A (workflow_dispatch) primary
+  - Dual-implement A + B (requires more resources)
+  - Option B (one-shot) primary (requires GitHub MCP write confirmation)
+- Default: Option A
+- **REQUIRED APPROVAL**: Yes
 
-**Date**: [timestamp]
-**Status**: ✅ COMPLETED
+**H-D2: GitHub Actions Permissions & Token Configuration**
+- Question: Authorize GitHub Actions token scopes (contents:write, pull-requests:write, issues:write)?
+- Scope: Minimal, Actions-only, expires per workflow run
+- Default: Approved (standard practice)
+- Alternative: Custom scopes (requires GitHub Admin configuration)
+- **REQUIRED APPROVAL**: Yes (confirms Human understands token security)
 
-### Merge Authorization
-- **Approved Head SHA**: [full 40-char]
-- **Approved Base**: main
-- **Merge Method**: [squash/merge/rebase]
-- **Human Authorizer**: [username]
-- **Authorization Reference**: [Issue comment / message reference]
+**H-D3: Authorized Users Allow-List**
+- Question: Define which GitHub users can trigger the merge workflow?
+- Options:
+  - Single user (e.g., myaiwouldbemine only)
+  - Multiple users (e.g., myaiwouldbemine, <co-admin>)
+  - Any repository maintainer
+- Default: myaiwouldbemine only (recommended for safety)
+- **REQUIRED APPROVAL**: Yes (authorization boundary)
 
-### Merge Execution
-- **Merge Commit SHA**: [merge commit hash]
-- **Merged At**: [timestamp]
-- **Branch**: main now includes all commits from approved head
+**H-D4: Governance Consistency Fix (L1 Clause Update)**
+- Question: Approve update to GOVERNANCE.md L1 risk clause?
+- Current (outdated): "Different agents' traceable cross-review"
+- Proposed (aligned with v2): "Self-review + evidence + single-builder model"
+- This is a separate L1 governance change; may be approved separately or deferred
+- **REQUIRED APPROVAL**: Yes (to avoid future inconsistency)
 
-### Verification
-- **All Preconditions**: PASSED
-  - PR Open: ✅
-  - Head SHA Match: ✅ 
-  - Base Match: ✅
-  - CI Checks**: ✅ (governance-tests.yml, docs-check.yml)
-  - No Blocking Reviews: ✅
-  - Plan + Result: ✅
-
-### Linked Records
-- Formal Plan: `records/ISSUE-<N>/PLAN.md` (approved @ commit [SHA])
-- Implementation Result: `records/ISSUE-<N>/RESULT.md`
-- PR: #<M>
-- Merge Commit: [link]
-
-### Completed Items
-- ✅ Merge preconditions validated
-- ✅ PR merged to main
-- ✅ CI passed on merge commit
-- ✅ Records verified intact
-- ✅ Closure Summary published
-
-### Known Limitations / Future Work
-- [if any]
+**H-D5: Test Authorization & Scope**
+- Question: Authorize mock tests during implementation? Authorize live tests on test repository?
+- Phase 1 (Mock): Always authorized (no side effects)
+- Phase 2 (Live/Staged): Requires explicit authorization + test resource specification
+- Phase 3 (Production): Requires separate deployment authorization
+- Default: Proceed with Phase 1 after Plan approval; require separate authorization for Phase 2+
+- **REQUIRED APPROVAL**: Yes (for Phase 2+ clarity)
 
 ---
 
-**This Issue is now CLOSED.**
+## 13. Implementation Scope
+
+### What Will Be Implemented (If Approved)
+
+1. ✅ `.github/workflows/merge-and-close-pr.yml` (new file)
+2. ✅ `scripts/merge_lifecycle.py` (extend with precondition gate, merge, verify, closure functions)
+3. ✅ `scripts/merge_lifecycle_test.py` (mock tests for all 12 checks)
+4. ✅ `records/ISSUE-11/RESULT.md` (post-implementation evidence)
+5. ✅ `GOVERNANCE.md` Section 3.1 update (L1 clause fix)
+6. ✅ `MERGE-EXECUTOR-GUIDE.md` (operational manual)
+
+### What Will NOT Be Implemented
+
+- ❌ GitHub App or OAuth2 integration
+- ❌ External state database
+- ❌ Automated CI re-run triggers
+- ❌ Changes to existing workflows (governance-tests, docs-check, pages)
+- ❌ Changes to repository permissions / secrets / branch protection rules
+- ❌ Automatic merge scheduling or background polling
+
+---
+
+## 14. Verification Strategy
+
+### Mock Tests (Phase 1)
+- All 12 precondition checks with dummy data
+- State machine transitions (MERGE_PENDING → MERGED_VERIFIED → CLOSED_VERIFIED)
+- Input validation (SHA format, branch names, numeric inputs)
+- Idempotency (re-run same workflow; verify no double-merge)
+- CI output: Full test report in records/ISSUE-11/TEST-REPORT.md
+
+### Live Tests (Phase 2)
+- Use dedicated test repository or test branch (NOT production)
+- Create test PR, merge via workflow, close test issue
+- Verify: PR merged, commit in main, issue closed, no side effects
+- Cleanup: Delete test PR/issue; restore test repository to clean state
+- CI output: Live test evidence + cleanup log
+
+### Integration Tests (Phase 3)
+- Deploy workflow to production repository
+- Dry-run: Publish workflow; verify it appears in Actions tab
+- First real merge: Execute workflow with real PR/issue (coordination with Product Owner)
+
+---
+
+## 15. Acceptance Criteria
+
+All of the following must pass before workflow considered "ready":
+
+- ✅ All 12 merge precondition checks implemented and tested
+- ✅ Merge API call uses SHA compare-and-swap (no TOCTOU race)
+- ✅ Merge verification reads PR.merged==true and verifies commit in main
+- ✅ Closure Summary published as issue comment (includes PR#, merge commit, timestamp)
+- ✅ Issue close executed; readback confirms issue.state == "CLOSED"
+- ✅ All failure modes (BLOCKED state) defined and tested
+- ✅ Idempotency: re-running same workflow does not double-merge
+- ✅ State machine: 5-state transitions (PENDING → VERIFIED → CLOSURE → CLOSED) implemented
+- ✅ Allow-list: Only authorized users can trigger workflow
+- ✅ Mock tests: 100% pass rate (all 12 checks + state machine + idempotency)
+- ✅ Live tests: Successful merge + closure on test resources
+- ✅ Documentation: MERGE-EXECUTOR-GUIDE.md complete, Human-readable
+- ✅ Rollback: Verified that removing workflow file cleanly disables automation
+- ✅ GitHub Actions token: Verified permissions are minimal (contents/pr/issues write only)
+
+---
+
+## Appendix A: F-01～F-06 Corrections Mapping
+
+| Finding | Section | Change | Impact |
+|---------|---------|--------|--------|
+| **F-01** | Section 5 | Added "How authorization verified" + "Input binding to PR/Scope" + "Fail Closed conditions" | Trusted boundary now explicit; prevents impersonation |
+| **F-02** | Section 6 | Expanded gate from 10 → 12 checks; added "Stale check detection" + "SHA compare-and-swap" + "Diff scope validation" | Complete merge safety; prevents TOCTOU race, stale CI, scope creep |
+| **F-03** | Section 7 | Separated Mock (no auth needed) vs Live (explicit auth required) | Safe progression; prevents accidental test-in-prod |
+| **F-04** | Section 8 | Added 5-state machine + idempotency rules + "remote readback before retry" | Recoverable on failure; prevents double-merge, double-close |
+| **F-05** | Section 9 | Limited rollback to Executor/Workflow only; preserve v2 governance + records | No regression to v1; governance stable |
+| **F-06** | Section 10 | Explicit table of GitHub settings changes + Human decision points | Operational clarity; no hidden assumptions |
+
+---
+
+## Appendix B: Failure Recovery Scenarios (Updated)
+
+| Scenario | State | Detection | Action | Recovery |
+|----------|-------|-----------|--------|----------|
+| **S-B1** | Merge API timeout | MERGE_PENDING | Workflow logs show partial response | Re-run workflow; idempotency check prevents double-merge |
+| **S-B2** | Merge succeeds; verify fails | BLOCKED | PR.merged==true but commit not in main | Investigate GitHub sync delay; manual verification via git; document issue |
+| **S-B3** | Merge succeeds; closure fails | BLOCKED | Closure Summary post fails (API error) | Retry publishing Closure Summary; check issue permissions |
+| **S-B4** | Closure succeeds; issue close fails | BLOCKED | Issue still open after close API | Retry issue close; check issue.state; report to GitHub if API broken |
+| **S-B5** | Workflow interrupted mid-execution | BLOCKED | Workflow cancelled or timeout | Inspect logs to determine state; re-run with same inputs; idempotency prevents side effects |
+| **S-B6** | Wrong PR head SHA at trigger time | MERGE_PENDING | Precondition check fails (check 3) | Human must review, update inputs with correct SHA, re-trigger |
+| **S-B7** | PR base changed after authorization | MERGE_PENDING | Base branch mismatch (check 4) | Investigate why base changed; confirm intended scope; re-trigger if correct |
+| **S-B8** | Diff scope expanded after authorization | MERGE_PENDING | File list differs from approved scope (check 6) | Human re-approves new scope, or requests PR revert and re-push; re-trigger after approval |
+
+---
+
+## Appendix C: GitHub Permissions Checklist
+
+**Workflow Token Scopes** (automatic via GitHub Actions):
+
+```yaml
+permissions:
+  contents: write      # Read: main, head branches
+                       # Write: merge commit
+  pull-requests: write # Read: PR state, reviews, checks
+                       # Write: merge PR
+  issues: write        # Read: issue state
+                       # Write: close issue, post comment
+```
+
+**NOT requested**:
+- ❌ `admin` (too broad)
+- ❌ `workflows` (not needed; workflow runs action, not modifies workflows)
+- ❌ `deployments`, `pages`, `secrets`
+
+**Test / Verification**:
+- [ ] GitHub Actions enabled on repository
+- [ ] `merge-and-close-pr` workflow file committed to main
+- [ ] Branch Protection does NOT block GitHub Actions merge
+- [ ] Authorized users list defined (e.g., myaiwouldbemine)
+- [ ] Token permissions verified in Actions workflow logs
+
+---
+
+## Appendix D: Closure Summary Template
+
+**Example (to be published as issue comment)**:
+
+```
+## ✅ PR #10 Merged & Issue #9 Closed
+
+**Merge Details**:
+- PR: #10
+- Title: [PR Title]
+- Head: abc123def456... (40-char SHA)
+- Base: main
+- Merge Method: squash
+- Merged At: 2026-11-06 13:45:00 UTC
+- Merge Commit: xyz789abc123... (new commit SHA)
+- Merged By: GitHub Actions (merge-and-close-pr workflow)
+
+**Workflow Run**:
+- Run ID: 12345678
+- Run URL: https://github.com/myaiwouldbemine/.../actions/runs/12345678
+- Status: ✅ SUCCESS
+
+**Verification**:
+- ✅ PR merged (PR.merged == true)
+- ✅ Merge commit in main (reachable from main HEAD)
+- ✅ All checks passed on merged commit
+- ✅ No conflicts
+
+**This issue is now closed.**
 ```
 
 ---
 
-## APPENDIX E: Live GitHub API Test Checklist (When Authorized)
+## Appendix E: Pre-Implementation Checklist
 
-Before attempting first live Merge, validate:
+**GitHub Setup** (Human to verify):
+- [ ] GitHub Actions enabled
+- [ ] Repository visibility confirmed (public / private)
+- [ ] Branch Protection on main is active
+- [ ] Required checks defined in Branch Protection
+- [ ] Rulesets do not bypass GitHub Actions
+- [ ] No force-push on main (Governance v2 compliant)
 
-- [ ] Test GitHub token has `contents:write` permission (create test file on branch)
-- [ ] Test token can merge PR (merge test PR without authorization gate first)
-- [ ] Test token can comment on Issue (post test comment)
-- [ ] Test token can close Issue (close dummy test Issue)
-- [ ] Token permissions are scoped to Actions (not Personal Access Token)
-- [ ] Branch Protection rules allow merge from workflow (or exempt it)
-- [ ] Merge commit SHA is correctly returned by API
-- [ ] PR.merged state updates immediately after merge call
-- [ ] Issue.state changes to CLOSED after close call
-- [ ] Idempotent retry: second merge call on merged PR fails gracefully
-- [ ] Idempotent retry: second close call on closed Issue succeeds (no-op)
+**Authorization Setup** (Human to define):
+- [ ] Authorized users for workflow trigger (e.g., myaiwouldbemine)
+- [ ] Approval of 5 Human Decisions (H-D1 through H-D5)
+- [ ] Approval of GOVERNANCE.md L1 fix
+- [ ] Approval of mock test phase
+- [ ] Approval timeline for live test phase (Phase 2)
 
-All tests should be logged and results provided to Human before production authorization.
+**Implementation Readiness**:
+- [ ] Plan v2 approved by Human
+- [ ] All 5 Human Decisions documented and approved
+- [ ] Records/ISSUE-11/PLAN.md committed to main (after Plan approval)
+- [ ] Mock test framework prepared
+- [ ] Workflow file template prepared
+- [ ] Merge_lifecycle.py extension ready for review
+
+---
+
+## Summary
+
+**Formal Plan v2** addresses all F-01～F-06 concerns:
+
+1. **F-01**: Trusted Human Authorization — GitHub Actions workflow_dispatch authenticated via `github.actor`; input binding to PR/Scope explicit
+2. **F-02**: Complete Merge Gates — 12-item fail-closed check (added: Diff scope, Stale check detection, SHA compare-and-swap)
+3. **F-03**: Safe Live Testing — Mock (no auth) vs Live (explicit auth) separated
+4. **F-04**: Closure & Recovery — 5-state machine, idempotency rules, remote readback before retry
+5. **F-05**: Rollback — Executor/Workflow only; v2 governance preserved
+6. **F-06**: Permissions & Simplicity — Minimal token scope, explicit GitHub settings table, clear Human decisions
+
+**Design**: Option A (workflow_dispatch) primary; Option B retained for comparison.
+
+**Status**: **PLAN v2 READY FOR HUMAN APPROVAL**
+
+**Next Steps**:
+1. Human reviews Formal Plan v2
+2. Human approves 5 Blocking Decisions (H-D1～H-D5)
+3. Human approves GOVERNANCE.md L1 fix
+4. Human authorizes Implementation phase (separate from Plan approval)
+5. Implementation begins (if all approvals obtained)
 
