@@ -20,6 +20,12 @@ L0／L1 沒有正式 Plan 時，不強制新增記錄。若自願建立正式 Pl
 Plan 在對應實作前獨立 commit；L2／L3 必要的 Human 核准先於實作。不得回填假裝事前規劃。
 實作後更新同目錄 RESULT.md，記錄 Results、Evidence、PR、Commit、Deviations、Unfinished。未執行寫 NOT RUN，外部檢查待定寫 PENDING。
 
+## Formal Plan 的發佈與核准
+Formal Plan Draft 與所有修訂版本保存於 `records/ISSUE-<number>/` 並保留完整 Git 歷史。Human 透過固定 Commit SHA 審閱、評論及核准 Plan。
+只有 Human 明確核准的 Plan 才可發佈至 GitHub Issue Timeline；Approved Plan 留言應包含版本、Commit SHA、Records 連結、Scope 摘要、Human Approval 參考與狀態。
+Approved Plan 發佈後須完成 Remote Readback 驗證，確認 Repository Records 與 Issue Timeline 內容一致、相互連結。
+Plan Approval、Implementation Authorization、Ready、Merge 與 Deployment 是獨立且不同的授權決策。不自動推定前一決策涵蓋後續決策。
+
 ## Self-Review 與 Verification
 Claude Code Builder 負責 Investigation、Plan、Implementation、Self-Review、Tests、Evidence、Result 與 Readback。
 Self-Review 須以可追溯 Evidence 支持，包含 Claim、Source、Method、Evidence 及 Commit SHA 之清單；不宣稱此為獨立 Review。
