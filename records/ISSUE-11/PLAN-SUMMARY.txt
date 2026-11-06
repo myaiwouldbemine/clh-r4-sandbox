@@ -1,0 +1,306 @@
+# Issue #11 — Formal Plan v1 SUMMARY
+
+## Revision History
+- v1: 2026-11-06 13:13 UTC+8 — Initial Plan Draft
+
+---
+
+## 1. Goal / WHY
+After PR #10 merged LIGHT Governance v2, Merge → Readback → Closure Summary → Issue Close still requires manual Human intervention for each step.
+
+**Goal**: Automate steps 2–5 (Merge execution, CI readback, Closure Summary, Issue Close) while preserving:
+- Human decision authority on Merge (not delegated to AI)
+- Complete audit trail & evidence
+- Fail-Closed behavior
+- Single-Builder + Self-Verification model
+
+---
+
+## 2. Risk Level
+**L3** — Governance / Merge Executor / Issue Close / Authorization Gate
+
+Requires:
+- L2: Pre-implementation Formal Plan + Human Plan approval
+- L3: Specific action/scope authorization (per Merge execution)
+
+---
+
+## 3. Current-State Evidence
+- PR #10: Merged @ 2799d97 (2026-11-06 04:49:21Z) by myaiwouldbemine
+- GOVERNANCE.md v2: Active on main, but L1 risk clause contains old "Cross-Agent Review" text (inconsistency #1)
+- AGENTS.md v2: Reflects Single-Builder model
+- scripts/merge_lifecycle.py: Local checklist only, NO GitHub permissions
+- GitHub Actions: governance-tests.yml, docs-check.yml, pages.yml all active
+- Repository: main branch protection unknown (need Human verification)
+- GitHub Token: Merge + Close permissions UNKNOWN (need testing)
+
+---
+
+## 4. Design Comparison: Two Options
+
+### OPTION A: GitHub Actions workflow_dispatch + Manual Human Trigger
+
+**Flow**:
+1. Human goes to GitHub repo Settings → Actions
+2. Selects `merge-and-close-pr` workflow
+3. Inputs: PR#, approved Head SHA, base, merge method, target Issue#
+4. Hits "Run workflow"
+5. GitHub Actions runs: Precondition checks → Merge → Readback → Closure Summary → Close Issue
+
+**Pros**:
+- GitHub-native authorization boundary (Human's GitHub account + workflow_dispatch permission)
+- Persistent audit trail (workflow run logs, triggered by human login)
+- Can be audited via GitHub UI
+- Familiar interface for repository operators
+
+**Cons**:
+- Requires new workflow file + GitHub Actions permissions review
+- Does NOT automatically prevent stale/old SHAs (Human must copy-paste correctly)
+- workflow_dispatch UI does not enforce SHA format validation
+- Cannot distinguish "approved authorization" from "accidental re-trigger"
+- Requires separate Human action (no single-point approval)
+- Workflow logs may have sensitive commit SHAs (public if repo is public)
+
+**Assumptions to Test**:
+- GitHub Actions has sufficient permissions to: github.event.pull_request.merge()
+- github.event.pull_request.merge() respects Branch Protection
+- Issue.close() can be invoked by Actions with repo token
+- Token permissions can be scoped to this workflow only
+
+---
+
+### OPTION B: Claude Code Authorized One-Shot Execution (Same Session)
+
+**Flow**:
+1. Human explicitly approves PR#, Head SHA, base, scope, Merge method in chat
+2. Claude Code validates approval message against explicit criteria (contains exact SHA, PR#, base, scope, merge method)
+3. In same session, Claude Code calls GitHub API:
+   - github-mcp-server-pull_request_read (verify PR state, head, base, merge status)
+   - github-mcp-server-merge (execute merge with SHA compare-and-swap if available)
+   - [closure workflow: issue read, comment, close]
+4. Readback to Human: Full evidence of each step
+
+**Pros**:
+- Single Human action = authorization point
+- No new infrastructure (GitHub Actions, tokens, secrets)
+- Idempotent per session (can retry safely within same session with same evidence)
+- Evidence collected in real-time in chat
+- Clear authorization -> execution -> readback chain
+
+**Cons**:
+- Cross-session: Human must approve in same session; if session closes, authorization evidence lost
+- GitHub MCP tool availability: Merge + Close via MCP? (Not confirmed; may only be read-only)
+- Session interruption: Cannot resume stalled execution in new session without re-approval
+- No persistent audit trail in GitHub (approval only visible in chat session)
+- Burden on Human to provide full, exact SHA every time
+- If session token expires, operations fail with unclear auth error
+
+**Assumptions to Test**:
+- github-mcp-server has write methods for Merge + Close (not just read)
+- GitHub MCP authenticates as Human (not service bot)
+- Token inherits Human's permissions (can Merge if Human can)
+- Session persistence across network/interruption (likely NO — session-bound)
+
+---
+
+## 5. Recommended Approach
+
+**HYBRID**: Use Option A (GitHub Actions workflow_dispatch) as primary, with fallback to Option B for single-session testing.
+
+**Rationale**:
+- Option A provides durable, auditable authorization boundary
+- Option B adds risk of session-bound state loss without clear recovery
+- Combination allows testing Option A workflows before full rollout
+
+**Minimum Viable Scope**:
+1. New file: `.github/workflows/merge-and-close-pr.yml`
+   - Inputs: pr_number, head_sha (full), base_branch, merge_method, issue_number
+   - Precondition checks (via merge_lifecycle.py)
+   - Merge execution with SHA validation
+   - Closure Summary + Issue Close
+   - Failure handling
+
+2. Governance.md L1 consistency fix:
+   - Replace "Cross-Agent Review" → "Self-Review + Evidence"
+   - Update Merge Executor reference (currently says "no merge executor")
+
+3. Updated scripts/merge_lifecycle.py:
+   - New function: merge_preconditions_final() — detailed final checks before Merge
+   - No network calls; only local state validation
+
+4. Tests in scripts/test_merge_lifecycle.py:
+   - Mock workflow execution flow
+   - Live GitHub API tests (if authorized by Human)
+
+5. Documentation: `records/ISSUE-11/MERGE-EXECUTOR-GUIDE.md`
+   - How Human triggers workflow_dispatch
+   - What to verify before authorizing
+   - What happens if Merge fails
+   - How to recover
+
+---
+
+## 6. Merge Preconditions (Fail-Closed Gate)
+
+Must ALL pass before executing Merge:
+
+1. [ ] PR is OPEN (not already merged, not closed)
+2. [ ] Head SHA **exactly** matches approved SHA (full 40-char)
+3. [ ] Base branch matches approved base
+4. [ ] PR has not changed risk classification
+5. [ ] Formal Plan exists and is approved by Human
+6. [ ] RESULT.md exists with evidence (if L2+)
+7. [ ] All required GitHub Actions checks are SUCCESS on that exact Head SHA
+8. [ ] No unresolved Blocking Review or Thread
+9. [ ] No stale evidence (checks older than X hours)
+10. [ ] Human explicitly approved BOTH Merge authorization AND closure scope
+
+**If ANY condition fails**: ABORT. Do not Merge. Record reason and stop.
+
+---
+
+## 7. Post-Merge Closure Workflow
+
+```
+Merge Execute
+  ↓
+[SUCCESS] → Read PR: merged=true, merge_commit_sha
+  ↓
+Read main branch: does it contain merge_commit_sha?
+  ↓
+[YES] → Verify GOVERNANCE.md, AGENTS.md, records/ intact
+  ↓
+Publish Closure Summary to Issue:
+  - Head SHA (approved)
+  - Merge SHA (actual)
+  - CI checks (all names + status)
+  - Plan/Result links
+  - Human decision reference
+  - Completed items
+  ↓
+[SUCCESS] → Close Issue
+  ↓
+Readback: Issue state = CLOSED
+  ↓
+DONE
+```
+
+**Failure Recovery**:
+- Merge success + Closure Summary fail → Mark CLOSURE_PENDING, allow safe retry
+- Closure Summary success + Close fail → Same; CLOSURE_PENDING
+- Any failure → Do NOT auto-recover; log and wait for Human to acknowledge
+
+---
+
+## 8. Governance Consistency Fixes
+
+### Current Issue
+`main/GOVERNANCE.md` line ~25 (L1 risk clause):
+```
+| L1 | 教材語意、一般程式或網站行為 | 適用驗證＋不同 Agent 的可追溯交叉 Review |
+```
+
+**But** Issue #9 / LIGHT v2 removed Cross-Agent requirement. Inconsistency.
+
+### Fix (Issue #11 scope)
+Replace with:
+```
+| L1 | 教材語意、一般程式或網站行為 | 適用驗證＋Claude Code Self-Review with traced Evidence |
+```
+
+Also update Merge section reference from "不授權啟用 Auto-Merge、不新增 merge executor" to:
+```
+不授權全域 Auto-Merge; 允許 Human-Authorization-Bound PR Merge executor 
+（於 Plan 明確設計且經 Human L3 具體核准後）
+```
+
+---
+
+## 9. GitHub Permissions Required
+
+**New Permissions** (to request from Human):
+- `actions` permission to register new `merge-and-close-pr.yml` workflow
+- GitHub Actions on `merge-and-close-pr.yml` can:
+  - `contents:write` (to merge PR)
+  - `pull-requests:write` (to comment / manage PR state)
+  - `issues:write` (to close Issue)
+
+**Not Requested** (remaining limits):
+- No Personal Access Token outside GitHub Actions
+- No new Secrets stored in repo
+- No modification to branch protection rules
+- No direct main push
+
+---
+
+## 10. Testing Strategy
+
+### Phase 1: Mock Tests (local, no GitHub)
+- Test merge_preconditions_final() with various State combinations
+- Verify Fail-Closed logic
+- Mock GitHub API responses
+
+### Phase 2: Staged Live Tests (if Human approves)
+- Create test PR on non-main branch
+- Run workflow_dispatch with test PR
+- Verify checks without actually merging
+- Mock Closure Summary (do NOT close actual Issue)
+
+### Phase 3: Production Merge (Human-Authorized)
+- Same workflow but with real PR → issue pairing
+- Full execution with live GitHub API
+- Readback verification
+
+---
+
+## 11. Acceptance Criteria (From Issue #11)
+
+- [x] 唯讀 Recon 完成
+- [x] 設計方案比較 (Option A/B)
+- [x] Merge Preconditions 清單
+- [x] Post-Merge Closure 工作流
+- [x] Governance consistency 修正確認
+- [x] GitHub 權限需求列明
+- [ ] Formal Plan committed to records/ISSUE-11/PLAN.md
+- [ ] Human approves Plan + Scope + Permissions
+- [ ] Approved Plan published to Issue Timeline (only after Human approval)
+- [ ] Implementation & Testing (FUTURE - not in PLAN stage)
+
+---
+
+## 12. Human Decisions Required (BLOCKING)
+
+1. **Option Selection**: Option A (workflow_dispatch) or Option B (One-Shot) or Hybrid?
+2. **Governance Consistency Fix**: Approve proposed GOVERNANCE.md L1 + Merge section updates?
+3. **GitHub Permissions**: Authorize new GitHub Actions workflow + Token permissions?
+4. **Merge Preconditions**: Approve the 10-item Fail-Closed gate list?
+5. **Test Scope**: Live tests on real/test PR, or mock-only before implementation?
+
+---
+
+## 13. Implementation Scope (NEXT STAGE - if approved)
+
+Estimated changes:
+- NEW: `.github/workflows/merge-and-close-pr.yml` (~80 lines)
+- EDIT: `scripts/merge_lifecycle.py` (+~30 lines)
+- EDIT: `scripts/test_merge_lifecycle.py` (+~50 lines)
+- NEW: `records/ISSUE-11/MERGE-EXECUTOR-GUIDE.md` (~100 lines)
+- EDIT: `main/GOVERNANCE.md` (~5 lines)
+- NEW: Draft PR with above + tests
+
+---
+
+## 14. Rollback Strategy
+
+If implementation introduces issues:
+1. Revert `.github/workflows/merge-and-close-pr.yml` (disable workflow)
+2. Revert `GOVERNANCE.md` changes (restore Cross-Agent language if needed)
+3. Restore previous `merge_lifecycle.py` (fallback to local-only checks)
+4. Preserve all records/ history (no deletion)
+
+---
+
+## 15. Revision History
+
+- v1 (2026-11-06 13:13): Initial comprehensive Plan Draft
+

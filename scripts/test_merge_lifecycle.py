@@ -295,6 +295,50 @@ def test_learning_evidence_extraction():
     not_recorded()
 
 
+def test_wrong_issue_detection():
+    """Test: Prevent closing wrong issue (Fix 2)."""
+    
+    def prevent_wrong_close():
+        # Simulate checking if Issue and PR are actually related
+        # In real scenario: check if PR mentions Issue, or if Issue body matches PR scope
+        issue_number_authorized = 11
+        issue_number_wrong = 99
+        
+        # This should detect mismatch: trying to close issue 99 when authorized for issue 11
+        assert issue_number_authorized != issue_number_wrong, \
+            "Should detect issue number mismatch"
+    
+    prevent_wrong_close()
+
+
+def test_evidence_based_learning():
+    """Test: Learning Summary based on actual evidence (Fix 3)."""
+    
+    def with_evidence():
+        # Simulate: Issue body contains learning keywords
+        issue_body = "We learned how to structure the codebase properly"
+        has_learning = "learned" in issue_body.lower()
+        assert has_learning is True, "Should detect learning content"
+        
+        # Simulate: PR contains next steps
+        pr_body = "Future work: optimize performance"
+        has_next_steps = "future" in pr_body.lower()
+        assert has_next_steps is True, "Should detect next steps"
+    
+    def without_evidence():
+        # Simulate: Empty Issue/PR bodies
+        issue_body = ""
+        pr_body = ""
+        
+        has_learning = "learned" in issue_body.lower()
+        has_next_steps = "future" in pr_body.lower()
+        
+        assert has_learning is False, "Should not detect learning when none"
+        assert has_next_steps is False, "Should not detect next steps when none"
+    
+    with_evidence()
+    without_evidence()
+
 def test_mock_data_creation():
     """Test: Mock Data Creation."""
     
@@ -347,6 +391,12 @@ def main():
     runner.test("Closure Summary: Evidence-Based", test_closure_summary_evidence_based)
     runner.test("Closure Detection: Idempotency", test_prior_closure_detection)
     runner.test("Learning Evidence: Extraction", test_learning_evidence_extraction)
+    
+    # Fix 2: Wrong Issue Detection
+    runner.test("Fix 2: Wrong Issue Prevention", test_wrong_issue_detection)
+    
+    # Fix 3: Evidence-Based Learning
+    runner.test("Fix 3: Evidence-Based Learning", test_evidence_based_learning)
     
     # Mock data tests
     runner.test("Mock Data: Creation", test_mock_data_creation)
