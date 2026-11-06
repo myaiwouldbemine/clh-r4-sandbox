@@ -1,0 +1,21 @@
+Command: python3 -m mkdocs build --strict
+Exit: 0
+
+[33m │  [1mMaterial for MkDocs reaches end of life on May 5, 2027.[0m
+[33m │[0m  Critical fixes and security updates continue until that date.
+[33m │[0m
+[33m │[0m  Zensical is its maintained successor, built by the same team.
+[33m │[0m  Try it alongside MkDocs with your existing mkdocs.yml:
+[33m │[0m  [36m[4mhttps://zensical.org/docs/compatibility/mkdocs/migration/[0m
+
+[90m  To disable this warning, set NO_MKDOCS_2_WARNING=1.[0m
+
+INFO    -  Cleaning site directory
+INFO    -  Building documentation to directory: /home/copylearning/myaiwouldbemine-Copy-Learning-Hub/site
+INFO    -  The following pages exist in the docs directory, but are not included in the "nav" configuration:
+  - development/AUTONOMOUS_OPERATIONS.md
+  - development/CANARY_AUTHORIZATION.md
+  - development/GUARDED_AUTO_MERGE.md
+  - development/INDEPENDENT_REVIEW.md
+  - development/ISSUE_TEMPLATE_INSTALL.md
+INFO    -  Documentation built in 1.02 seconds

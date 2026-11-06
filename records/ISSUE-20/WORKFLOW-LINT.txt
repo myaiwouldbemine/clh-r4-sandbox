@@ -1,0 +1,2 @@
+Command: /tmp/clh-actionlint/actionlint
+Exit: 0
