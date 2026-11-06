@@ -1,34 +1,47 @@
 # Issue #9 — LIGHT Governance v2: Claude Code Single-Builder + Self-Verification
 
-## Formal Plan v3 (Revised)
+## Formal Plan v3.1 (Revised — Issue Timeline Publication Rule Correction)
 
 **Issue**: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/9  
 **Builder**: Claude Code  
 **Risk Level**: L3 (Governance policy semantic change)  
 **Status**: PLAN PENDING HUMAN APPROVAL — NO IMPLEMENTATION AUTHORIZED  
-**Date**: 2026-11-06 (v3 Revision: 2026-11-06 11:37 UTC+8)  
-**Current Main HEAD**: cdab0f8e3171861bcd568a8c4597daf4bff75840 (Plan v2 committed)  
-**Records Location**: records/ISSUE-9/PLAN.md
+**Date**: 2026-11-06 (v3.1 Revision: 2026-11-06 11:49 UTC+8)  
+**Current Main HEAD**: a50e687e45f94ee4b27f06c3ab3c46ae65ff9c8b (Plan v3 committed)  
+**Records Location**: records/ISSUE-9/PLAN.md  
+**GitHub Issue Timeline**: Currently NO Approved Plan post (awaiting Human approval)
 
 ---
 
 ## Revision History
 
-### v2 → v3 (Current Revision)
+### v3 → v3.1 (Current Revision)
 
-**Changes**:
-- F-01：Verified Issue template line count (66 lines, not 100); templates MODIFY status confirmed
-- F-02：Clarified Plan commit sequence (v2 already committed; v3 is revision; implementation commits pending)
-- F-03：Corrected Rollback strategy (preserve history, no deletion)
-- F-04：Distinguished current cross-Agent review requirement from future Self-Verification framework
-- F-05：Enhanced verification accuracy (governance semantics, field validation, CI checks)
-- F-06：Corrected v1 status from REJECTED to CHANGES REQUESTED (per GitHub evidence)
-- **NEW**: Added Formal Plan Dual Persistence rule to Section 11
-- **NEW**: Added github Issue Timeline evidence requirements
+**Correction**:
+- Human Owner clarified Issue Timeline publication rule: **Only post Approved Plan AFTER Human explicit approval**
+- Plan v3 previously posted prematurely; deleted from Timeline
+- v3.1 incorporates: Plan Approval Gate before Timeline Publication
+- New Rule (Section 12.F): Formal Plan Issue Timeline Publication Gate
 
-**v1 Disposition**: CHANGES REQUESTED (Human feedback on Plan v1; Plan v2 submitted as corrected version)
+**Previous Timeline Posts**:
+- ✅ Plan v2 (commit cdab0f8, 2026-11-06 11:29) → Status: PENDING (historical draft, not approved)
+- ❌ Plan v3 (commit a50e687, 2026-11-06 11:37) → Status: PENDING (deleted; premature publication)
+- ⏳ Plan v3.1 (commit TBD, 2026-11-06 11:49) → Status: PENDING (awaiting Human approval before Timeline publication)
 
-**v2 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md; Posted to Issue #9 Timeline)
+**v1 Disposition**: CHANGES REQUESTED (Human feedback on accuracy)
+
+**v2 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md)
+
+**v3 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md; Timeline post deleted per correction)
+
+---
+
+## 1. Goal / WHY
+
+### 1.1 Primary Goal
+Adopt Claude Code as the sole **daily Builder** for Learning Hub, replacing mandatory Codex ↔ Claude Code cross-Agent review with explicit **Self-Verification** (Source / Claim / Method / Evidence / Commit SHA).
+
+**Rationale**: Learning Hub's purpose is learning and knowledge documentation, not multi-Agent governance. Simplified responsibility removes overhead while maintaining L2/L3 risk control.
 
 ---
 
@@ -453,11 +466,12 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 
 ## 11. Revision History
 
-| Date | Revision | Status | Summary |
-|------|----------|--------|---------|
-| 2026-11-06 12:xx | Plan v1 | CHANGES REQUESTED | Incorrectly claimed 01-agent-task.yml does not exist; did not verify current main HEAD (corrected in v2) |
-| 2026-11-06 11:29 | Plan v2 | PENDING HUMAN APPROVAL | Corrected v1: verified main HEAD cdab0f8; Issue template confirmed MODIFY; refined Self-Verification; issued to Issue #9 Timeline |
-| 2026-11-06 11:37 | Plan v3 (Current) | PENDING HUMAN APPROVAL | Incorporated F-01 to F-06 feedback: corrected template line counts, clarified commit sequence, fixed Rollback strategy, distinguished transition from cross-Agent review, enhanced verification specs, added Dual Persistence rule |
+| Date | Revision | Commit SHA | Status | Summary |
+|------|----------|------------|--------|---------|
+| 2026-11-06 12:xx | Plan v1 | (local) | CHANGES REQUESTED | Incorrectly claimed 01-agent-task.yml does not exist; did not verify current main HEAD (corrected in v2) |
+| 2026-11-06 11:29 | Plan v2 | cdab0f8 | PENDING APPROVAL | Corrected v1: verified main HEAD cdab0f8; Issue template confirmed MODIFY (66 lines); refined Self-Verification; posted to Issue #9 Timeline as candidate |
+| 2026-11-06 11:37 | Plan v3 | a50e687 | PENDING APPROVAL (Timeline post deleted) | Incorporated F-01 to F-06: corrected template details, clarified commit sequence, fixed Rollback strategy, distinguished current ↔ future policies, enhanced verification specs, added Dual Persistence rule; posted prematurely to Timeline (removed per Human correction) |
+| 2026-11-06 11:49 | Plan v3.1 | TBD | PENDING APPROVAL — AWAITING TIMELINE PUBLICATION RULE | Added Section 12.F: Formal Plan Issue Timeline Publication Gate; clarified: Timeline posts only after Human explicit approval; awaiting Human approval before publishing Approved Plan comment |
 
 ---
 
@@ -543,6 +557,48 @@ PLAN PERSISTENCE VERIFIED (Records + Timeline)
 - Do NOT delete old Timeline comments.
 - records/ISSUE-9/PLAN.md updated with new version; Git history preserves all versions.
 
+### F. Issue Timeline Publication Gate (Formal Rule Addition — v3.1)
+
+**Rationale**: Ensure auditable governance decision flow. Plans in records/ undergo multiple revision cycles; Timeline should reflect only Human-approved decisions.
+
+**Rule**:
+
+1. **Draft Versions**: All Plan v1, v2, v3, … (before Human approval) remain in `records/ISSUE-<n>/` only.
+   - Developer/Builder can commit, review, revise drafts locally.
+   - Do NOT post to Issue Timeline until Human explicitly approves version.
+
+2. **Human Review & Approval**: Human reviews candidate Plan via fixed Commit SHA link in records/.
+   - Human explicitly states: "Formal Plan vX APPROVED" (or "requested revisions").
+   - Approval must include Scope, Version, and any operative constraints.
+
+3. **Approved Plan Publication** (ONLY after explicit approval):
+   - Builder posts single "APPROVED PLAN" comment to Issue Timeline.
+   - Format:
+     ```
+     ## APPROVED PLAN — [Plan Version]
+     
+     **Human Approval**: [Date, statement, or reference to Human's approval comment]
+     **Scope**: [e.g., "LIGHT Governance v2 policy change"]
+     **Approved Commit SHA**: [fixed sha1]
+     **Records Link**: `records/ISSUE-<n>/PLAN.md` @ [commit sha1]
+     
+     [Brief summary of key decisions]
+     
+     Status: APPROVED FOR IMPLEMENTATION (pending any explicit action/scope authorization)
+     ```
+
+4. **Subsequent Revisions**: If approved Plan requires substantial revision:
+   - Mark old approved Timeline comment as superseded (edit or pin new comment).
+   - Repeat Human approval cycle for new version.
+   - Only new approved version posted to Timeline.
+   - Keep historical Timeline trail (do NOT delete).
+
+5. **Readback Verification** (after posting):
+   - Confirm approved Plan visible at both:
+     - Repository: `git show <sha1>:records/ISSUE-<n>/PLAN.md`
+     - Issue Timeline: Fixed comment with approval statement and Commit SHA
+   - Record: "APPROVED PLAN PERSISTENCE VERIFIED — [date, sha1, issue comment URL]"
+
 ---
 
 ## Appendix A: Self-Review vs. Independent Review (v2 Definition)
@@ -572,7 +628,7 @@ PLAN PERSISTENCE VERIFIED (Records + Timeline)
 
 ---
 
-**END OF PLAN v3 (Formal Revision)**
+**END OF PLAN v3.1 (Issue Timeline Publication Rule Addition)**
 
 **PLAN STATUS**: PENDING HUMAN APPROVAL — NO IMPLEMENTATION AUTHORIZED
 
@@ -580,15 +636,33 @@ PLAN PERSISTENCE VERIFIED (Records + Timeline)
 
 **READY / MERGE / DEPLOYMENT**: NOT AUTHORIZED
 
+**ISSUE TIMELINE PUBLICATION**: NOT AUTHORIZED (awaiting Human explicit approval per Section 12.F)
+
 ---
 
 ## Next Steps (Human Review)
 
 1. Review records/ISSUE-9/PLAN.md in full (this document).
-2. Review Issue #9 comment with Plan v3 summary (to be posted).
-3. Address 7 Human Decisions Required (Section 10).
-4. Provide explicit approval or revision requests.
-5. Upon approval, Claude Code proceeds with 4-commit implementation sequence.
-6. Upon implementation completion, Claude Code issues RESULT.md for verification.
-7. Human authorizes Merge after CI pass and Result review.
+   - v3.1: Includes new Section 12.F (Issue Timeline Publication Gate).
+   - Revision History: Updated with v3 and v3.1 entries; Timeline posts marked pending approval.
+
+2. Address 7 Human Decisions Required (Section 10).
+   - Decision #1–#7: Plan Approval, Self-Verification Framework, Fresh-Context Challenge, Cross-Agent Review removal, Template Updates, Implementation Authorization, Merge Authorization.
+
+3. Explicitly approve or request revisions:
+   - Approval format per Section 12.F: "Formal Plan v3.1 APPROVED" + Scope + Operative constraints.
+
+4. Upon explicit approval:
+   - Claude Code posts "APPROVED PLAN" comment to Issue #9 Timeline (Section 12.F format).
+   - Executes Remote Readback verification (both records/ and Timeline accessible).
+   - Proceeds with 4-commit implementation sequence (ONLY if Human explicitly authorizes).
+
+5. Upon implementation completion (if authorized):
+   - Claude Code creates records/ISSUE-9/RESULT.md.
+   - Issues RESULT comment to Issue #9 Timeline.
+   - Prepares PR for Human Merge authorization.
+
+6. Human authorizes Merge:
+   - After CI pass, verification, and Result review.
+   - No Merge until all gates cleared.
 
