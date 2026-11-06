@@ -1,317 +1,488 @@
-# Issue #11 — Formal Plan v3 Simplified
+# Issue #11 — Formal Plan v4: Learning-Centered Automation
 
 ## Revision History
-- v1: 2026-11-06 13:13 UTC+8 — Initial Plan Draft (526 lines)
-- v2: 2026-11-06 13:35 UTC+8 — Security & Consistency Revision (F-01～F-06)
-- v3: 2026-11-06 14:00 UTC+8 — Simplified for Learning Hub (Proportionate Governance)
-  - Removed: Complex state machines, arbitrary timeouts, dual executors, approval registry
-  - Kept: Minimal merge gates, GitHub Actions workflow_dispatch, fail-closed behavior
-  - Focus: Learn Hub's actual use case (knowledge base, markdown, collaboration)
+- v1: 2026-11-06 13:13 UTC+8 — Initial comprehensive plan (526 lines)
+- v2: 2026-11-06 13:35 UTC+8 — Security & consistency revision (987 lines)
+- v3: 2026-11-06 14:00 UTC+8 — Proportionate simplification (317 lines)
+- **v4: 2026-11-06 14:04 UTC+8 — Learning-centered automation (this version)**
+  - Redesigned for Learning Traceability, not Agent Control
+  - Focus: Preserve complete Issue → Plan → PR → Result → Merge → Closure learning history
+  - Removed: Security-first framing, overengineered gates, complex state machines
+  - Kept: Essential safety (SHA binding, idempotency, fail-closed)
 
 ---
 
 ## 1. Goal / WHY
 
-After PR #10 merged LIGHT Governance v2, merging approved PRs to main and closing related issues still requires multiple manual steps.
+**Copy Learning Hub's governance exists to preserve learning, not control.**
 
-**Goal**: Let Human authorize a merge once (by triggering a GitHub Actions workflow), then automatically:
-- Verify the PR is safe to merge (minimal checks)
-- Execute the merge (GitHub API)
-- Verify success
-- Close the related issue
-- Handle common failures gracefully
+Current friction: After PR #10 merged LIGHT Governance v2, Merge Decision still required multiple manual steps (Human review + decision + merge + readback + closure summary + issue close).
 
-**Constraints**:
-- Human keeps merge decision authority
-- Only use GitHub-native features (no external services)
-- Respect Branch Protection / Rulesets
-- Proportionate to a learning/documentation repository
+**Goal**: Automate post-Human-authorization steps (Merge → Verification → Closure Summary → Issue Close), so the **complete learning history from Issue Question → Plan → Implementation → Result → Integrated Change → Consolidation** is preserved automatically.
+
+**Why automation helps learning**:
+- Learning Summary captures Why / What Changed / Evidence / What Learned
+- Automatic closure comment consolidates the arc
+- Issue Timeline shows complete traceability
+- Human retains final Merge Decision; automation handles verification + closure
 
 ---
 
 ## 2. Risk Level
 
-**L3** — Governance / Issue Close Authorization
+**L3** — Governance / Merge Authorization Change
 
 Requires:
 - Pre-implementation: Formal Plan + Human approval
-- Per-merge: Human explicitly triggers workflow (act of authorization)
+- Per-merge: Human explicitly triggers workflow (decision point)
 
 ---
 
-## 3. Current State
+## 3. Learning-Centered Automation Design
 
-- ✅ PR #10 merged; LIGHT Governance v2 active
-- ✅ GitHub Actions available (governance-tests, docs-check running)
-- ⚠️ GOVERNANCE.md L1 clause still says "Cross-Agent Review" (v1 legacy; needs update)
-- ⚠️ Branch Protection on main is active (Human must verify exactly what rules)
+### Authorization Boundary
 
----
+Human's act of **triggering the GitHub Actions workflow_dispatch** with specific parameters (PR number, exact Head SHA, target Issue) constitutes explicit authorization for that merge.
 
-## 4. Design: GitHub Actions workflow_dispatch
+GitHub's native audit trail (workflow run, triggering user, timestamp) is the evidence.
 
-**Human Workflow**:
-1. Go to: repo Settings → Actions → "Merge and Close" workflow
-2. Click: "Run workflow"
-3. Enter: PR Number, Head SHA (40-char), Target Base (main), Merge Method (squash/merge/rebase), Issue Number
-4. Click: "Run"
-5. Watch: Workflow executes, reports success/failure
+### Workflow Execution (Linear)
 
-**Workflow Execution**:
-1. Verify Human's GitHub account is authorized
-2. Verify PR, Head SHA, Base, and Issue
-3. Confirm GitHub says merge is allowed
-4. Execute merge via GitHub API (SHA compare-and-swap)
-5. Verify merge succeeded
-6. Post closure message to issue
-7. Close issue
-8. Report results
+```
+Human triggers workflow with:
+  - PR number
+  - Full Head SHA (copy-paste from GitHub)
+  - Base branch (typically "main")
+  - Merge method (squash / merge / rebase)
+  - Issue number
 
-**On Failure**:
-- Stop immediately (don't close issue if merge didn't happen)
-- Post error to PR
-- Human investigates and decides next step
+Workflow runs:
 
----
+  1. Verify authorization
+     → Check github.actor is in allow-list
+     → If not: ABORT, log failure
 
-## 5. Minimal Merge Gates (Six Checks)
+  2. Verify PR state
+     → Open? (not draft, not closed)
+     → Head SHA matches exactly?
+     → Base branch matches?
+     → If any fail: ABORT, log reason
 
-Before merging, verify:
+  3. Verify CI + Merge readiness
+     → Required checks passed? (governance-tests, docs-check)
+     → No blocking reviews?
+     → GitHub allows merge?
+     → If any fail: ABORT, log reason
 
-1. **Human Authorization**: `github.actor` (Person who triggered workflow) is in allow-list
-   - Allow-list: defined in workflow file or repo settings (e.g., `myaiwouldbemine`)
-   - Fail if: person not authorized → ABORT, post error to PR
+  4. Execute merge
+     → Call GitHub Merge API with SHA compare-and-swap
+     → Get response (merge commit SHA)
+     → If fail: ABORT, log error
 
-2. **PR is Open**: PR exists, status is "open"
-   - Fail if: PR closed, merged, or not found → ABORT
+  5. Verify merge succeeded
+     → Read PR merged_at timestamp
+     → Confirm main branch contains merge commit
+     → If verification fails: ABORT, log error
 
-3. **Head SHA Matches**: The PR's current commit matches what Human authorized
-   - Prevents: accidentally merging after new commits added
-   - Compare: input SHA == PR.head.sha (normalized case-insensitive)
-   - Fail if: mismatch → ABORT, post "SHA changed" message
+  6. Compose Learning Closure Summary
+     → Why: Pull Issue / Plan / PR motivation
+     → What Changed: Commit summary, files changed
+     → Evidence: Merge Commit SHA, CI logs, PR link
+     → What Learned: Auto-detect from PR title/body, default to "N/A"
+     → Next Steps: Auto-detect from linked issues, default to "None"
 
-4. **Base Correct**: PR's base branch is what we expect (usually "main")
-   - Fail if: different → ABORT
+  7. Post closure summary to issue
+     → Single comment with formatted summary
+     → If fails: ABORT, allow manual recovery
 
-5. **Required Checks Pass**: GitHub's mandatory CI (governance-tests, docs-check) succeeded on this commit
-   - Fail if: any required check pending, failed, or missing → ABORT
-   - Don't worry about: arbitrary time limits; GitHub has current state
+  8. Close issue
+     → Set state to closed
+     → Verify CLOSED status
+     → If fails: ABORT, allow manual recovery
 
-6. **No Blocking Reviews**: No unresolved "changes requested" reviews
-   - Fail if: unresolved blocking review → ABORT
+Success:
+  → Workflow logs "COMPLETED"
+  → All evidence in GitHub (PR, Issue timeline, Workflow logs)
+  → Learning history preserved
 
-**Result**: All six pass → proceed to merge. Any fail → stop and report.
-
----
-
-## 6. Human Authorization
-
-**What counts as authorization**:
-- Human triggers the workflow via GitHub web UI (authenticated as their GitHub account)
-- Workflow logs `github.actor` and timestamp
-- Workflow records: PR#, Head SHA, Base, Issue#, Merge Method in logs
-- GitHub Actions audit trail preserves everything
-
-**How to confirm authorization is trustworthy**:
-- ✅ Human's account is in allow-list (defined in workflow)
-- ✅ Workflow code is in main branch (not PR branch; GitHub enforces this)
-- ✅ Human has repository access (GitHub verifies)
-- ✅ If they request re-run, same logic applies
-
-**NOT required** (remove complexity):
-- External approval system
-- Second executor
-- Persistent state database
-- Complex token management
+Failure at any step:
+  → Workflow stops immediately (fail-closed)
+  → Posts error summary to PR
+  → Human reviews logs, decides next action
+  → If merge succeeded but closure failed: safe to retry after fixing closure
+```
 
 ---
 
-## 7. Post-Merge Closure
+## 4. Essential Merge Gates (Six Checks)
 
-After merge succeeds:
+| # | Gate | Verification | Fail Condition |
+|---|------|-------------|----------------|
+| 1 | Human Authorization | `github.actor` exactly matches allow-list | Not in allow-list → ABORT |
+| 2 | PR Open | PR status "open", not draft, not closed | PR is draft/closed → ABORT |
+| 3 | SHA Match | Head SHA exactly equals authorized SHA | SHA changed → ABORT |
+| 4 | Base Branch | Base branch equals "main" (or authorized) | Base is wrong → ABORT |
+| 5 | Required CI | `governance-tests` + `docs-check` = SUCCESS | Any check failed/pending → ABORT |
+| 6 | No Blockers | No "changes requested" reviews, no blocking threads | Blocking review exists → ABORT |
 
-1. **Read True State**:
-   - Is PR merged? (PR.merged == true)
-   - What was the merge commit? (PR.merge_commit_sha)
-   - Is the commit in main?
-
-2. **Post Closure Message** to the issue (as a comment):
-   ```
-   ✅ PR #10 merged to main
-   Merge Commit: abc123...xyz
-   Closed by: Merge and Close workflow
-   Time: [timestamp]
-   ```
-
-3. **Close the Issue** via GitHub API
-   - Only if PR is definitely merged
-   - Only if issue was linked to the PR
-
-4. **Verify Issue Closed** by reading issue state
+If all six pass → proceed to merge. If any fails → stop.
 
 ---
 
-## 8. Failure Handling
+## 5. Merge Execution (GitHub API)
 
-**If merge preconditions fail**:
-- Don't merge
-- Post error comment to PR
-- Stop (Human investigates)
+Use GitHub REST API `/repos/{owner}/{repo}/pulls/{pr_number}/merge`:
 
-**If merge succeeds but closure fails**:
-- Issue stays open
-- Post message: "Merge succeeded, but issue close failed; see logs"
-- Human can manually close or re-run workflow
+```
+POST /repos/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pulls/{pr_number}/merge
+{
+  "commit_title": "Issue #<number>: <title>",
+  "commit_message": "<body>",
+  "sha": "<authorized-head-sha>",  // Compare-and-swap: prevents concurrent changes
+  "merge_method": "squash"          // From Human's decision
+}
 
-**If workflow interrupted/times out**:
-- Workflow stops
-- Logs are preserved in GitHub Actions
-- Human can inspect logs
-- If they re-run: Idempotency checks prevent double-merge
-  - Already merged? Skip merge, proceed to closure
-  - Closure comment already posted? Skip, proceed to close issue
-  - Issue already closed? Log as success
+Response success:
+  {
+    "sha": "<merge-commit-sha>",
+    "merged": true,
+    "message": "Pull Request successfully merged"
+  }
+```
 
-**Key**: Never delete/modify existing closure comment or re-close issue. Read state first.
+The `sha` parameter ensures the merged commit is exactly what was authorized.
+
+---
+
+## 6. Post-Merge Verification
+
+After merge API succeeds:
+
+1. **Read PR state** → Confirm `merged: true`, `merged_at` is recent
+2. **Read main branch HEAD** → Confirm latest commit is merge commit SHA
+3. **Confirm closure not already posted** → Check if issue already has Closure Summary comment from previous run (prevent double-posting)
+
+---
+
+## 7. Learning Closure Summary (Issue Comment)
+
+Automatic comment posted to issue:
+
+```markdown
+## ✅ Merged & Closed: Learning Consolidation
+
+**Learning Motivation**
+[Copy from Issue body]
+
+**What Changed**
+- PR: #<number>
+- Commit: <merge-sha>
+- Files: N changed
+- [Auto-detect from diff or use "See PR for details"]
+
+**Evidence**
+- PR Link: #<number>
+- Merge Commit: <sha>
+- CI Results: All required checks passed
+- GitHub Actions Workflow: <run link>
+
+**What Learned**
+[Auto-detect from PR title/labels, or "See PR discussion"]
+
+**Remaining Questions / Next Steps**
+[Auto-detect from linked issues, or "None identified"]
+
+---
+*Closure Summary generated automatically by Issue #11 workflow.*
+```
+
+**Why this format**:
+- Captures the learning arc (Why → What → Evidence → Learned)
+- Preserves traceability (links to PR, commit, CI)
+- Blocks accidental double-posting (checks for prior Closure Summary)
+- Human can edit/add detail after if needed
+
+---
+
+## 8. Failure Handling & Recovery
+
+### Merge Not Yet Executed
+
+Failure at gates 1–5: Stop, don't merge. Human fixes issue, re-triggers workflow.
+
+Example:
+- Gate 5 (CI failed) → Human pushes fix → Re-triggers workflow
+
+### Merge Succeeded, Closure Failed
+
+If merge API succeeded (gate 7) but closure fails (gates 8–9):
+
+1. Workflow records merge commit SHA in error log
+2. Human re-triggers workflow **with same parameters**
+3. Workflow:
+   - Reads PR state
+   - Detects merged=true
+   - Skips merge (already done)
+   - Attempts closure again
+   - If closure fails again: posts error to PR, allows manual completion
+
+**Idempotency principle**: Re-running with same parameters never double-merges or double-posts closure.
+
+### If Closure Summary Already Posted
+
+Before posting closure comment:
+
+1. Query issue comments
+2. Search for existing "Merged & Closed: Learning Consolidation" comment
+3. If found: Skip re-post, verify issue is closed
+4. If issue is not closed: Log error, don't double-post
 
 ---
 
 ## 9. Implementation Scope
 
-### What will be created:
+Will create / modify:
 
-1. **.github/workflows/merge-and-close-pr.yml** (Workflow file)
-   - ~100 lines of YAML
-   - Inputs: pr_number, head_sha, base_branch, merge_method, issue_number
-   - Permissions: contents write, pull-requests write, issues write
-   - Steps: validate inputs, check PR, merge, verify, close issue
+1. **`.github/workflows/merge-and-close-pr.yml`** (~120 lines YAML)
+   - `workflow_dispatch` trigger with inputs
+   - Six merge gate checks
+   - Merge API call
+   - Closure summary composition
+   - Issue close
 
-2. **scripts/merge_lifecycle.py** (Helper script)
-   - ~150 lines of Python
-   - Functions: check_pr_state, merge_via_api, verify_merge, post_closure, close_issue
-   - Uses GitHub CLI (`gh`) or GitHub API via curl
-   - No external dependencies beyond standard library
+2. **`scripts/merge_lifecycle.py`** (~150 lines)
+   - Helper: Check authorization
+   - Helper: Validate PR state
+   - Helper: Query CI status
+   - Helper: Call merge API (with error handling)
+   - Helper: Compose closure summary
+   - Helper: Post comment + close issue
+   - Helper: Idempotency checks (detect prior merge, prior closure)
 
-3. **records/ISSUE-11/RESULT.md** (After implementation)
-   - Evidence: Test runs, example workflow executions, manual verification
-   - Links to Plan v3 commit SHA
+3. **`scripts/merge_lifecycle_test.py`** (~100 lines)
+   - Mock test: Gate checks work
+   - Mock test: Merge API call structure
+   - Mock test: Closure summary formatting
+   - Mock test: Idempotency logic
 
-### What will NOT be created:
+Will NOT create / modify:
 
-- ❌ Approval registry or persistent state database
-- ❌ Second merge executor (Claude Code API calls)
-- ❌ Complex state machine with separate recovery workflow
-- ❌ External monitoring or notification service
-- ❌ Changes to GitHub repository settings or tokens
+- ❌ GitHub repository settings
+- ❌ Branch protection rules
+- ❌ Approval registry or bot platform
+- ❌ Additional governance documents
+- ❌ New workflow triggers (only `merge-and-close-pr.yml`)
 
 ---
 
-## 10. Verification & Acceptance
+## 10. Verification & Acceptance Criteria
 
-### Mock Tests (No GitHub Access)
-- ✅ Input validation (PR#, SHA format, merge method, etc.)
-- ✅ Merge gate logic (all six checks)
-- ✅ Closure message formatting
-- ✅ Idempotency logic (no double-merge)
+### Implementation Verification
 
-### Live Tests (On Test Repository or Test PR)
-- ✅ Workflow actually runs when triggered
-- ✅ Can read PR state via GitHub API
-- ✅ Can merge test PR
-- ✅ Can close test issue
-- ✅ Idempotency: re-run doesn't break anything
+1. ✅ Workflow file is valid YAML, parseable by GitHub
+2. ✅ Python helpers have no syntax errors
+3. ✅ Mock tests pass (all gates, merges, closures, idempotency)
+4. ✅ Workflow can be triggered from GitHub UI
+5. ✅ Inputs are received correctly
+
+### Integration Verification (Mock Test PR)
+
+1. ✅ Create mock PR with dummy commit
+2. ✅ Run workflow with mock PR number
+3. ✅ Verify all gates check correctly
+4. ✅ Verify closure summary is formatted correctly (before posting)
+5. ✅ Verify idempotency: re-run produces same output
+6. ✅ Clean up mock PR
 
 ### Acceptance Criteria
-- ✅ Workflow runs successfully with valid inputs
-- ✅ All six merge gates work (stop on failure)
-- ✅ Merge executes via GitHub API
-- ✅ Closure message posts to issue
-- ✅ Issue closes
-- ✅ Re-run is safe (no double-merge, no duplicate messages)
-- ✅ Error messages are clear for Human
-- ✅ Workflow logs are preserved
+
+- ✅ Human triggers workflow with PR + SHA + Issue
+- ✅ Workflow validates six gates
+- ✅ If all pass: merge executed, closure posted, issue closed
+- ✅ If any gate fails: abort immediately, post error, preserve PR/Issue
+- ✅ Learning history is complete and traceable
+- ✅ GitHub audit trail shows all actions
 
 ---
 
 ## 11. Five Human Decisions
 
-**H-D1: Workflow Trigger Allow-list**
-- Who can trigger the merge workflow?
-- Recommend: myaiwouldbemine only (for safety)
-- Can add others later if needed
+### H-D1: Workflow Trigger Allow-List
 
-**H-D2: Merge Method Preference**
-- Default merge method: squash, merge, or rebase?
-- Recommend: squash (cleaner history for docs)
-- Can be chosen per merge
+**Question**: Who is authorized to trigger the merge-and-close workflow?
 
-**H-D3: Required CI Checks**
-- Which checks MUST pass before merge?
-- Recommend: governance-tests, docs-check (already running)
-- Human verifies these are the right ones for Learning Hub
+**Options**:
+- Only myaiwouldbemine (most restrictive)
+- myaiwouldbemine + Codex (least restrictive for LIGHT Governance v2)
+- Other users (specify)
 
-**H-D4: Governance.md L1 Clause Update**
-- Old (v1): "Different agents' traceable cross-review"
-- New (v2): "Self-review + single-builder model"
-- Approve the fix? → YES recommended
+**Recommendation**: Only **myaiwouldbemine** (sole administrator per GOVERNANCE.md)
 
-**H-D5: Closure Message Template**
-- What should the closure message say?
-- Recommend: Simple format (PR#, merge commit, timestamp)
-- Can include link to main branch or release notes
+**Rationale**: Merge is L3 operation; should remain tightly controlled.
 
 ---
 
-## 12. Rollback
+### H-D2: Merge Method Preference
 
-If the merge workflow is not working or needs to be disabled:
+**Question**: When merging, which Git merge strategy?
 
-1. Delete `.github/workflows/merge-and-close-pr.yml` (or disable it)
-2. Delete or archive the helper script
-3. Go back to manual merge process
+**Options**:
+- `squash` — Flatten PR commits into one (good for learning docs)
+- `merge` — Keep full commit history (preserves exploration)
+- `rebase` — Rebase onto main (cleaner history)
 
-**No governance changes are reverted.** LIGHT Governance v2 stays in place.
+**Recommendation**: **squash** for Copy Learning Hub
+
+**Rationale**: Learning Hub prioritizes narrative clarity. Squashing makes merged PR tell one coherent story.
 
 ---
 
-## Revision History Summary
+### H-D3: Required CI Checks for Merge Gate
 
-| Version | Date | Changes |
-|---------|------|---------|
-| v1 | 13:13 UTC+8 | Initial detailed plan (526 lines) |
-| v2 | 13:35 UTC+8 | Security & QA additions (987 lines, complex) |
-| v3 | 14:00 UTC+8 | Simplified for Learning Hub (this document) |
+**Question**: Which GitHub Check Runs must be SUCCESS before merge?
 
-**Why v3 is simpler**:
-- Removed multi-state recovery machine (use idempotency checks instead)
-- Removed arbitrary CI timeout rules (use GitHub's current state)
-- Removed dual-executor approach (workflow_dispatch only)
-- Removed approval registry (Human's trigger IS authorization)
-- Removed overly detailed Python examples (keep functional, not perfect)
-- Focused on six essential merge gates, not twelve
+**Current checks in repository**:
+- `governance-tests` (runs AGENTS.md / GOVERNANCE.md tests)
+- `docs-check` (validates Markdown / MkDocs)
+- (Other checks if any)
 
-**Still maintains**:
-- Fail-closed behavior (any check fails → abort)
-- GitHub API safety (SHA compare-and-swap, idempotency)
-- Human authorization trust boundary (github.actor + allow-list)
-- Full audit trail (GitHub Actions logs)
-- Proper error handling
+**Recommendation**: Both **governance-tests** + **docs-check** must pass
+
+**Rationale**: Learning Hub's primary artifacts are governance docs + markdown. Both matter.
+
+---
+
+### H-D4: GOVERNANCE.md L1 Clause Fix
+
+**Question**: Update the L1 risk level description?
+
+**Current text** in GOVERNANCE.md L1 risk:
+> "不同 Agent 的可追溯交叉 Review"
+> (Traceable Cross-Agent Review between different Agents)
+
+**Issue**: This contradicts LIGHT Governance v2's Single-Builder model (Claude Code sole builder, Self-Review).
+
+**Recommendation**: Change to:
+> "Self-Review by Builder，確保可理解與可追溯"
+> (Self-Review by Builder to ensure readability and traceability)
+
+**Rationale**: v2 doesn't require multi-agent review for L1; this aligns text with actual policy.
+
+---
+
+### H-D5: Closure Comment Template Choice
+
+**Question**: What detail level in the automatic closure summary?
+
+**Options**:
+- Minimal: Just PR link, commit SHA, status
+- Standard: Minimal + files changed + issue link
+- Detailed: Standard + CI logs, discussion summary, learned lessons
+
+**Recommendation**: **Standard**
+
+**Rationale**: Preserves learning arc (Why → What → Evidence) without overwhelming detail. Human can edit/expand if needed.
+
+---
+
+## 12. Rollback Strategy
+
+If the automated merge-and-close workflow needs to be disabled:
+
+1. **Disable workflow**: Uncheck "Enable workflow" in GitHub UI, or set `if: false` in YAML
+2. **Return to manual process**: Human merges PR directly, manually closes issue
+3. **Keep records**: Don't delete `records/ISSUE-11/PLAN.md`, Result, or GOVERNANCE.md changes
+
+**Governance rollback**: None required. LIGHT Governance v2 stays in place.
+
+**Code rollback**: Only if implementation introduces bugs:
+1. Create `merge-and-close-pr-revert.md` explaining revert
+2. Revert commit in new PR
+3. Close Issue #11 as "ROLLED BACK"
+
+---
+
+## 13. GitHub Permissions & Settings
+
+### Required GitHub Actions Token Permissions
+
+The workflow will need a token with:
+- `contents: read` — Read PR info, branch state
+- `pull-requests: read` — Read PR state, reviews, checks
+- `issues: write` — Post closure comment, close issue
+- `statuses: read` — Read CI check status
+
+**How to provide**: Use repository's existing `GITHUB_TOKEN` (GitHub Actions automatically provides this) with appropriate scopes. No separate token creation needed.
+
+### Branch Protection Rules (Existing)
+
+- **Require PR reviews**: Already enforced
+- **Require status checks**: Already enforced
+- **Dismiss stale reviews**: Already configured
+- **Allow force pushes**: No (correct)
+- **Allow deletions**: No (correct)
+
+The workflow respects these rules; no changes needed.
+
+### Workflow Activation
+
+Workflow will be disabled initially (`if: false` or manual trigger only).
+
+**Human must explicitly enable** after approval:
+1. Review implementation PR
+2. Merge to main
+3. GitHub UI → Actions → Enable workflow
 
 ---
 
 ## Summary
 
-**Formal Plan v3** is a minimal, executable merge automation for LIGHT Learning Hub:
+**Formal Plan v4** reframes Issue #11's automation as **Learning Traceability**, not Agent Control:
 
-1. **Six merge gates** (not twelve, not complex)
-2. **GitHub Actions workflow_dispatch** (one authorization path)
-3. **Idempotent closure** (safe to retry)
-4. **Proportionate governance** (fits Learning Hub's needs)
-5. **No external services** (GitHub native only)
+✅ **Learning-centered**:
+- Preserves complete Issue → Plan → PR → Result → Merge → Closure arc
+- Closure summary consolidates learning (Why / What / Evidence / Learned)
 
-**Next step**: Human reviews, approves five decisions, authorizes implementation.
+✅ **Proportionate for Learning Hub**:
+- Six essential gates (not twelve)
+- Single trigger path (workflow_dispatch)
+- GitHub-native (no external services)
+
+✅ **Safe and trustworthy**:
+- Human keeps merge decision
+- Fail-closed (any check fails → abort)
+- SHA binding (prevent commit changes after auth)
+- Idempotent (safe to re-run)
+
+✅ **Maintainable**:
+- ~270 lines of YAML + Python (vs. v2's 987-line plan)
+- Easy to understand (linear workflow)
+- Easy to debug (clear gate checks)
 
 ---
 
-**STATUS: PLAN PENDING HUMAN APPROVAL — NO IMPLEMENTATION AUTHORIZED**
+## Revision History Summary
 
+| Version | Date | Lines | Focus |
+|---------|------|-------|-------|
+| v1 | 13:13 UTC+8 | 526 | Comprehensive, security-first |
+| v2 | 13:35 UTC+8 | 987 | Complex QA, multi-state machine |
+| v3 | 14:00 UTC+8 | 317 | Simplified, proportionate |
+| **v4** | **14:04 UTC+8** | **~250** | **Learning-centered, human-kept authority** |
+
+---
+
+**STATUS: PLAN PENDING HUMAN APPROVAL**
+
+- ✅ Formal Plan v4 complete
+- ✅ Learning-centered design (not Agent Control)
+- ✅ Five human decisions identified
+- ✅ Ready for human review and approval
+
+**No implementation authorized yet. No workflow created. No PR merged. No issue closed.**
+
+---
+
+*Prepared by: Claude Code (Builder)*
+*Repository: myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub*
+*Issue: #11 — Authorized PR Merge → Verified Closure Automation*
