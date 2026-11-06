@@ -16,25 +16,38 @@ When `gh api` fails inside `merge_api_result=$(gh api ...)`, the bash -e causes 
 
 ## Impact Classification
 
-**L1 Substantive Code Change**
-- Affects merge automation logic
-- No security/governance implications
-- Requires cross-agent review
-- No human pre-approval needed (L1 threshold)
+**L3 SECURITY/GOVERNANCE CHANGE** (Revised)
+- Affects workflow **write permissions** (contents: read → contents: write)
+- Governs Merge Executor's write access to repository contents
+- Requires explicit Human authorization (per GOVERNANCE.md L3 rules)
+- Cross-agent code review required
+- New test Issue linkage required for E2E acceptance
+
+**Rationale for L3:**
+- Original classification as L1 was incomplete
+- Discovered during review: GitHub REST Merge Pull Request API requires `contents: write`
+- Current workflow declares `contents: read` only
+- Upgrading to `contents: write` is a permission boundary change
+- Per GOVERNANCE.md: Permission/governance changes are L3
+- Requires explicit action scope authorization before execution
 
 ## Scope
 
 ### In Scope
 1. Fix Execute Merge step error handling to use conditional assignment
-2. Add safe error output (HTTP status, error message, no token)
-3. Preserve all 6 gates and Head SHA Compare-and-Swap logic
-4. Preserve Archive Record generation and Concurrency control
-5. Create separate fix PR from #14 (independent diagnostic work)
+2. Add safe error output (HTTP status, error message, no token leakage)
+3. **Upgrade workflow permissions: `contents: read` → `contents: write`** (per GitHub API requirements)
+4. Preserve all 6 gates and Head SHA Compare-and-Swap logic
+5. Preserve Archive Record generation and Concurrency control
+6. Create separate fix PR from #14 (independent diagnostic work)
+7. Formal documentation of two-part problem:
+   - **Confirmed:** bash -e + command substitution causes silent failure
+   - **Hypothesis (awaiting E2E verification):** Missing `contents: write` permission prevents API success
 
 ### Out of Scope
 - Changes to Gates 1-6 validation logic
 - Changes to Archive Record composition
-- Changes to GitHub settings or permissions
+- Changes to other GitHub settings beyond workflow permissions
 - Re-triggering failed workflow run #42194575325
 - Closing/modifying PR #14 or Issue #13 directly
 
@@ -100,18 +113,31 @@ When `gh api` fails inside `merge_api_result=$(gh api ...)`, the bash -e causes 
 
 ## Token Permissions Assessment
 
-**Current permissions (from workflow):**
-- `contents: read`
-- `pull-requests: write` ← sufficient for PR merge
-- `issues: write`
-- `statuses: read`
+**Critical Finding:** GitHub REST Merge Pull Request API requires `contents: write` permission.
 
-**Assessment:** UNKNOWN whether permissions are the limiting factor without:
-- Actual API error message (which the fix will provide)
-- Branch protection rules verification
-- PR merge readiness validation
+**Current Workflow:**
+- `contents: read` ← INSUFFICIENT for PR merge
+- `pull-requests: write` ← Necessary but not sufficient alone
+- `issues: write` ← For closing issues
+- `statuses: read` ← For check validation
 
-The fix's safe error output will reveal the actual GitHub API error, enabling diagnosis of permission vs. state vs. validation issues.
+**Fix Applied:**
+- Upgrade to `contents: write` ← Required by GitHub API
+
+**Assessment Before Fix:** 
+- Status: INSUFFICIENT (missing required permission)
+- Root cause of Run #42194575325 failure: Very likely `contents: read` insufficient
+- Error message never visible due to bash -e + subst bug (silent failure)
+
+**Assessment After Fix:**
+- Status: SHOULD BE SUFFICIENT (both bash error handling + permissions fixed)
+- Next: Live E2E test will confirm API succeeds with both fixes
+- If API still fails: Error message will now be visible (conditional assignment + diagnostics)
+
+**Two-Part Root Cause Analysis:**
+1. **Confirmed:** bash -e + command substitution causes silent failure (error check never runs)
+2. **Hypothesis:** Missing `contents: write` permission prevented API success (error message was hidden by bash bug)
+3. **Verification:** Live E2E test will print actual GitHub API error, confirming hypothesis
 
 ## Related Artifacts
 
