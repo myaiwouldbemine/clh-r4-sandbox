@@ -55,3 +55,11 @@ The initial audit's settings gaps were resolvable with existing access, so nativ
 ## Rollback Procedure
 
 Disable the installation variable/workflows and cancel affected queued/running jobs. Revert faulty code via a normal tested PR with current-head Self-Review and strict CI; never rewrite main or bypass native rules. Website rollback must deploy and read back the revert SHA. Preserve records and Issue history. Settings are outside Git: inspect native ruleset and Pages separately; do not remove protections just to complete a merge. Do not reactivate the old premature-close workflow. Full procedure: docs/development/AUTONOMOUS_OPERATIONS.md.
+
+## Continuation — 2026-11-07 Asia/Taipei
+
+Additional Self-Review found the Agent attempt counter matched commits from all Issues in branch history. Fixed it to match the exact current Issue in `1f77d7cb1de6b8f54784f5647e280508552cd93f`; added real local-git regression cases proving another Issue does not consume the budget and three same-Issue attempts stop execution. Latest unittest count: **53 PASS**, evidence UNIT-TESTS-RETRY-FIX.txt. actionlint and diff check PASS. No site/content implementation changed after the prior strict build.
+
+Previous records head `d36db37e10267909c1d36dcf6d6118a6ba4425c4` had successful real CI runs [Governance Tests](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/actions/runs/42239117613) and [Docs Check](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/actions/runs/42239117628). These are historical, not evidence for the new head; final current-head CI is recorded in PR #21.
+
+Rechecked secret/variable names: still empty. main and #19 head remain unchanged. Activation/E2E blockers remain technical; no repeated Human approval requested.

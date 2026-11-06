@@ -33,3 +33,5 @@ Current-head PR CI run URLs and remote readback are published in PR #21 after fi
 ## Live test procedure once prerequisites exist
 
 With the two credentials configured, confirm their actual access without revealing values. Confirm ruleset, Pages, disabled-by-default candidate and rollback. Install verified candidate via normal PR, then enable the one-time installation switch. Use an owner-created bounded engineering fixture importing no educational semantics. Collect its Issue, branch/PR, initial intentional failing CI, automatic repair and exact SHA checks; observe Ready/merge, applicable Pages SHA readback, archive and Issue state separately. Re-deliver events and test stale SHA/permission-denied paths without weakening main rules. Save run URLs and immutable SHAs. Mark any failure FAIL/BLOCKED and stop affected actions. Never reset/force push or loosen protections to make a test pass.
+
+Continuation: retry isolation corrected in `1f77d7cb1de6b8f54784f5647e280508552cd93f`; 53 local tests now PASS. All live E2E statuses above remain unchanged. Latest CI for final records head is linked in PR #21; historical CI is not reused for new commits.

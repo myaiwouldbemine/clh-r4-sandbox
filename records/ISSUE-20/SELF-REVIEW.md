@@ -55,3 +55,7 @@ Each clause contains complete Traditional Chinese first and complete English sec
 Implementation candidate passes applicable local tests, strict build, workflow syntax and Builder review. **Not production-ready; live E2E and deployment BLOCKED.** No independent review or native APPROVED is claimed. Fresh-Context Challenge omitted: no Human mandate, and this pass uses explicit state-transition tests, separate publisher tests, settings readback and clause matrix; unresolved live behavior is disclosed rather than inferred. No subagents delegated.
 
 Build: PASS. Educational content/provenance: unchanged, no quality approval claimed. Browser/visual: NOT RUN; changed operational guidance is not a visual redesign. Deployment: NOT RUN. Runtime model behavior, actual hosted retries, permission-denial paths and complete E2E require real installation credentials. Issue and Draft PR remain open.
+
+## Continuation review
+
+Reviewed `1f77d7cb1de6b8f54784f5647e280508552cd93f` against the same main base. New finding: shared historical commit subjects could incorrectly exhaust unrelated Issues. Exact current-Issue anchoring fixes this; two local Git regressions exercise the real prepare function. All 53 tests PASS; actionlint/diff PASS. Scope unchanged; no native setting or content changes. Final records-only head is reconfirmed remotely in PR #21. The verdict remains candidate verified locally, activation/live E2E BLOCKED.
