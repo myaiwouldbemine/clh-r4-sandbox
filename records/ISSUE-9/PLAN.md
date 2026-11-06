@@ -26,22 +26,13 @@
 **Previous Timeline Posts**:
 - ✅ Plan v2 (commit cdab0f8, 2026-11-06 11:29) → Status: PENDING (historical draft, not approved)
 - ❌ Plan v3 (commit a50e687, 2026-11-06 11:37) → Status: PENDING (deleted; premature publication)
-- ⏳ Plan v3.1 (commit TBD, 2026-11-06 11:49) → Status: PENDING (awaiting Human approval before Timeline publication)
+- ⏳ Plan v3.1 (commit 53fe2f15c1062949d24111044cc11bde72660285, 2026-11-06 11:49) → Status: PENDING (awaiting Human approval before Timeline "APPROVED PLAN" publication)
 
 **v1 Disposition**: CHANGES REQUESTED (Human feedback on accuracy)
 
 **v2 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md)
 
 **v3 Status**: PENDING HUMAN APPROVAL (Committed to records/ISSUE-9/PLAN.md; Timeline post deleted per correction)
-
----
-
-## 1. Goal / WHY
-
-### 1.1 Primary Goal
-Adopt Claude Code as the sole **daily Builder** for Learning Hub, replacing mandatory Codex ↔ Claude Code cross-Agent review with explicit **Self-Verification** (Source / Claim / Method / Evidence / Commit SHA).
-
-**Rationale**: Learning Hub's purpose is learning and knowledge documentation, not multi-Agent governance. Simplified responsibility removes overhead while maintaining L2/L3 risk control.
 
 ---
 
@@ -74,9 +65,9 @@ Investigation → Plan (L2/L3) → Implementation → Self-Review + Evidence
 
 ---
 
-## 2. Current-State Evidence (HEAD: cdab0f8, v3 Verified 2026-11-06 11:37 UTC+8)
+## 2. Current-State Evidence (HEAD: cdab0f8 @ v3 verification; v3.1 extends this)
 
-### 2.1 Existing Governance Framework (v1 — Current)
+### 2.1 Existing Governance Framework (v1 — Current Active Policy)
 
 **File Status** (F-01 Verification):
 - **GOVERNANCE.md** (51 lines): v1 mandates Codex ↔ Claude Code mutual cross-review L1–L3 (current active policy)
@@ -338,23 +329,26 @@ Human L3 Specific Action Authorization (if applicable): [Issue comment, scope]
 
 ## 6. Implementation Sequence (Awaiting Approval)
 
-**Only after Human explicitly approves this Plan v2:**
+**Formal Plan v3.1 already committed to records/ (commit 53fe2f1, 2026-11-06 11:49 UTC+8).**
+
+**Upon Human explicit approval of Plan v3.1, the following implementation commits will be created:**
 
 | # | Files | Commit Message | Notes |
 |---|-------|-----------------|-------|
-| 1 | records/ISSUE-9/PLAN.md | docs: plan LIGHT Governance v2 — Claude Code Single-Builder (Issue #9) | This Plan v2, committed first |
-| 2 | GOVERNANCE.md, AGENTS.md | refactor: adopt LIGHT Governance v2 — Claude Code Single-Builder (Issue #9) | Core policy changes |
-| 3 | .github/ISSUE_TEMPLATE/01-agent-task.yml, .github/PULL_REQUEST_TEMPLATE.md | chore: update GitHub templates for v2 Single-Builder model (Issue #9) | Template language alignment |
-| 4 | records/ISSUE-9/RESULT.md | docs: record LIGHT Governance v2 implementation results (Issue #9) | After CI pass + Human approval |
+| 1 | GOVERNANCE.md, AGENTS.md | refactor: adopt LIGHT Governance v2 — Claude Code Single-Builder (Issue #9) | Core policy changes (Single-Builder, Self-Verification, Fresh-Context Challenge) |
+| 2 | .github/ISSUE_TEMPLATE/01-agent-task.yml, .github/PULL_REQUEST_TEMPLATE.md | chore: update GitHub templates for v2 Single-Builder model (Issue #9) | Template language alignment to new builder/reviewer roles |
+| 3 | records/ISSUE-9/RESULT.md | docs: record LIGHT Governance v2 implementation results (Issue #9) | Post-implementation verification & evidence summary; created after CI pass & Human approval |
 
 **Co-authored**: Copilot <223556219+Copilot@users.noreply.github.com>
+
+**Sequence constraint**: Plan commit (53fe2f1) precedes all implementation commits. Result commit (3) only created after implementation commits pass CI and Human verification.
 
 ---
 
 ## 7. Verification Strategy
 
 ### Pre-Implementation (Human Review)
-- [ ] Plan v2 logically complete; addresses Issue #9 WHAT/WHY/AC.
+- [ ] Plan v3.1 logically complete; addresses Issue #9 WHAT/WHY/AC; satisfies F-01 through F-06 corrections.
 - [ ] Four-file scope bounded; no unintended side effects.
 - [ ] L3 risk justified; L0–L3 control preserved.
 - [ ] Self-Verification mechanism (Source/Claim/Method/Evidence/Commit SHA) adequate for L1+ without Cross-Agent review.
@@ -396,14 +390,14 @@ Human L3 Specific Action Authorization (if applicable): [Issue comment, scope]
 - [x] Four files confirmed to exist.
 
 ⏳ Awaiting Approval:
-- [ ] Human **explicitly approved this Plan v2** with exact four-file scope.
+- [ ] Human **explicitly approved Plan v3.1** with exact four-file scope and 7 Human Decisions answered.
 - [ ] GOVERNANCE.md revised to Claude Code Single-Builder + Self-Verification.
 - [ ] AGENTS.md reflects Claude Code Builder role; Self-Review ≠ Independent Review.
-- [ ] .github/ISSUE_TEMPLATE/01-agent-task.yml updated to Single-Builder language (MODIFY, not CREATE).
-- [ ] .github/PULL_REQUEST_TEMPLATE.md: "Opposite Agent" changed to "Builder Self-Review"; Fresh-Context Challenge & Human Approval sections added.
+- [ ] .github/ISSUE_TEMPLATE/01-agent-task.yml updated to Single-Builder language (MODIFY, not CREATE; no Scope mandatory field).
+- [ ] .github/PULL_REQUEST_TEMPLATE.md: "Opposite Agent Review" changed to "Builder Self-Review & Verification"; Fresh-Context Challenge & Human Approval (L2/L3) sections added.
 - [ ] L0–L3, Plan/Result, Human approval, CI, Evidence, Rollback consistent; L2/L3 cannot default-pass.
-- [ ] Four-file scope maintained; no platform provisioning.
-- [ ] Implementation produces real Results & verification; no blockers.
+- [ ] Four-file scope maintained; no additional governance platform, Agent Handoff, or system provisioning.
+- [ ] Implementation produces real Results & verification; no unresolved blockers.
 - [ ] Draft PR maintained until all conditions met.
 
 ---
@@ -423,7 +417,7 @@ Human L3 Specific Action Authorization (if applicable): [Issue comment, scope]
 
 2. **Historical Integrity**:
    - Original PLAN.md, RESULT.md, Issue #9 Timeline, Commit history remain unchanged.
-   - Revert commit message references original failed commits (e.g., "Revert cdab0f8…").
+   - Revert commit message references original failed implementation commits (e.g., "Revert [impl-commit-SHA]").
    - Rollback reason documented in Issue #9 (new comment or Result Addendum).
    - Future readers can trace: attempt → failure → revert.
 
@@ -440,10 +434,11 @@ Human L3 Specific Action Authorization (if applicable): [Issue comment, scope]
 ```
 Revert: LIGHT Governance v2 implementation (Issue #9)
 
-This reverts commits cdab0f8, [impl-commit-2], [impl-commit-3].
+This reverts commits [impl-commit-1], [impl-commit-2].
+(Plan commit 53fe2f1 and Result commit preserved in history.)
 
 Reason: [specific technical or governance reason]
-References: Issue #9, original PLAN.md at [commit SHA]
+References: Issue #9, Formal Plan at records/ISSUE-9/PLAN.md @ commit 53fe2f1
 
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
@@ -454,13 +449,15 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 
 | # | Decision | Question | Options |
 |---|----------|----------|---------|
-| 1 | Plan Approval | Does Plan v2 align with Issue #9 intent? Is four-file scope correct? Do proposed changes achieve goal without weakening L2/L3 control? | Approve / Request Revisions / Reject |
+| 1 | Plan Approval | Does Plan v3.1 align with Issue #9 intent? Is four-file scope correct? Do proposed changes achieve goal without weakening L2/L3 control? | Approve / Request Revisions / Reject |
 | 2 | Self-Verification Framework | Is Source/Claim/Method/Evidence/Commit SHA sufficient for L1+ without Cross-Agent review? | Accept / Revise Requirements |
-| 3 | Fresh-Context Challenge | Should be optional (RECOMMEND) or mandatory for L2/L3? Trigger & authority? | Optional (per Plan) / Mandatory (specify) |
+| 3 | Fresh-Context Challenge | Should be optional (per Plan) or mandatory for L2/L3? Trigger & authority? | Optional (per Plan) / Mandatory (specify) |
 | 4 | Cross-Agent Review Removal | Acceptable trade-off? Any conditions or mitigations? | Approve / Add Conditions / Reject |
 | 5 | Template Updates | Are Issue template & PR template proposed changes suitable? | Approve / Revise / Reject |
-| 6 | Implementation Authorization | Once Plan v2 approved, authorize Claude Code to proceed? Pre-implementation conditions? | Authorize / Add Conditions / Require More Approval |
-| 7 | Merge Authorization | After implementation & CI pass, authorize PR Merge? Prerequisites? | Authorize (conditional) / (unconditional) / Defer |
+| 6 | Implementation Authorization | Once Plan v3.1 approved, authorize Claude Code to proceed with 3 implementation commits? Pre-implementation conditions? | Authorize / Add Conditions / Require More Approval |
+| 7 | Merge Authorization | After implementation commits + CI pass + Result review, authorize PR Merge to main? Prerequisites? | Authorize (conditional) / Authorize (unconditional) / Defer |
+
+**Note on Decision #7**: Merge Authorization is a separate, distinct decision from Plan Approval (#1) and Implementation Authorization (#6). Human may approve Plan and implementation but defer Merge pending additional evidence or governance review.
 
 ---
 
@@ -471,7 +468,7 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 | 2026-11-06 12:xx | Plan v1 | (local) | CHANGES REQUESTED | Incorrectly claimed 01-agent-task.yml does not exist; did not verify current main HEAD (corrected in v2) |
 | 2026-11-06 11:29 | Plan v2 | cdab0f8 | PENDING APPROVAL | Corrected v1: verified main HEAD cdab0f8; Issue template confirmed MODIFY (66 lines); refined Self-Verification; posted to Issue #9 Timeline as candidate |
 | 2026-11-06 11:37 | Plan v3 | a50e687 | PENDING APPROVAL (Timeline post deleted) | Incorporated F-01 to F-06: corrected template details, clarified commit sequence, fixed Rollback strategy, distinguished current ↔ future policies, enhanced verification specs, added Dual Persistence rule; posted prematurely to Timeline (removed per Human correction) |
-| 2026-11-06 11:49 | Plan v3.1 | TBD | PENDING APPROVAL — AWAITING TIMELINE PUBLICATION RULE | Added Section 12.F: Formal Plan Issue Timeline Publication Gate; clarified: Timeline posts only after Human explicit approval; awaiting Human approval before publishing Approved Plan comment |
+| 2026-11-06 11:49 | Plan v3.1 | 53fe2f15c1062949d24111044cc11bde72660285 | PENDING APPROVAL — AWAITING HUMAN APPROVAL BEFORE TIMELINE PUBLICATION | Added Section 12.F: Formal Plan Issue Timeline Publication Gate; clarified: Timeline posts only after Human explicit approval; Draft versions stay in records/ only; posted PENDING status to Timeline (not yet approved) |
 
 ---
 
@@ -504,13 +501,13 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 **Timing**: Posted when Formal Plan ready for Human review (not on every draft revision; consolidate final version before posting).
 
 **Minimum Content**:
-- **Plan Version** (e.g., "Formal Plan v3")
-- **Status** (DRAFT / PENDING HUMAN APPROVAL / APPROVED / IMPLEMENTATION IN PROGRESS / COMPLETED)
-- **Fixed Commit SHA** reference (e.g., "records/ISSUE-9/PLAN.md @ commit cdab0f8")
-- **Complete link** (e.g., `https://github.com/.../blob/cdab0f8/records/ISSUE-9/PLAN.md`)
+- **Plan Version** (e.g., "Formal Plan v3.1")
+- **Status** (PENDING HUMAN APPROVAL / APPROVED / IMPLEMENTATION IN PROGRESS / COMPLETED)
+- **Fixed Commit SHA** reference (e.g., "records/ISSUE-9/PLAN.md @ commit 53fe2f1")
+- **Complete link** (e.g., `https://github.com/myaiwouldbemine/.../blob/53fe2f15c1062949d24111044cc11bde72660285/records/ISSUE-9/PLAN.md`)
 - **Scope summary** (2–3 bullet points: what files change, goal)
 - **Human Decisions Required** (link or inline list)
-- **Version progression** (if v2/v3: "v1 had [issue]; v2 corrected to [X]; v3 adds [Y]")
+- **Version progression** (if v2/v3/v3.1: "v1 had [issue]; v2 corrected to [X]; v3 adds [Y]; v3.1 clarifies [Z]")
 
 **Why**:
 - GitHub Timeline is the official audit trail for Issues.
@@ -655,7 +652,7 @@ PLAN PERSISTENCE VERIFIED (Records + Timeline)
 4. Upon explicit approval:
    - Claude Code posts "APPROVED PLAN" comment to Issue #9 Timeline (Section 12.F format).
    - Executes Remote Readback verification (both records/ and Timeline accessible).
-   - Proceeds with 4-commit implementation sequence (ONLY if Human explicitly authorizes).
+   - Proceeds with 3-commit implementation sequence: Policy changes → Template updates → Result documentation (ONLY if Human explicitly authorizes).
 
 5. Upon implementation completion (if authorized):
    - Claude Code creates records/ISSUE-9/RESULT.md.
