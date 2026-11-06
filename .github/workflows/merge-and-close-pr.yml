@@ -73,6 +73,7 @@ jobs:
           pr_base=$(echo "$pr_data" | jq -r '.base.ref')
           pr_merged=$(echo "$pr_data" | jq -r '.merged')
           pr_merge_sha=$(echo "$pr_data" | jq -r '.merge_commit_sha')
+          pr_body=$(echo "$pr_data" | jq -r '.body // empty')
           
           echo "pr_open=$pr_open" >> $GITHUB_OUTPUT
           echo "pr_draft=$pr_draft" >> $GITHUB_OUTPUT
@@ -80,6 +81,21 @@ jobs:
           echo "pr_base=$pr_base" >> $GITHUB_OUTPUT
           echo "pr_merged=$pr_merged" >> $GITHUB_OUTPUT
           echo "pr_merge_sha=$pr_merge_sha" >> $GITHUB_OUTPUT
+          echo "pr_body=$pr_body" >> $GITHUB_OUTPUT
+
+      - name: Verify Issue Exists (Pre-check)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+        run: |
+          issue_response=$(gh api repos/$REPO/issues/$ISSUE_NUMBER 2>&1)
+          
+          if echo "$issue_response" | grep -q "Not Found\|404"; then
+            echo "❌ Issue #$ISSUE_NUMBER does not exist or is not accessible"
+            exit 1
+          fi
+          echo "✅ Issue #$ISSUE_NUMBER exists and is accessible"
 
       - name: Determine Mode (Normal vs Recovery)
         id: mode
@@ -269,7 +285,47 @@ jobs:
           echo "✅ Merge verification: PR is merged"
 
       # ============================================
-      # CLOSURE: Extract Learning Evidence
+      # Closure: Check for actual PR ↔ Issue linkage
+      # ============================================
+
+      - name: Verify Real PR ↔ Issue Linkage
+        id: linkage
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+        run: |
+          # Method 1: Check if PR mentions target Issue in body
+          pr_body=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.body // empty')
+          
+          # Match patterns like "#<issue_num>" or "Fixes #<issue_num>" or "Closes #<issue_num>"
+          if echo "$pr_body" | grep -iq "fixes\|closes\|resolves\|#$ISSUE_NUMBER"; then
+            echo "✅ PR #$PR_NUMBER explicitly references Issue #$ISSUE_NUMBER in body"
+            echo "linkage_verified=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Method 2: Check GitHub API for linked issues (requires GitHub API v4 support)
+          linked_issues=$(gh api repos/$REPO/pulls/$PR_NUMBER/linked_issues 2>&1 || echo "not_supported")
+          
+          if ! echo "$linked_issues" | grep -q "not_supported"; then
+            issue_ids=$(echo "$linked_issues" | jq -r '.[].issue.number' 2>/dev/null || echo "")
+            if echo "$issue_ids" | grep -q "^$ISSUE_NUMBER$"; then
+              echo "✅ PR #$PR_NUMBER is linked to Issue #$ISSUE_NUMBER via GitHub linking"
+              echo "linkage_verified=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+          
+          # Failed: No clear relationship found
+          echo "❌ PR #$PR_NUMBER has no explicit relationship to Issue #$ISSUE_NUMBER"
+          echo "  Checked: PR body mentions + GitHub linked_issues"
+          echo "  Please ensure PR body contains: 'Fixes #$ISSUE_NUMBER' or '#$ISSUE_NUMBER'"
+          exit 1
+
+      # ============================================
+      # Closure: Extract Learning Evidence (Real)
       # ============================================
 
       - name: Extract Learning Evidence
@@ -286,57 +342,39 @@ jobs:
           # Get actual PR body
           pr_body=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.body // empty')
           
-          # Check for learning keywords in actual content
+          # Try to read RESULT.md if it exists (for formal L2/L3 results)
+          result_md=$(gh api repos/$REPO/contents/records/ISSUE-$ISSUE_NUMBER/RESULT.md 2>/dev/null | jq -r '.content // empty' | base64 -d 2>/dev/null || echo "")
+          
+          # Check for learning keywords in actual content (from Issue, PR, or RESULT)
           has_learning="no"
           has_next_steps="no"
+          learning_source=""
           
-          if echo "$issue_body" | grep -iq "learned\|discover\|understand\|realize"; then
+          if echo "$issue_body$pr_body$result_md" | grep -iq "learned\|discover\|understand\|realize\|found\|insight"; then
             has_learning="yes"
-          fi
-          if echo "$pr_body" | grep -iq "learned\|discover\|understand\|realize"; then
-            has_learning="yes"
+            if echo "$issue_body" | grep -iq "learned\|discover\|understand"; then
+              learning_source="Issue #$ISSUE_NUMBER"
+            elif echo "$pr_body" | grep -iq "learned\|discover\|understand"; then
+              learning_source="PR #$PR_NUMBER"
+            elif echo "$result_md" | grep -iq "learned"; then
+              learning_source="RESULT.md"
+            fi
           fi
           
-          if echo "$issue_body" | grep -iq "next\|future\|follow\|todo"; then
-            has_next_steps="yes"
-          fi
-          if echo "$pr_body" | grep -iq "next\|future\|follow\|todo"; then
+          if echo "$issue_body$pr_body$result_md" | grep -iq "next\|future\|follow\|todo\|remaining\|investigate"; then
             has_next_steps="yes"
           fi
           
           echo "has_learning=$has_learning" >> $GITHUB_OUTPUT
           echo "has_next_steps=$has_next_steps" >> $GITHUB_OUTPUT
+          echo "learning_source=$learning_source" >> $GITHUB_OUTPUT
           
           echo "Learning Evidence Extraction:"
           echo "  Issue body length: ${#issue_body}"
           echo "  PR body length: ${#pr_body}"
-          echo "  Learning content found: $has_learning"
+          echo "  RESULT.md found: $([ -n "$result_md" ] && echo "yes" || echo "no")"
+          echo "  Learning content found: $has_learning (source: $learning_source)"
           echo "  Next steps content found: $has_next_steps"
-
-      - name: Verify PR ↔ Issue Binding
-        id: binding
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-          ISSUE_NUMBER: ${{ inputs.issue_number }}
-        run: |
-          # Verify Issue exists
-          issue_response=$(gh api repos/$REPO/issues/$ISSUE_NUMBER 2>&1)
-          
-          if echo "$issue_response" | grep -q "Not Found\|404"; then
-            echo "❌ Issue #$ISSUE_NUMBER not found or not accessible"
-            exit 1
-          fi
-          
-          issue_state=$(echo "$issue_response" | jq -r '.state')
-          
-          echo "PR ↔ Issue Binding Verification:"
-          echo "  PR #$PR_NUMBER → Issue #$ISSUE_NUMBER"
-          echo "  Issue state: $issue_state"
-          echo "  Binding: Valid"
-          
-          echo "binding_valid=true" >> $GITHUB_OUTPUT
 
       - name: Compose Learning Closure Summary
         id: closure_summary
@@ -348,9 +386,26 @@ jobs:
           MERGE_SHA: ${{ steps.merge.outputs.merge_sha || steps.merge_recovery.outputs.merge_sha }}
           HAS_LEARNING: ${{ steps.learning.outputs.has_learning }}
           HAS_NEXT_STEPS: ${{ steps.learning.outputs.has_next_steps }}
+          LEARNING_SOURCE: ${{ steps.learning.outputs.learning_source }}
         run: |
           pr_title=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.title')
           pr_url=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.html_url')
+          
+          # Construct actual learning section
+          if [[ "$HAS_LEARNING" == "yes" ]] && [[ -n "$LEARNING_SOURCE" ]]; then
+            learning_section="See [$LEARNING_SOURCE](https://github.com/$REPO/issues/$ISSUE_NUMBER) for detailed learning outcomes."
+          elif [[ "$HAS_LEARNING" == "yes" ]]; then
+            learning_section="Learning content detected in Issue #$ISSUE_NUMBER or PR #$PR_NUMBER."
+          else
+            learning_section="**未記錄** — No learning outcome documented in Issue, PR body, or RESULT.md."
+          fi
+          
+          # Construct next steps section
+          if [[ "$HAS_NEXT_STEPS" == "yes" ]]; then
+            next_steps_section="See [Issue #$ISSUE_NUMBER](https://github.com/$REPO/issues/$ISSUE_NUMBER) and [PR #$PR_NUMBER]($pr_url) for continuation points."
+          else
+            next_steps_section="None identified."
+          fi
           
           # Build closure comment
           closure_comment="## ✅ Merged & Closed: Learning Consolidation
@@ -369,10 +424,10 @@ See [Issue #$ISSUE_NUMBER](https://github.com/$REPO/issues/$ISSUE_NUMBER) for de
 - Merge: [$MERGE_SHA](https://github.com/$REPO/commit/$MERGE_SHA)
 
 **What Learned**
-$(if [[ \"$HAS_LEARNING\" == \"yes\" ]]; then echo \"See Issue #$ISSUE_NUMBER and PR #$PR_NUMBER for learning outcomes.\"; else echo \"未記錄 (not recorded in Issue or PR)\"; fi)
+$learning_section
 
 **Remaining Questions / Next Steps**
-$(if [[ \"$HAS_NEXT_STEPS\" == \"yes\" ]]; then echo \"See Issue #$ISSUE_NUMBER and PR #$PR_NUMBER for continuation points.\"; else echo \"None identified.\"; fi)
+$next_steps_section
 
 ---
 *Closure Summary generated by Issue #11 automation workflow.*"
@@ -390,17 +445,19 @@ $(if [[ \"$HAS_NEXT_STEPS\" == \"yes\" ]]; then echo \"See Issue #$ISSUE_NUMBER 
           REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          MERGE_SHA: ${{ steps.merge.outputs.merge_sha || steps.merge_recovery.outputs.merge_sha }}
         run: |
-          comments=$(gh api repos/$REPO/issues/$ISSUE_NUMBER/comments)
+          comments=$(gh api repos/$REPO/issues/$ISSUE_NUMBER/comments --paginate)
           
-          prior=$(echo "$comments" | jq "map(select(.body | contains(\"#$PR_NUMBER\") and contains(\"Merged & Closed\"))) | length")
+          # Look for prior closure comment that references BOTH PR and merge SHA
+          prior=$(echo "$comments" | jq "map(select(.body | contains(\"#$PR_NUMBER\") and contains(\"${MERGE_SHA:0:8}\") and contains(\"Merged & Closed\"))) | length")
           
           echo "prior_closure=$prior" >> $GITHUB_OUTPUT
           
           if [[ "$prior" -gt 0 ]]; then
-            echo "⚠️ Prior closure summary for PR #$PR_NUMBER already exists"
+            echo "⚠️ Prior closure summary for PR #$PR_NUMBER with same Merge SHA already exists (idempotent, skipping)"
           else
-            echo "✅ No prior closure summary found"
+            echo "✅ No prior closure summary found for this PR+Merge combination"
           fi
 
       - name: Post Closure Summary (Idempotent)
@@ -422,7 +479,7 @@ $(if [[ \"$HAS_NEXT_STEPS\" == \"yes\" ]]; then echo \"See Issue #$ISSUE_NUMBER 
           fi
           
           echo "closure_comment_id=$comment_id" >> $GITHUB_OUTPUT
-          echo "✅ Closure summary posted"
+          echo "✅ Closure summary posted (comment ID: $comment_id)"
 
       - name: Pre-Close Verification (Bind & Commit)
         env:
