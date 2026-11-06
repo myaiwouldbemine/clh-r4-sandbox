@@ -1,43 +1,34 @@
-name: "Agent Task｜自動化開發任務"
-description: "以 WHAT / WHY / Acceptance Criteria / Boundary 提交 Claude Code 與 Codex 可執行的工作需求。"
+name: "Agent Task｜學習與開發需求"
+description: "以 WHAT、WHY、Acceptance Criteria、Boundary 提交 Learning Hub 工作需求。"
 title: "[CLH-XXX] "
 body:
   - type: markdown
     attributes:
       value: |
-        ## Human Defines Requirements; Agents Execute; Trusted Gates Enforce.
-        Human Owner 只需描述需求、驗收標準與工作邊界，無需預先判定 L0–L3 或指定 Agent。
-        Claude Code 與 Codex 為對等 Agent，負責依適用治理要求進行風險分類、Plan、Early Draft PR、Implementation、Review，以及符合授權條件的 Merge。
+        ## Human 定義需求；Codex 與 Claude Code 對等協作
+        請填寫需求、理由、驗收標準與工作邊界；不必自行選擇 Agent 或預先指定風險等級。
 
-        ### LIGHT Governance v1.0
-        - Default Intake Risk 為 L0；Agent 必須依實際修改內容與影響重新分類，並在範圍改變時重新評估。
-        - L0 不強制正式 Plan、Records 或 Independent Review。
-        - L1 需要適用的驗證與可信 Independent Review。
-        - L2 必須有 Formal Plan 與 Human Plan Approval。
-        - L3 預設禁止 Auto-Merge；例外操作須具體 Human Authorization。
-
-        - Draft PR 可以提早建立，但 Draft 不代表實作或 Merge 授權。
-        - Auto-Merge 只有在可信 Policy Gate 通過且正式啟用後才允許；目前正式 Guarded Auto-Merge 尚未啟用。
-
-        **Issue Form 僅用於需求收集，不構成 Merge 或高風險操作授權。**
-        Agent 必須遵守適用的 `GOVERNANCE.md`、`AGENTS.md` 與可信 Gates；不得以表單內容取代必要的核准、驗證或審查。
+        Agent 依實際影響判斷 L0–L3；錯字格式 L0、實質教材與一般程式 L1、重大架構 L2、權限／治理／部署等 L3。
+        L1 起需要另一 Agent 可追溯的交叉 Review。L2／L3 必須有事前 Plan、Human 對 Plan／範圍的核准與事後 Result；L3 另需 Human 對具體操作授權。
+        提早建立 Draft PR 不代表已獲實作或合併授權。適用測試及 CI、Review、未解阻擋與 Merge 操作授權須分別確認。
+        目前 Auto-Merge 與自動部署均未啟用；Issue Form 不授予任何合併、部署或高風險操作權限。
+        以目前 main 的 GOVERNANCE.md 與 AGENTS.md 為準。
 
   - type: textarea
     id: what
     attributes:
       label: "WHAT｜要做什麼"
-      description: "描述期待交付的成果、功能或教材變更；避免只寫實作手段。"
-      placeholder: |
-        例：新增 Operating Systems 的 Process Scheduling 教學首頁，含導覽與 NachOS Code Walkthrough 入口。
+      description: "說明預期交付成果。"
+      placeholder: "例：新增 Operating Systems 的 Process Scheduling 教學頁面及 NachOS 程式碼對照。"
     validations:
       required: true
 
   - type: textarea
     id: why
     attributes:
-      label: "WHY｜為何要做"
-      description: "目前存在什麼問題？完成後能改善什麼？"
-      placeholder: "例：目前學習網站缺乏可由教材快速進入程式碼驗證的入口。"
+      label: "WHY｜為什麼"
+      description: "說明問題和預期改善。"
+      placeholder: "例：目前缺少可以由概念連結至實際程式碼的學習入口。"
     validations:
       required: true
 
@@ -45,37 +36,31 @@ body:
     id: acceptance
     attributes:
       label: "Acceptance Criteria｜驗收標準"
-      description: "寫出 Agent、CI 或審查者可以客觀判斷的完成條件；請以核取清單表示。"
+      description: "列出可以客觀核對的完成條件。"
       placeholder: |
-        - [ ] 新增頁面及導覽，連結可以開啟
-        - [ ] 重要技術敘述有來源與 VERIFIED/ILLUSTRATIVE 標註
-        - [ ] mkdocs build --strict PASS
-        - [ ] PR 提供 WHAT / WHY / TEST / Evidence
+        - [ ] 內容與導覽連結可用
+        - [ ] 程式碼來源與驗證證據清楚
+        - [ ] 適用的 MkDocs strict build 與測試通過
     validations:
       required: true
 
   - type: textarea
     id: boundary
     attributes:
-      label: "Boundary｜工作邊界與禁止事項"
-      description: "明確列出 In Scope、Out of Scope、不得更動的檔案/資料、不可繞過的限制。"
+      label: "Boundary｜工作邊界"
+      description: "列出 In Scope、Out of Scope 及禁止更動事項。"
       placeholder: |
-        In scope:
-        - docs/subjects/operating-systems/ 相關頁面
-        Out of scope:
-        - 不修改 NachOS 原始碼
-        - 不重構其他學科頁面
-        Must not:
-        - 不刪除既有 Evidence
-        - 不變更 Repository Settings / Branch Protection
+        In Scope: 指定學科教材與導覽
+        Out of Scope: 其他學科、NachOS 核心原始碼
+        Must Not: 更改 GitHub Settings、部署或直接推送 main
     validations:
       required: true
 
   - type: textarea
     id: references
     attributes:
-      label: "References / Evidence｜參考資料與既有證據"
-      description: "相關文件、Issue、課程講義、程式路徑、可重現步驟；選填，沒有可留白。"
-      placeholder: "例：docs/subjects/operating-systems/index.md、既有教材、相關 Issue URL"
+      label: "References / Evidence｜參考資料"
+      description: "相關教材、Issue、檔案路徑或證據；選填。"
+      placeholder: "例：相關 PDF、現有程式碼路徑、參考 PR 連結。"
     validations:
       required: false

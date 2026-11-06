@@ -1,62 +1,27 @@
-# Copy Learning Hub — GitHub Issue Form (v2)
+# Copy Learning Hub — GitHub Issue Form
 
-Human Defines Requirements; Agents Execute; Trusted Gates Enforce.
+## Purpose
 
-## Fields
+Collect work requests with four required fields (**WHAT**, **WHY**, **Acceptance Criteria**, **Boundary**) and one optional field (**References / Evidence**). Human describes the desired outcome and boundaries; Codex and Claude Code are peer Agents.
 
-| Field | Required |
-| --- | --- |
-| WHAT | Yes |
-| WHY | Yes |
-| Acceptance Criteria | Yes |
-| Boundary | Yes |
-| References / Evidence | No — may be left blank |
+## Publication
 
-Human Owners describe requirements, reasons, verifiable outcomes and boundaries. They do not select L0–L3 or choose Claude Code versus Codex. Risk Level, Execution Preference and Governance Acknowledgement inputs have been removed.
+The form lives at `.github/ISSUE_TEMPLATE/01-agent-task.yml` and its configuration at `.github/ISSUE_TEMPLATE/config.yml`. It becomes available from GitHub **Issues → New issue** only after this PR is reviewed, authorized and merged into the default branch. The configuration deliberately disables blank issues (`blank_issues_enabled: false`).
 
-## Installation and publication (WSL)
+Before merge, validate the YAML syntax and GitHub Issue Forms schema. Verify the form has exactly five textarea IDs: `what`, `why`, `acceptance`, `boundary`, `references`, with required flags `true, true, true, true, false`. After an authorized merge, check actual GitHub New Issue rendering; do not claim UI validation before publication.
 
-The files are `.github/ISSUE_TEMPLATE/01-agent-task.yml` and `.github/ISSUE_TEMPLATE/config.yml`. Keep the existing config unchanged. Work on `feat/CLH-002-issue-template`, preserve commit `91662af`, push the branch and open a Draft PR targeting `main`. Do not push directly to main. This branch starts directly from main and does not require PR #1, #3 or #5 to be merged; do not import their changes.
+## Minimal Governance
 
-If installing in another checkout, copy the two YAML files to those same paths. Validate the actual installed files:
+Follow the current `GOVERNANCE.md` and `AGENTS.md` on `main`, not historical LIGHT platform designs:
 
-```bash
-python - <<'PY'
-from pathlib import Path
-import yaml
-for p in sorted(Path('.github/ISSUE_TEMPLATE').glob('*.yml')):
-    d = yaml.safe_load(p.read_text(encoding='utf-8'))
-    assert isinstance(d, dict)
-    if p.name != 'config.yml':
-        assert all(k in d for k in ('name', 'description', 'body'))
-        fields = [x for x in d['body'] if x['type'] != 'markdown']
-        assert [x['id'] for x in fields] == ['what', 'why', 'acceptance', 'boundary', 'references']
-        assert [x['validations']['required'] for x in fields] == [True, True, True, True, False]
-    print('PASS', p)
-PY
-git diff --check
-git status --short --branch
-```
+- L0 is strictly nonsemantic formatting or typo changes; applicable checks still apply. Risk is **assessed from actual impact**, not a default L0 intake classification.
+- L1 requires applicable validation and a traceable review by the opposite Agent.
+- L2 requires an approved **pre-implementation Plan**, a post-implementation Result, and opposite-Agent review.
+- L3 adds Human authorization for the specific governance, permission, security, deployment or other high-risk action.
+- Draft PR does not authorize work or Merge. Check CI, Review, blockers and operation authorization before Merge. Agent summaries, native GitHub Reviews and Human approval are different evidence types.
 
-The command requires PyYAML; YAML parsing and these assertions do not replace GitHub Issue Forms schema validation. Record unavailable checks as NOT RUN.
+This Issue Form is **intake only**. It does not enable issue dispatch, automated reviewer identity verification, trusted Policy Gates, Auto-Merge or deployment. Merging and Pages deployment require separate authorization. Archived governance platform and Canary plans remain inactive.
 
-The form becomes available after an authorized merge into the default branch. Until then, the Draft PR is the review surface; it does not publish the form. Keep this task's PR as Draft; review and applicable Policy Gates remain required before any future Ready/Merge transition.
+## Validation boundary
 
-## Using GitHub New Issue
-
-After publication, open GitHub > Issues > New issue and choose `Agent Task｜自動化開發任務`. Fill in WHAT, WHY, Acceptance Criteria and Boundary. Add References / Evidence when useful, or leave it blank, then submit. The existing config disables blank issues and presents the structured intake.
-
-## Agent-driven workflow and LIGHT Governance v1.0
-
-Claude Code and Codex are peer Agents. Default Intake Risk is L0, but the Agent must reassess risk from actual changes and impact, including scope changes. The form is intake only and grants no Merge or high-risk operation authorization.
-
-- L0 does not mandate a Formal Plan, Records or Independent Review.
-- L1 requires applicable validation and trusted Independent Review. Self-review or a shared GitHub account does not establish reviewer independence.
-- L2 requires a Formal Plan and Human Plan Approval before implementation.
-- L3 prohibits Auto-Merge by default; exceptions require specific Human Authorization.
-
-Agents assess risk, prepare any required Formal Plan and obtain applicable approval before implementation. When a Formal Plan is needed, commit it separately before implementation; do not create retrospective plan evidence. Open a Draft PR early to track implementation, continuous validation, evidence and progress. Draft status does not authorize implementation or Merge. Complete implementation and applicable validation, then obtain required Review and Policy Gate results. Merge is permitted only under the applicable authorization conditions.
-
-## Automation status and limits
-
-This change supplies an intake interface only. It does not enable an Issue Dispatcher, automatic agent assignment, trusted Independent Review, Guarded Auto-Merge or deployment. Formal production Guarded Auto-Merge is not enabled. Auto-Merge is allowed only after trusted Policy Gates pass and the capability has been formally enabled under separate authorization. Do not treat a submitted form, Draft PR, label or Agent assertion as authorization or trusted gate evidence.
+YAML syntax/schema checks and Pull Request CI do not demonstrate browser-rendered issue form behavior. Record any test that was not executed as **NOT RUN**.
