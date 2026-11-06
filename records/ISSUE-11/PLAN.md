@@ -4,11 +4,13 @@
 - v1: 2026-11-06 13:13 UTC+8 — Initial comprehensive plan (526 lines)
 - v2: 2026-11-06 13:35 UTC+8 — Security & consistency revision (987 lines)
 - v3: 2026-11-06 14:00 UTC+8 — Proportionate simplification (317 lines)
-- **v4: 2026-11-06 14:04 UTC+8 — Learning-centered automation (this version)**
+- v4: 2026-11-06 14:04 UTC+8 — Learning-centered automation (488 lines)
+- **v4a: 2026-11-06 14:09 UTC+8 — Final reconciliation (this version)**
   - Redesigned for Learning Traceability, not Agent Control
   - Focus: Preserve complete Issue → Plan → PR → Result → Merge → Closure learning history
   - Removed: Security-first framing, overengineered gates, complex state machines
   - Kept: Essential safety (SHA binding, idempotency, fail-closed)
+  - Corrections: Token permissions verified, Merge method default changed, Closure Summary evidence-based, Issue close verification, Branch Protection clarified
 
 ---
 
@@ -139,7 +141,7 @@ POST /repos/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pulls/{pr_number}/
   "commit_title": "Issue #<number>: <title>",
   "commit_message": "<body>",
   "sha": "<authorized-head-sha>",  // Compare-and-swap: prevents concurrent changes
-  "merge_method": "squash"          // From Human's decision
+  "merge_method": "merge"           // From Human's decision (default: preserve full history)
 }
 
 Response success:
@@ -187,7 +189,7 @@ Automatic comment posted to issue:
 - GitHub Actions Workflow: <run link>
 
 **What Learned**
-[Auto-detect from PR title/labels, or "See PR discussion"]
+[Extract from Issue body / PR description / Result record if available; if not recorded, mark as "未記錄"]
 
 **Remaining Questions / Next Steps**
 [Auto-detect from linked issues, or "None identified"]
@@ -234,8 +236,14 @@ Before posting closure comment:
 
 1. Query issue comments
 2. Search for existing "Merged & Closed: Learning Consolidation" comment
-3. If found: Skip re-post, verify issue is closed
-4. If issue is not closed: Log error, don't double-post
+3. If found: Skip re-post, verify issue state and merge commit
+4. If issue is not closed: Log error, do NOT re-post or claim closure
+5. Before closing issue, verify:
+   - Same PR number (prevent closing wrong issue)
+   - Same merge commit SHA (prevent closure with stale merge)
+   - Same target issue (explicit check, not inferred)
+
+**Critical**: Never close issue if prior closure summary doesn't match current PR/Merge/Issue. Fail closed.
 
 ---
 
@@ -327,13 +335,13 @@ Will NOT create / modify:
 **Question**: When merging, which Git merge strategy?
 
 **Options**:
-- `squash` — Flatten PR commits into one (good for learning docs)
-- `merge` — Keep full commit history (preserves exploration)
+- `squash` — Flatten PR commits into one (good for clean narrative)
+- `merge` — Keep full commit history (preserves exploration & learning arc)
 - `rebase` — Rebase onto main (cleaner history)
 
-**Recommendation**: **squash** for Copy Learning Hub
+**Recommendation**: **merge** for Copy Learning Hub
 
-**Rationale**: Learning Hub prioritizes narrative clarity. Squashing makes merged PR tell one coherent story.
+**Rationale**: Learning Hub values preserving the complete exploration history. Full commit history shows how the solution was discovered, iterated, and refined — essential for learning traceability.
 
 ---
 
@@ -412,17 +420,20 @@ The workflow will need a token with:
 - `issues: write` — Post closure comment, close issue
 - `statuses: read` — Read CI check status
 
-**How to provide**: Use repository's existing `GITHUB_TOKEN` (GitHub Actions automatically provides this) with appropriate scopes. No separate token creation needed.
+**Status**: These are standard GitHub Actions permissions; verify at implementation time that `GITHUB_TOKEN` scope includes these. If insufficient, **requires Human authorization** to adjust workflow permissions.
 
 ### Branch Protection Rules (Existing)
 
-- **Require PR reviews**: Already enforced
-- **Require status checks**: Already enforced
-- **Dismiss stale reviews**: Already configured
-- **Allow force pushes**: No (correct)
-- **Allow deletions**: No (correct)
+**Status**: Currently UNKNOWN — Human must verify at implementation time:
+- [ ] "Require PR reviews" — confirmed?
+- [ ] "Require status checks" — confirmed? (which checks?)
+- [ ] "Dismiss stale reviews" — confirmed?
+- [ ] "Allow force pushes" — should be NO
+- [ ] "Allow deletions" — should be NO
+- [ ] "Require code owner review" — if any? (verify)
+- [ ] "Require up-to-date branches before merging" — if enabled? (may block merge)
 
-The workflow respects these rules; no changes needed.
+The workflow respects GitHub's native protections. If any rule blocks merge, workflow fails at gate 3–5 and stops. **If Branch Protection rules need to be changed, this requires separate L3 Human authorization; not covered by this Plan.**
 
 ### Workflow Activation
 
@@ -468,15 +479,27 @@ Workflow will be disabled initially (`if: false` or manual trigger only).
 | v1 | 13:13 UTC+8 | 526 | Comprehensive, security-first |
 | v2 | 13:35 UTC+8 | 987 | Complex QA, multi-state machine |
 | v3 | 14:00 UTC+8 | 317 | Simplified, proportionate |
-| **v4** | **14:04 UTC+8** | **~250** | **Learning-centered, human-kept authority** |
+| v4 | 14:04 UTC+8 | 488 | Learning-centered |
+| **v4a** | **14:09 UTC+8** | **~510** | **Final reconciliation** |
+
+**v4a changes**:
+- Correction 1: Token permissions status clarified (verify at implementation)
+- Correction 2: Merge method default changed to `merge` (preserve full history)
+- Correction 3: Closure Summary "What Learned" now evidence-based (mark "未記錄" if none)
+- Correction 4: Issue close verification enhanced (prevent wrong issue close)
+- Correction 5: Branch Protection status clarified (UNKNOWN, verify at implementation)
 
 ---
 
 **STATUS: PLAN PENDING HUMAN APPROVAL**
 
-- ✅ Formal Plan v4 complete
-- ✅ Learning-centered design (not Agent Control)
+- ✅ Formal Plan v4a complete (final reconciliation)
+- ✅ Learning-centered design (Learning Traceability First)
 - ✅ Five human decisions identified
+- ✅ Token permissions & Branch Protection status clarified
+- ✅ Merge method default set to `merge` (preserve full history)
+- ✅ Closure Summary evidence-based (mark "未記錄" if not available)
+- ✅ Issue close verification enhanced (prevent mismatches)
 - ✅ Ready for human review and approval
 
 **No implementation authorized yet. No workflow created. No PR merged. No issue closed.**
@@ -486,3 +509,4 @@ Workflow will be disabled initially (`if: false` or manual trigger only).
 *Prepared by: Claude Code (Builder)*
 *Repository: myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub*
 *Issue: #11 — Authorized PR Merge → Verified Closure Automation*
+*Philosophy: Learning Traceability First*
