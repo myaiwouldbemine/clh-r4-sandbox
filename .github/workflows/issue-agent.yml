@@ -1,0 +1,95 @@
+name: Issue Agent
+on:
+  issues:
+    types: [opened, edited, reopened]
+  workflow_run:
+    workflows: [Docs Check, Governance Tests]
+    types: [completed]
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  checks: read
+concurrency:
+  group: clh-issue-agent
+  cancel-in-progress: false
+jobs:
+  build:
+    if: vars.CLH_AUTONOMY_ENABLED == 'true' && (github.event_name == 'issues' || github.event.workflow_run.conclusion == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      issue: ${{ steps.prepare.outputs.issue }}
+      branch: ${{ steps.prepare.outputs.branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - name: Check installation prerequisites
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODEL_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TRANSPORT_CONFIGURED: ${{ secrets.CLH_AUTOMATION_TOKEN != '' }}
+        run: |
+          test -n "$MODEL_KEY" || { echo 'BLOCKED: OPENAI_API_KEY missing'; exit 1; }
+          test "$TRANSPORT_CONFIGURED" = true || { echo 'BLOCKED: automation transport missing'; exit 1; }
+          python scripts/autonomous_lifecycle.py preflight
+      - name: Prepare task and bounded retry
+        id: prepare
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp .github/prompts/engineering.md "$RUNNER_TEMP/clh-prompt.md"
+          python scripts/agent_job.py prepare
+      - name: Run accountable Builder
+        uses: openai/codex-action@13e9c17417b29e9a276f73ec6ed7fb574137d3c3
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: ${{ runner.temp }}/clh-prompt.md
+          permission-profile: ':workspace'
+          safety-strategy: drop-sudo
+          allow-bots: true
+          output-file: agent-output.md
+      - name: Package committed work
+        env:
+          BRANCH: ${{ steps.prepare.outputs.branch }}
+        run: |
+          test "$(git branch --show-current)" = "$BRANCH"
+          test -f pr-body.md || cp agent-output.md pr-body.md
+          git bundle create candidate.bundle "$BRANCH"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: candidate
+          path: |
+            candidate.bundle
+            pr-body.md
+            agent-output.md
+          retention-days: 30
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: candidate
+          path: candidate
+      - name: Publish branch and Draft PR
+        env:
+          GH_TOKEN: ${{ secrets.CLH_AUTOMATION_TOKEN }}
+          ISSUE_NUMBER: ${{ needs.build.outputs.issue }}
+        run: |
+          test -n "$GH_TOKEN"
+          gh auth setup-git
+          python scripts/agent_job.py publish "$ISSUE_NUMBER"

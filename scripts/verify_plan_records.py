@@ -1,21 +1,21 @@
-"""Read-only Git record verifier. Local assistance only; caller must assess risk and whether a formal Plan exists.
-Usage: python scripts/verify_plan_records.py BASE HEAD ISSUE RISK [--formal-plan]
+"""Read-only Git record verifier. Local assistance only; caller decides whether a formal Plan is needed.
+Usage: python scripts/verify_plan_records.py BASE HEAD ISSUE [--formal-plan]
 This is a local verifier, not a production authorization/merge service.
 """
 import argparse
 import subprocess
 from pathlib import PurePosixPath
 
-FIELDS = ("goal", "why", "scope", "boundary", "risk level", "implementation plan",
-          "acceptance criteria", "verification strategy", "human decisions", "revision history")
+FIELDS = ("goal", "why", "scope", "boundary", "implementation plan",
+          "acceptance criteria", "verification strategy", "revision history")
 RESULT_FIELDS = ("results", "evidence", "pr", "commit", "deviations", "unfinished")
 
 def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip()
 
-def verify(base, head, issue, risk, formal_plan=False):
-    if type(risk) is not int or risk not in range(4):
-        raise ValueError("unknown risk")
+def verify(base, head, issue, formal_plan=False):
+    if type(issue) is not int or issue <= 0:
+        raise ValueError("invalid issue")
     # Validate revisions as commit objects before using them in Git expressions.
     base = git("rev-parse", "--verify", base + "^{commit}")
     head = git("rev-parse", "--verify", head + "^{commit}")
@@ -23,9 +23,9 @@ def verify(base, head, issue, risk, formal_plan=False):
     prefix = f"records/ISSUE-{issue}/"
     plan, result = prefix + "PLAN.md", prefix + "RESULT.md"
     files = git("ls-tree", "-r", "--name-only", head).splitlines()
-    required = formal_plan or risk >= 2 or plan in files
+    required = formal_plan or plan in files
     if not required:
-        return "NOT REQUIRED: no formal plan; risk below L2"
+        return "NOT REQUIRED: no formal plan"
     assert plan in files and result in files, "Plan and Result are required"
     body = git("show", f"{head}:{plan}").lower()
     assert all(field in body for field in FIELDS), "Missing Plan fields"
@@ -52,7 +52,7 @@ def verify(base, head, issue, risk, formal_plan=False):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("base"); p.add_argument("head")
-    p.add_argument("issue", type=int); p.add_argument("risk", type=int, choices=range(4))
+    p.add_argument("issue", type=int)
     p.add_argument("--formal-plan", action="store_true")
     a = p.parse_args()
-    print(verify(a.base, a.head, a.issue, a.risk, a.formal_plan))
+    print(verify(a.base, a.head, a.issue, a.formal_plan))

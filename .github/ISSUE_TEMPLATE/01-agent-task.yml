@@ -1,25 +1,22 @@
-name: "Agent Task｜學習與開發需求"
+name: "Engineering Task｜工程需求"
 description: "以 WHAT、WHY、Acceptance Criteria、Boundary 提交 Learning Hub 工作需求。"
 title: "[CLH-XXX] "
 body:
   - type: markdown
     attributes:
       value: |
-        ## Human 定義需求；Claude Code 為指定 Builder
-        請填寫需求、理由、驗收標準與工作邊界；不必自行選擇 Agent 或預先指定風險等級。
-
-        Builder Claude Code 依實際影響判斷 L0–L3；錯字格式 L0、實質教材與一般程式 L1、重大架構 L2、權限／治理／部署等 L3。
-        L1 起需要 Claude Code 可追溯的 Self-Review 及 Evidence。L2／L3 必須有事前 Plan、Human 對 Plan／範圍的核准與事後 Result；L3 另需 Human 對具體操作授權。
-        提早建立 Draft PR 不代表已獲實作或合併授權。適用測試及 CI、Self-Review、未解阻擋與 Merge 操作授權須分別確認。
-        目前 Auto-Merge 與自動部署均未啟用；Issue Form 不授予任何合併、部署或高風險操作權限。
-        以目前 main 的 GOVERNANCE.md 與 AGENTS.md 為準。
+        ## Human 定義 WHAT／WHY／DONE；Agent 自主完成工程
+        Codex 或 Claude Code 擔任唯一 accountable Builder，負責調查、實作、測試、自審、PR、Merge、適用部署、Evidence 與結案。
+        不使用風險分級或重複 Human 工程核准。遵守 CI 與 GitHub 保護，不繞過權限。
+        ChatGPT＋Human 保有 V2／V3 教材創作與語義核准；工程僅匯入已核准內容。
+        實際自動啟動取決於 Runner 與安裝設定；缺少時明確標記 BLOCKED，不能以 Issue Form 冒充自動化。
 
   - type: textarea
     id: what
     attributes:
       label: "WHAT｜要做什麼"
       description: "說明預期交付成果。"
-      placeholder: "例：新增 Operating Systems 的 Process Scheduling 教學頁面及 NachOS 程式碼對照。"
+      placeholder: "例：忠實匯入已核准的 Process Scheduling 教材並更新導覽。"
     validations:
       required: true
 
@@ -52,7 +49,7 @@ body:
       placeholder: |
         In Scope: 指定學科教材與導覽
         Out of Scope: 其他學科、NachOS 核心原始碼
-        Must Not: 更改 GitHub Settings、部署或直接推送 main
+        Must Not: 自行創作教材語義、繞過保護或直接推送 main
     validations:
       required: true
 
