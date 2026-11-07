@@ -2,7 +2,7 @@
 
 Centralized, **local-only** storage for original source material (lecture PDFs, ZIP bundles, raw exports) and ChatGPT + Human generated teaching bundles.
 
-Workflow context: [Learning-to-Publishing Workflow（教材製作與發布流程）](../README.md#learning-to-publishing-workflow) in the root README.
+Workflow context: the full [Learning-to-Publishing Workflow（教材製作與發布流程）](../docs/development/CLH_LEARNING_TO_PUBLISHING_WORKFLOW.md) is the Single Source of Truth; a summary is in the [root README](../README.md#learning-to-publishing-workflow).
 
 ## Layout
 
