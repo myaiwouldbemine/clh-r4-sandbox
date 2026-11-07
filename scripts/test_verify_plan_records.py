@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from verify_plan_records import verify, FIELDS, RESULT_FIELDS
+from verify_plan_records import verify, FIELDS, RESULT_FIELDS, plan_fields_present
 
 class RecordTests(unittest.TestCase):
     def setUp(self):
@@ -29,33 +29,47 @@ class RecordTests(unittest.TestCase):
         self.write("records/ISSUE-4/PLAN.md", "\n".join(FIELDS) + " /issues/4")
     def result(self):
         self.write("records/ISSUE-4/RESULT.md", "\n".join(RESULT_FIELDS) + " /pull/5")
-    def test_l0_no_plan(self):
-        self.assertIn("NOT REQUIRED", verify(self.base, "HEAD", 4, 0))
-    def test_l1_no_plan(self):
-        self.assertIn("NOT REQUIRED", verify(self.base, "HEAD", 4, 1))
-    def test_l3_missing_plan(self):
-        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, 3)
-    def test_unknown_risk(self):
-        with self.assertRaises(ValueError): verify(self.base, "HEAD", 4, -1)
-    def test_l2_missing_plan(self):
-        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, 2)
+    def test_no_plan(self):
+        self.assertIn("NOT REQUIRED", verify(self.base, "HEAD", 4))
+    def test_required_missing_plan(self):
+        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, formal_plan=True)
+    def test_invalid_issue(self):
+        with self.assertRaises(ValueError): verify(self.base, "HEAD", -1)
+    def test_revision_acceptance_heading_alias(self):
+        body="\n".join(FIELDS).replace("acceptance criteria", "e2e acceptance")
+        self.assertTrue(plan_fields_present(body, True))
+        self.assertFalse(plan_fields_present(body, False))
+        self.assertFalse(plan_fields_present(body.replace("e2e acceptance", ""), True))
+    def test_named_revision_order(self):
+        self.write("records/ISSUE-4/ON-DEMAND-REVISION-PLAN.md", "\n".join(FIELDS) + " /issues/4")
+        self.commit()
+        self.write("app.py", "print(1)"); self.commit()
+        self.write("records/ISSUE-4/ON-DEMAND-REVISION-RESULT.md", "\n".join(RESULT_FIELDS) + " /pull/5")
+        self.commit()
+        self.assertIn("PASS", verify(self.base, "HEAD", 4, True, "ON-DEMAND-REVISION-"))
+    def test_named_revision_backfill_rejected(self):
+        self.write("app.py", "print(1)"); self.commit()
+        self.write("records/ISSUE-4/ON-DEMAND-REVISION-PLAN.md", "\n".join(FIELDS) + " /issues/4")
+        self.write("records/ISSUE-4/ON-DEMAND-REVISION-RESULT.md", "\n".join(RESULT_FIELDS) + " /pull/5")
+        self.commit()
+        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, True, "ON-DEMAND-REVISION-")
     def test_valid_order(self):
         self.plan(); self.commit()
         self.write("app.py", "print(1)"); self.result(); self.commit()
-        self.assertIn("PASS", verify(self.base, "HEAD", 4, 2))
+        self.assertIn("PASS", verify(self.base, "HEAD", 4, formal_plan=True))
     def test_same_commit_plan_rejected(self):
         self.plan(); self.result(); self.write("app.py", "print(1)"); self.commit()
-        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, 2)
+        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, formal_plan=True)
     def test_backfill_rejected(self):
         self.write("app.py", "print(1)"); self.commit()
         self.plan(); self.result(); self.commit()
-        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, 2)
-    def test_l0_formal_plan_requires_result(self):
+        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, formal_plan=True)
+    def test_formal_plan_requires_result(self):
         self.plan(); self.commit()
-        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, 0)
+        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4)
     def test_initial_incomplete_plan_rejected(self):
         self.write("records/ISSUE-4/PLAN.md", "placeholder"); self.commit()
         self.plan(); self.result(); self.write("app.py", "print(1)"); self.commit()
-        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, 2)
+        with self.assertRaises(AssertionError): verify(self.base, "HEAD", 4, formal_plan=True)
 
 if __name__ == "__main__": unittest.main()

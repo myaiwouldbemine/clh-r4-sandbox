@@ -68,3 +68,9 @@ Learning Record 包含八項學習資訊，其中三項初始資訊必填、五�
 - PR：[Draft PR #19](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/19)。本補充提交時最新 Head CI／Git 順序檢查／遠端 readback 為 PENDING，待提交後以 PR 綁定完整 Head 的 Self-Review 記錄實際結果，不虛構事前完成。
 - Deviations：無。Plan 原核准版本、其他正式檔、Scripts／Workflows、歷史 Records、Archived Platform 保留；舊 Result bytes prefix 不變。
 - Unfinished：GitHub Issue Forms 合併後 UI 為 PENDING；Browser visual 與 Deployment 為 NOT RUN。無已知語義疑義。未沿用舊 READY_ELIGIBLE；Ready／Merge／Close／Deploy 均未授權，維持 Draft，等待 Human 審閱最新 Head。
+
+## 2026-11-07 最終整合
+
+Codex 依 PR #19 最新整合指令，將 main `12eb7eb5e4eabd0b4f14e4a639511aea884c3d47` 整合至既有 head `7efb0521d63b646501b83ecafdfb40da473d914b`。七個重疊檔案以 main 為準，補入學習表單入口說明，修正 README、INSTALL 與操作手冊的歷史 Draft／發布描述。保留 Learning Record 八欄、留言更新、既有 Plan 與歷次證據。現行 AGENTS.md 的十五條雙語規範、Engineering Task、PR Template、生命週期程式及工作流程與此 base 一致。
+
+本機 unittest discovery 72 項 PASS；strict MkDocs PASS；依 VERIFICATION.md 既有 schema 子集與欄位契約檢查 PASS（Learning Record 三必填、五選填）；原生保護 preflight PASS。教材與視覺品質 NOT RUN，無教材修改。合併、GitHub chooser、部署 SHA 與歸檔讀回由 PR／Issue 後續遠端證據記錄。

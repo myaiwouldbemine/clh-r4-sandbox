@@ -1,0 +1,144 @@
+Implementation head: c37275eb05dd80574fd482b3a9a9fc7ee1db66ed
+Date: 2026-11-07 Asia/Taipei
+Command: python3 -m unittest discover -s scripts -p test_*.py
+candidate/candidate.bundle is okay
+The bundle contains this ref:
+f90019149020b866f58c245ace1f221498755e10 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+.candidate/candidate.bundle is okay
+The bundle contains this ref:
+f90019149020b866f58c245ace1f221498755e10 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+To /tmp/tmpjv02v7b5/origin.git
+ * [new branch]      codex/issue-20 -> codex/issue-20
+candidate/candidate.bundle is okay
+The bundle contains this ref:
+f90019149020b866f58c245ace1f221498755e10 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+Everything up-to-date
+.Switched to a new branch 'codex/issue-20'
+[codex/issue-20 ec24b64] CLH agent attempt 1 for Issue 20
+.candidate/candidate.bundle is okay
+The bundle contains this ref:
+f90019149020b866f58c245ace1f221498755e10 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+To /tmp/tmpxnjnrrnw/origin.git
+ * [new branch]      codex/issue-20 -> codex/issue-20
+.Switched to a new branch 'codex/issue-20'
+...............................................usage: python3 -m unittest [-h] [--repo REPO] [--pr PR] [--head HEAD]
+                           [--base BASE] [--sha SHA] [--run-id RUN_ID]
+                           {check,run,deployment,preflight}
+python3 -m unittest: error: argument command: invalid choice: 'reconcile' (choose from 'check', 'run', 'deployment', 'preflight')
+.................
+----------------------------------------------------------------------
+Ran 68 tests in 3.011s
+
+OK
+
+Standalone historical runners follow; not included in 68 tests.
+
+test_final_findings.py.txt
+======================================================================
+FINAL THREE FINDINGS CORRECTIONS TEST
+======================================================================
+
+✅ Recovery Authorization: Workflow History Verification
+   ❌ Workflow run history query: NOT found
+   ❌ Fail Closed semantics: NOT found
+   ❌ Cannot verify original authorization: NOT found
+   ❌ Prior workflow execution check: NOT found
+   ⚠️  Recovery logic simplified but should include run history check
+
+✅ Concurrency: PR Number Only
+   ❌ Concurrency group format incorrect
+
+✅ PR Documentation: GitHub API Readback Verification
+   ✅ Found 5/5 required concepts
+      ✓ Learning Archive First
+      ✓ Archive Closure Record
+      ✓ Issue closure
+      ✓ workflow
+      ✓ tests
+   ✅ PR description length: 2344 chars (substantial)
+   ✅ GitHub API Readback successful — description is real, not mock
+
+======================================================================
+TEST SUMMARY
+======================================================================
+❌ FAIL: Finding 1 — Recovery Authorization
+❌ FAIL: Finding 2 — Concurrency PR Number Only
+✅ PASS: Finding 3 — PR Documentation GitHub Readback
+
+Total: 1/3 findings verified
+
+❌ 2 finding(s) need attention
+
+test_human_review_corrections.py.txt
+════════════════════════════════════════════════════════════
+ISSUE #11 HUMAN REVIEW CORRECTIONS — TEST SUITE
+════════════════════════════════════════════════════════════
+✅ Recovery: HEAD SHA mismatch                   — Recovery blocked: HEAD SHA mismatch
+✅ Recovery: Base mismatch                       — Recovery blocked: Base branch mismatch
+✅ Recovery: No merge commit                     — Recovery blocked: No valid merge commit
+✅ Recovery: Invalid SHA length                  — Recovery blocked: SHA length invalid
+✅ Recovery: Consistent state                    — Recovery allowed: All checks passed
+✅ Concurrency: Same PR blocked                  — Same concurrency group: execution will be queued
+✅ Concurrency: Different PR allowed             — Different PRs can execute in parallel
+✅ Concurrency: No cancel-in-progress            — cancel-in-progress is false: ongoing operations will not be cancelled
+✅ Recovery + Prior Closure                      — Recovery can safely complete: archive exists, issue needs closing
+✅ Concurrency prevents duplicate merge          — Concurrency group prevents duplicate merge of same PR
+✅ Documentation: PR description                 — PR description should contain: Learning Archive First, Archive Closure Record, Issue closure indicates upload/archive completion
+✅ Documentation: Plan/Result history            — Multiple RESULT files show git history of corrections
+════════════════════════════════════════════════════════════
+✅ All 12 correction tests PASSED
+   - Correction 1: Recovery Authorization (5 tests)
+   - Correction 2: Concurrency / Idempotency (5 tests)
+   - Correction 3: Documentation Alignment (2 tests)
+
+test_merge_lifecycle.py.txt
+✅ test_pr_issue_linkage_precision PASSED
+✅ test_prior_closure_deduplication_full_sha PASSED
+✅ test_four_safety_fixes PASSED
+
+✅ All 3 test groups PASSED
+   - PR linkage precision (6 tests)
+   - Prior closure deduplication (7 tests)
+   - Four safety fixes integration (3 tests)
+
+test_runtime_cleanup.py.txt
+✅ test_sed_escaping PASSED
+✅ test_pagination_json_handling PASSED
+✅ test_pagination_error_handling PASSED
+✅ test_pagination_json_parse_error PASSED
+✅ test_final_readback_exit_codes PASSED
+✅ test_three_runtime_fixes_integration PASSED
+
+✅ All 6 runtime cleanup tests PASSED
+   - sed escaping for special characters
+   - GitHub API pagination handling
+   - JSON line parsing with error handling
+   - Final Readback exit code behavior
+
+test_two_defects_fix.py.txt
+✅ Template Special Characters PASSED
+✅ Template Newlines PASSED
+✅ API Parameter Body Content PASSED
+✅ Template SHA Validation PASSED
+✅ API Call Mock Verification PASSED
+✅ Two Defects Integration PASSED
+
+✅ All 6 defect fix tests PASSED
+   - Fix A: API body parameter contains file content
+   - Fix B: Python Template handles all special characters
+
+Obsolete final_findings workflow-history/concurrency checks also returned False/False against pre-revision bb577319ba003f3b92ef4fc7cf0cd717e8315cac workflow; not new-architecture acceptance gates. Current replacement regressions test local serialization, recovery, permission failures and archive-before-close.

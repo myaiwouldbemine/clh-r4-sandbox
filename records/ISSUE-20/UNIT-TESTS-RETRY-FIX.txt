@@ -1,0 +1,41 @@
+Command: python3 -m unittest discover -s scripts -p test_*.py
+Implementation: 1f77d7cb1de6b8f54784f5647e280508552cd93f
+candidate/candidate.bundle is okay
+The bundle contains this ref:
+334202e954c28e3335eeec45406a98320ea0ec00 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+.candidate/candidate.bundle is okay
+The bundle contains this ref:
+334202e954c28e3335eeec45406a98320ea0ec00 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+To /tmp/tmpl3p29pap/origin.git
+ * [new branch]      codex/issue-20 -> codex/issue-20
+candidate/candidate.bundle is okay
+The bundle contains this ref:
+334202e954c28e3335eeec45406a98320ea0ec00 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+Everything up-to-date
+.Switched to a new branch 'codex/issue-20'
+[codex/issue-20 277b176] CLH agent attempt 1 for Issue 20
+.candidate/candidate.bundle is okay
+The bundle contains this ref:
+148ae3addf4482b1931f204d3677c7d8c2621cda refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+To /tmp/tmpxytgrv7a/origin.git
+ * [new branch]      codex/issue-20 -> codex/issue-20
+.Switched to a new branch 'codex/issue-20'
+.................................................
+----------------------------------------------------------------------
+Ran 53 tests in 14.746s
+
+OK

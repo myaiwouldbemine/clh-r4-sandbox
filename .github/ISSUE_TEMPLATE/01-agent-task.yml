@@ -1,30 +1,22 @@
 name: "Engineering Task｜工程需求"
-description: "以 WHAT、WHY、Acceptance Criteria、Boundary 提交工程實作或已核准教材匯入需求。"
+description: "以 WHAT、WHY、Acceptance Criteria、Boundary 提交 Learning Hub 工作需求。"
 title: "[CLH-XXX] "
 body:
   - type: markdown
     attributes:
       value: |
-        ## Human 定義需求；一位指定的 accountable Builder 負責工程
-        請填寫需求、理由、驗收標準與工作邊界；不必自行選擇 Agent 或預先指定風險等級。
-
-        採 Tool-Neutral Single-Builder + Self-Verification；Builder 可為 Claude Code 或 Codex，適用相同規則。
-        Builder 依實際影響判斷 L0–L3；錯字格式 L0、實質教材與一般程式 L1、重大架構 L2、權限／治理／部署等 L3。
-        L1 起需要 Builder 可追溯的 Self-Review 及 Evidence。L2／L3 必須有事前 Plan、Human 對 Plan／範圍的核准與事後 Result；L3 另需 Human 對具體操作授權。
-        提早建立 Draft PR 不代表已獲實作或合併授權。適用測試及 CI、Self-Review、未解阻擋與 Merge 操作授權須分別確認。
-        目前 Auto-Merge 與自動部署均未啟用；Issue Form 不授予任何合併、部署或高風險操作權限。
-        ChatGPT＋Human 擁有 V2／V3 教材創作與品質核准權；Builder 僅忠實匯入已核准教材及處理工程，不自行改寫教材語意。
-        學習紀錄請用 Learning Record，可獨立於工程 PR；只有 Repository 變更需要工程流程。CI PASS 不代表教材品質核准或學習完成。
-        工程 Issue／PR 須記錄唯一 Builder；交接記錄前後 Builder、完整 SHA、base／scope／risk、已完成／未完成、Evidence 與 Blockers。
-        接手者重新確認目前 head 的 Self-Review 及適用 Human 授權，不自動繼承舊審查或授權。
-        以目前 main 的 GOVERNANCE.md 與 AGENTS.md 為準。
+        ## Human 定義 WHAT／WHY／DONE；Agent 自主完成工程
+        Codex 或 Claude Code 擔任唯一 accountable Builder，負責調查、實作、測試、自審、PR、Merge、適用部署、Evidence 與結案。
+        不使用風險分級或重複 Human 工程核准。遵守 CI 與 GitHub 保護，不繞過權限。
+        ChatGPT＋Human 保有 V2／V3 教材創作與語義核准；工程僅匯入已核准內容。
+        Human 在需要時啟動 Codex App／本機 Agent；不安排關機後的無人值守工程。使用既有 App 登入與 gh auth；Issue Form 本身不啟動 Agent。
 
   - type: textarea
     id: what
     attributes:
       label: "WHAT｜要做什麼"
       description: "說明預期交付成果。"
-      placeholder: "例：忠實匯入 ChatGPT＋Human 已核准的 Process Scheduling 教材並加入導覽。"
+      placeholder: "例：忠實匯入已核准的 Process Scheduling 教材並更新導覽。"
     validations:
       required: true
 
@@ -33,7 +25,7 @@ body:
     attributes:
       label: "WHY｜為什麼"
       description: "說明問題和預期改善。"
-      placeholder: "例：已核准教材尚未歸檔至 Repository，網站缺少對應閱讀入口。"
+      placeholder: "例：目前缺少可以由概念連結至實際程式碼的學習入口。"
     validations:
       required: true
 
@@ -55,9 +47,9 @@ body:
       label: "Boundary｜工作邊界"
       description: "列出 In Scope、Out of Scope 及禁止更動事項。"
       placeholder: |
-        In Scope: 已核准教材的忠實匯入與導覽
-        Out of Scope: 教材內容創作或語意改寫、其他學科、NachOS 核心原始碼
-        Must Not: 更改 GitHub Settings、部署或直接推送 main
+        In Scope: 指定學科教材與導覽
+        Out of Scope: 其他學科、NachOS 核心原始碼
+        Must Not: 自行創作教材語義、繞過保護或直接推送 main
     validations:
       required: true
 

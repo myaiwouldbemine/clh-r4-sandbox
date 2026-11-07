@@ -1,45 +1,20 @@
-# Copy Learning Hub — 治理文件維護說明
+# On-Demand Autonomous Engineering｜按需自主工程
 
-以目前 main 的 `GOVERNANCE.md`、`AGENTS.md` 與 Issue 邊界為準；本文件說明授權後的文件維護方式，不授予 GitHub 設定或工程操作權限。
+閱讀 [GOVERNANCE.md](GOVERNANCE.md)、[完整雙語 AGENTS.md](AGENTS.md) 與 [操作手冊](docs/development/AUTONOMOUS_OPERATIONS.md)。Human + ChatGPT 規劃教材／建立 Issue，Human 在需要時啟動 Codex App；單一 Builder 自主處理工程與符合 Gate 的生命週期，不需 Human 日常 Merge 或重複批准。
 
-## Files / 檔案
-
-- `GOVERNANCE.md` — 正式政策（Tool-Neutral Single-Builder + Self-Verification 與獨立操作授權）
-- `AGENTS.md` — Claude Code / Codex 共用的精簡執行規則
-- `.github/PULL_REQUEST_TEMPLATE.md` — 工程 PR 與 Self-Review 紀錄模板
-
-## Apply / 套用
-
-每個工程 Issue／PR 只有一位指定 accountable Builder（Claude Code 或 Codex），適用相同規範。ChatGPT＋Human 負責教材創作與品質核准；Builder 僅忠實匯入已核准教材及處理工程。Learning Issue 可獨立記錄，不必對應 PR；只有 Repository 變更需要工程流程。
-
-先確認 Issue 與工作邊界、建立工作分支並提早開 Draft PR。治理變更屬 L3，須在實作前獨立提交正式 Plan，取得 Human 對 Plan 及具體操作／範圍的明確授權。Draft 不等於實作授權。授權後才在 WSL 專案根目錄、正確 Feature Branch 上修改指定檔案並檢查差異：
+Use the existing Codex App sign-in for model access and existing `gh auth` for GitHub. They are separate logins. No extra `OPENAI_API_KEY`, `CLH_AUTOMATION_TOKEN`, activation variable, resident service or hosted model runner is required. Never copy App/gh credentials into Actions or expand privileges to pass a gate.
 
 ```bash
-cd /home/copylearning/myaiwouldbemine-Copy-Learning-Hub
-git branch --show-current
-# 僅在本次授權包含以下檔案時暫存。
-git add GOVERNANCE.md AGENTS.md .github/PULL_REQUEST_TEMPLATE.md
-git diff --cached --check
-git diff --cached --stat
-git diff --cached -- GOVERNANCE.md AGENTS.md .github/PULL_REQUEST_TEMPLATE.md
+gh auth status
+git fetch origin
+python3 scripts/autonomous_lifecycle.py preflight --repo myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub
+python3 -m unittest discover -s scripts -p 'test_*.py'
+.venv/bin/python -m mkdocs build --strict
+git diff --check
 ```
 
-請先審閱 Staged Diff，確認範圍正確後才 Commit。保留已提交的 Plan 與修訂歷史，不將 Plan 與其實作放在同一初始提交。
+保留 main 的 strict docs-check／governance-tests、PR-only、無 bypass／force/delete 與 resolved threads；Pages 使用 GitHub Actions 來源及 main-only environment。CI 僅讀取，Pages 部署以原生 GITHUB_TOKEN／OIDC 執行，不使用額外 PAT。既有設定仍需讀回，不以文件代替權限驗證。
 
-```bash
-git commit -m "docs: align authorized governance documentation"
-```
+Install changes through a normal PR. Commit formal Plans separately before implementation and write Results afterward. A protected merge to main triggers Pages automatically. Verify the published SHA over HTTPS, archive the evidence and read it back before closing the Issue.
 
-不要直接 Push `main`。將工作分支推送至既有 Draft PR，完成適用 MkDocs strict／測試／CI、Result 與目前 head 的 Self-Review／Evidence；新 head 或 Builder 交接須依治理重新確認，不能自動沿用審查或 Human 授權。Ready、Merge 與 Deployment 仍各依有效授權辦理。
-
-## Claude Code compatibility / Claude Code 相容性
-
-```bash
-claude --version
-```
-
-新版 Claude Code 可以直接載入 `AGENTS.md`，但若有適用的專案或上層 `CLAUDE.md`，預設可能優先採用它。到 Claude Code 的 `/memory` 查看實際載入檔案；必要時使用最小 `CLAUDE.md`（唯一內容 `@AGENTS.md`）作相容性處理。
-
-## Enforcement caveat / 治理生效注意
-
-文件合併不等於 GitHub Rulesets / Branch Protection 已啟用。本文件不授權變更 GitHub Settings／權限或啟用 Auto-Merge；如需變更，另依 L3 具體授權辦理。Merge 須另有操作授權；Pages 只有手動入口且 Deployment 需獨立授權。
+關閉 App 不承諾繼續工程；已送出的 CI／Pages 工作可完成。重啟後讀取 Issue／留言、PR、head／base、CI、部署及歸檔證據再恢復。中斷與回復步驟見操作手冊；不重複 Merge、不提早 Close。

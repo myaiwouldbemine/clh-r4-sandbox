@@ -1,0 +1,13 @@
+# Historical implementation is preserved in Git at bb577319ba003f3b92ef4fc7cf0cd717e8315cac.
+# On-demand engineering runs in the active local Builder session.
+name: Issue Agent (disabled)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  disabled:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Disabled; use the documented local on-demand lifecycle.'

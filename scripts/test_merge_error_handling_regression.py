@@ -149,43 +149,9 @@ fi
         self.assertNotIn("secret", proc.stdout, "Token should not leak in output")
 
 
-class PermissionsWorkflowRequirementsTests(unittest.TestCase):
-    """Test workflow permissions configuration."""
-
-    def test_workflow_file_has_contents_write(self):
-        """Test that workflow has contents: write permission."""
-        workflow_path = "./.github/workflows/merge-and-close-pr.yml"
-        self.assertTrue(os.path.exists(workflow_path), f"Workflow file not found: {workflow_path}")
-
-        with open(workflow_path, 'r') as f:
-            content = f.read()
-
-        self.assertIn('contents: write', content, "Workflow must have 'contents: write' permission")
-
-    def test_workflow_permissions_sufficient(self):
-        """Test that all required permissions are present."""
-        workflow_path = "./.github/workflows/merge-and-close-pr.yml"
-        with open(workflow_path, 'r') as f:
-            content = f.read()
-
-        required_perms = ['contents: write', 'pull-requests: write', 'issues: write']
-        for perm in required_perms:
-            self.assertIn(perm, content, f"Workflow missing required permission: {perm}")
-
-    def test_merge_api_endpoint_requirement(self):
-        """
-        Document that GitHub REST Merge Pull Request API endpoint
-        PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge
-        requires Contents: write permission.
-        """
-        # This is a documentation test - verify the requirement is met
-        workflow_path = "./.github/workflows/merge-and-close-pr.yml"
-        with open(workflow_path, 'r') as f:
-            content = f.read()
-
-        self.assertIn('contents: write', content,
-            "GitHub Merge API endpoint requires contents: write permission")
-
+# Issue #20 replaces the shell executor and its static GITHUB_TOKEN permission
+# assertions. Runtime API-denial and no-later-mutation tests now live in
+# test_autonomous_lifecycle.py; historical shell error regressions stay below.
 
 class ErrorHandlingIntegrationTests(unittest.TestCase):
     """Integration tests for the complete error handling chain."""
@@ -280,18 +246,6 @@ fi
         self.assertEqual(proc_new.returncode, 1, "Fixed pattern properly detects error")
         self.assertIn("Error caught", proc_new.stdout, "Error is properly handled")
 
-    def test_permissions_and_error_handling_together(self):
-        """Verify both fixes are present in the workflow."""
-        workflow_path = "./.github/workflows/merge-and-close-pr.yml"
-
-        with open(workflow_path, 'r') as f:
-            content = f.read()
-
-        # Check both fixes are present
-        self.assertIn('contents: write', content, "Fix 1: Permission upgrade present")
-        self.assertTrue(
-            'if merge_api_result=$(gh api' in content or 'if merge_api_result=$(' in content,
-            "Fix 2: Conditional assignment error handling present")
 
 
 if __name__ == '__main__':
