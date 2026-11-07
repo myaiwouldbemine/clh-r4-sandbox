@@ -71,6 +71,25 @@ class LifecycleTests(unittest.TestCase):
     def assert_no_merge(self, fake):
         self.assertFalse(any(method=='PUT' for _,method,_ in fake.calls))
         self.assertEqual(fake.issue['state'],'open')
+    def test_deployment_effective_rules_and_local_bypass_visibility(self):
+        rules = [dict(type=t, ruleset_id=1) for t in ('deletion','non_fast_forward')]
+        rules += [dict(type='pull_request', ruleset_id=1, parameters={'required_review_thread_resolution':True}),
+                  dict(type='required_status_checks', ruleset_id=1, parameters={'strict_required_status_checks_policy':True,
+                       'required_status_checks':[{'context':n} for n in ('docs-check','governance-tests')]})]
+        class Rules:
+            def get(self, path):
+                if path == 'rules/branches/main': return rules
+                if path == 'rulesets/1': return {}
+                raise Blocked('Unavailable')
+        gh = Rules()
+        protection(gh, deployment=True)
+        with self.assertRaisesRegex(Blocked, 'bypass state unavailable'):
+            protection(gh)
+        rules[-1]['parameters']['strict_required_status_checks_policy'] = False
+        with self.assertRaises(Blocked): protection(gh, deployment=True)
+        rules.clear()
+        with self.assertRaises(Blocked): protection(gh, deployment=True)
+
     def test_non_site_full_sequence_and_duplicate(self):
         f=Fake(); process(f,21); process(f,21)
         self.assertEqual(f.issue['state'],'closed')

@@ -37,7 +37,7 @@ jobs:
           sha = os.environ['GITHUB_SHA']
           require(sha == os.environ['EXPECTED_SHA'], 'Dispatch SHA changed')
           require(gh.get('git/ref/heads/main')['object']['sha'] == sha, 'Main advanced before deployment')
-          protection(gh)
+          protection(gh, deployment=True)
           prs = gh.pages(f'commits/{sha}/pulls')
           applicable = any(p['merged_at'] and p['merge_commit_sha'] == sha and
                            metadata(p['body'])['deployment'] for p in prs)

@@ -78,14 +78,17 @@ def metadata(body):
     return data
 
 
-def protection(gh):
+def protection(gh, *, deployment=False):
     """Require native enforcement; never activate based on a markdown assertion."""
     rules = gh.get('rules/branches/main')
     types = {rule['type']: rule for rule in rules}
     if {'pull_request', 'required_status_checks', 'non_fast_forward', 'deletion'} <= types.keys():
-        for rule_id in {r['ruleset_id'] for r in rules if 'ruleset_id' in r}:
-            configured = gh.get(f'rulesets/{rule_id}')
-            require('bypass_actors' in configured and not configured['bypass_actors'], 'Ruleset bypass state unavailable or configured')
+        # Actions verifies effective enforcement only; the local Builder must
+        # separately verify full settings, including the non-public bypass list.
+        if not deployment:
+            for rule_id in {r['ruleset_id'] for r in rules if 'ruleset_id' in r}:
+                configured = gh.get(f'rulesets/{rule_id}')
+                require('bypass_actors' in configured and not configured['bypass_actors'], 'Ruleset bypass state unavailable or configured')
         params = types['required_status_checks']['parameters']
         checks = {row['context'] for row in params['required_status_checks']}
         require(REQUIRED <= checks and params.get('strict_required_status_checks_policy'), 'Strict native checks required')
