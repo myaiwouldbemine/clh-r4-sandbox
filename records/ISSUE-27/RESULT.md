@@ -17,7 +17,7 @@ Accountable Builder: Claude Code. Plan commit e41102f precedes implementation. F
 | RAW_DATA not committed | PASS. `git ls-files RAW_DATA` lists only RAW_DATA/README.md |
 | Merge / Deployment / Archive / Closure | PENDING at this commit; recorded in Issue archive comment |
 
-## Deviations
+## Evidence and deviations
 First branch/PR #28 was superseded: its initial Plan lacked required headings and force push is prohibited, so work was rebuilt on a new branch with a complete Plan commit first.
 
 ## Unfinished
