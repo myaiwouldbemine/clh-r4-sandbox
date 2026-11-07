@@ -14,7 +14,7 @@ language: zh-TW
 
 - Material: `NYCU-OS-LEC08`
 - Issue: [#24](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/24)
-- PR: PR_PLACEHOLDER
+- PR: [PR 25](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/25)
 - Base SHA: `e5ed923` (main at start); source ZIP SHA-256: `d076448acbe4aef5565e2c386304f09a0fa41181a0eb11f59e3316b8dbbdd33c`
 - Scan scope: LEC08 PDF pp.1–78；NYCU_OS 歷史學習脈絡 LR03、LR04、LR05、F10、HW01、FS02
 - Scan completion: `PARTIAL`（未重新讀取全部舊教材與 NachOS repo）
