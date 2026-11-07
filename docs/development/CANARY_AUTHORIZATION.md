@@ -207,6 +207,7 @@ Revoke: stop all workflows, cancel active jobs, revoke minted tokens, delete/rev
 
 ## Individually approvable L3 checklist
 All PENDING / NOT AUTHORIZED. Each ID authorizes only that row, not subsequent dependencies. Exact later manifests/releases and named approvers must be supplied before their batch is executed.
+
 | ID | Exact proposed operation | Dependency |
 |---|---|---|
 | R1 | Create PUBLIC myaiwouldbemine/clh-review-sandbox, synthetic-only; no secrets | Confirm name/public disclosure |
