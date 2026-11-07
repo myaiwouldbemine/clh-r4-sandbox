@@ -35,7 +35,7 @@ https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/38
 Merge SHA recorded in the archive record after merge.
 
 ## Deviations
-- Plan headings were renamed in revision r1 (after implementation, heading-only) to satisfy the advisory local verifier; r0 history is preserved in afa1430.
+- Plan headings were renamed in revision r1 (after implementation, heading-only); the advisory local scripts/verify_plan_records.py still reports "Initial Plan was incomplete" because r0 (afa1430) lacked those exact headings. It is not a required CI check and r0 history is not rewritten.
 
 ## Unfinished
 Merge, Pages deployment/readback, archive and Issue closure follow.
