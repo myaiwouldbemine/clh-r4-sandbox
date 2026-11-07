@@ -21,7 +21,7 @@ Builder: Claude Code (sole). Plan: records/ISSUE-31/PLAN.md (commit 8afc795, com
 | PR CI, Pages deploy, SHA readback | PENDING |
 
 ## PR
-PENDING
+https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/32
 
 ## Commit
 Plan 8afc795; implementation see PR.
