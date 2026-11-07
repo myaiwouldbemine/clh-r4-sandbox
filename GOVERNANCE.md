@@ -1,57 +1,43 @@
-# LIGHT Governance v2 — Minimal Learning Hub
+# On-Demand Autonomous Engineering
 
-目前採用極簡治理，轉向 Claude Code Single-Builder + Self-Verification 模式。唯一 Human 管理者為 myaiwouldbemine；Claude Code 為指定 Builder。本文件是現行政策；歷史平台與 Canary 設計為 Archived / Not Active，不構成執行授權。
+On-Demand：Human myaiwouldbemine 在需要時啟動 Codex App／本機 Agent，定義 WHAT／WHY／DONE 及邊界，保留管理、需求修改及緊急停止權。工程 Agent 自主完成其餘生命週期，不使用 L0–L3，不再要求 Plan、Implementation、Ready、Merge、Deployment 或 Closure 的重複 Human Approval。Issue／PR 是記錄與追溯，不是人工審批程序。
 
-## 工作流程
-Issue → Draft PR → Plan（必要時）→ Implementation → Result（必要時）→ Review → Merge。
-Issue 說明 WHAT / WHY / DONE 與邊界。提早建立 Draft、持續執行 CI；Draft 不等於實作授權，也不能 Merge。
-Builder 依實際影響判定風險。文件不一定是 L0；教材語意修改至少 L1。風險無法判定時先釐清，不以 L0 放行。
+## 責任與教材
 
-## 風險與記錄
-| 等級 | 適用範圍 | 必要條件 |
-|---|---|---|
-| L0 | 錯字、格式等非語意修改 | 適用驗證；免強制 Plan／Result／獨立 Review |
-| L1 | 教材語意、一般程式或網站行為 | 適用驗證＋Builder Self-Review 與可追溯 Evidence |
-| L2 | 重大架構、跨科教材、重要來源鏈 | L1 條件＋事前 Plan／事後 Result＋Human 明確核准 Plan 與範圍 |
-| L3 | 權限、安全、治理控制、部署、不可逆或大量刪除 | L2 條件＋Human 對具體操作／候選變更逐項授權 |
+Claude Code 與 Codex 適用相同規範；每個工程 Issue／PR 同一時間只有一位 accountable Builder。交接記錄前後 Builder、完整 SHA、base／scope、進度、Evidence 及未解問題，接手者重新確認目前版本。
 
-L0／L1 沒有正式 Plan 時，不強制新增記錄。若自願建立正式 Plan，須保留對應 Result。
-正式 Plan 存於 records/ISSUE-<number>/PLAN.md，包含 Goal、WHY、Scope、Boundary、Risk Level、Implementation Plan、Acceptance Criteria、Verification Strategy、Human Decisions、Revision History，並連結 Issue。
-Plan 在對應實作前獨立 commit；L2／L3 必要的 Human 核准先於實作。不得回填假裝事前規劃。
-實作後更新同目錄 RESULT.md，記錄 Results、Evidence、PR、Commit、Deviations、Unfinished。未執行寫 NOT RUN，外部檢查待定寫 PENDING。
+ChatGPT＋Human 擁有 V2 Knowledge Consolidation、V3 Code-First Deep Dive 的教材創作、推導、語義品質、核准與最終整合權。V2／V3 製作時分開、定稿時合併、網站依主題呈現。工程 Agent 僅忠實匯入已核准教材，處理排版、工程、測試與部署；未核准教材語義標記 PENDING／BLOCKED。工程自主權不等於教材創作權。Learning Record 可逐步留言，不必對應工程 PR；CI／Merge／結案都不代表學習掌握。
 
-## Formal Plan 的發佈與核准
-Formal Plan Draft 與所有修訂版本保存於 `records/ISSUE-<number>/` 並保留完整 Git 歷史。Human 透過固定 Commit SHA 審閱、評論及核准 Plan。
-只有 Human 明確核准的 Plan 才可發佈至 GitHub Issue Timeline；Approved Plan 留言應包含版本、Commit SHA、Records 連結、Scope 摘要、Human Approval 參考與狀態。
-Approved Plan 發佈後須完成 Remote Readback 驗證，確認 Repository Records 與 Issue Timeline 內容一致、相互連結。
-Plan Approval、Implementation Authorization、Ready、Merge 與 Deployment 是獨立且不同的授權決策。不自動推定前一決策涵蓋後續決策。
+## 工程流程與記錄
 
-## Self-Review 與 Verification
-Claude Code Builder 負責 Investigation、Plan、Implementation、Self-Review、Tests、Evidence、Result 與 Readback。
-Self-Review 須以可追溯 Evidence 支持，包含 Claim、Source、Method、Evidence 及 Commit SHA 之清單；不宣稱此為獨立 Review。
-L1–L3 若無法提供必要證據或判定仍有高風險，可按 Risk 選用 Fresh-Context Challenge：由 Claude Code 評估必要性、記錄執行或不執行的理由；Human 明確指定時不得略過。Fresh-Context 非 Agent Handoff 或新治理平台，僅為補充驗證機制。
-新 head 必須重新確認 Self-Review；base 或範圍改變須評估影響並重新自審，未確認前不能沿用舊結果。
+Issue → Investigation → 必要 Plan → Draft PR／Implementation → Tests → Self-Review／Evidence → Ready → Merge → 適用 Pages Deployment／Readback → Archive／Readback → Close。
 
-三種證據不得互相冒充：
-- Self-Review Summary／Evidence List：Builder 自審輸出，應列舉實際操作步驟、證據連結與結論；不宣稱已獲獨立 Review。
-- GitHub 原生 Review：GitHub 的 APPROVED／CHANGES_REQUESTED 等狀態；不是 Human 授權。
-- Human Approval：唯一管理者對 L2 Plan 或 L3 具體操作的明確核准；不是 Bot 結果。
+提早建立 Draft。必要 Plan 放在 records/ISSUE-<number>/PLAN.md，實作前獨立 commit；有 Plan 就於實作後寫 RESULT.md。Plan 記錄目標、理由、範圍、邊界、步驟、驗收、驗證與修訂，不是等待核准。完整 Git 歷史與舊 Records 不改寫。
 
-不強制 Self-Review 報告必須轉成原生 APPROVED，也不要求 Attestation、Registry、第二位 Human、新 App、Control Plane 或簽章服務。現有流程沒有可信 Agent 身分自動驗證，必須如實說明審查範圍與限制。
+Builder 記錄實際工作、完整 reviewed head／base SHA、Issue 範圍、Claim／Source／Method／Evidence、發現與結論。Self-Review／CI 不冒充獨立人工審查、原生 Review 或可信身分驗證。Fresh-Context Challenge 可依需要選用，記錄理由；Human 明確要求則執行，不要求每日審查或第二位 Human。
 
-## 驗證與 Merge
-執行適用測試與 CI；網站建置使用 MkDocs strict。Build、教材內容／來源／授權與視覺驗證分開記錄。
-適用檢查失敗、缺失、pending、skipped、cancelled、證據過期、未解決的阻擋 Review／評論／Thread，或必要授權／記錄缺少，皆禁止 Merge。CI 成功不代表 Review 或授權完成。
-必要實作、驗證與 Result 完成後才可提出 Ready；是否切換 PR 狀態依各 PR 的任務邊界及有效授權。
-只有非 Draft、適用驗證與 Review 完成、阻擋問題已解決、範圍與授權有效時，才由具備權限且已獲操作授權的執行者 Merge。L1 不要求 Human 逐次內容核准；Merge 操作權限與內容核准分開。
-本政策不授權啟用 Auto-Merge、不新增 merge executor，也不假定上述條件已由 GitHub 自動強制。不得 bypass 現有保護、force push 或直接 push main。
-重大範圍／風險變動須重新評估 Plan、Review 與 Human 授權，必要時回到 Draft。
+## 自主 Merge
 
-## Rollback 與部署
-以 revert PR 回復錯誤變更，保留原始記錄並執行適用驗證／審查；不 reset／force push main。重大回復或緊急操作由 Human 明確授權。
-Merge 不代表部署授權。Pages 僅有手動入口，執行仍需另行授權；不要求合併前先部署同一 commit。
-Issue 只在範圍完成、必要證據完整且已授權合併後結案；未完成的工作繼續標示 pending／blocked。
+完成實作、適用測試、Self-Review、Evidence 與必要 Result 後自主 Ready。所有必要 CI 成功、目前 head／base 自審有效、無衝突／未解阻擋、範圍符合 Issue，才以精確 head SHA 合併。新 head 或 base 必須重新驗證與自審。缺失、失敗、pending、skipped、cancelled 或 stale 的必要證據禁止放行。CI 不能自動證明語義符合 Issue，仍由 Builder 負責。
 
-## 輕量工具與歷史
-scripts/merge_lifecycle.py 是本地條件檢查輔助，不是身分驗證或 Merge 服務；scripts/verify_plan_records.py 只檢查記錄結構與 Git 順序。使用者提供的分類與事實仍須人工／Agent 核對。
-舊平台原型與專屬測試移至 archive/governance-platform/，不參與正常 CI。歷史 PLAN／RESULT、Canary JSON、Issue／PR 證據保留；C3–C5 與後續平台工作停止，既有資源不在本次修改。
+遵守 Branch Protection／Rulesets／Required Checks，不直接 push main、force push 或 bypass。不需原生 APPROVED 或 Human 逐 PR 核准；不得偽裝已滿足既有 GitHub 強制限制。
+
+## 自主部署、歸檔與結案
+
+網站發布使用 strict MkDocs 及正式 GitHub Pages，保存 deployment SHA、Workflow URL、結果及遠端 SHA 讀回。非網站任務依實際條件完成，不強制無關部署。Build、教材、來源、視覺及部署分開報告；Merge 不等於部署成功。
+
+Merge、Deployment、Archive、Closure 各有獨立結果。必要工程與部署驗證完成後，Evidence 歸檔並讀回成功才結案；歸檔或部署失敗保持 Issue open。PR 不使用 GitHub 自動結案關鍵字。重試已 Merge 的任務要沿用 merge SHA，不再 Merge；重複事件不能錯誤結案。
+
+## 失敗、安全、啟用與回復
+
+失敗即停止受影響操作並留下 Blocker Evidence；Agent 在既有權限內自主修正、有限重試，不要求一般修正逐項核准。不得任意擴張 Token 權限、未授權讀取或外洩 Secrets。
+
+實作與啟用分開驗證；只有本機執行環境、既有 gh auth 權限、CI、main 保護、重試及回復路徑確認後才正式啟用。正常流程不需額外 OPENAI_API_KEY／CLH_AUTOMATION_TOKEN；App 登入與 GitHub 登入分開驗證。沒有 hosted Issue Agent、排程工程或背景 Merge；關閉 App 後停止工程，已送出的 CI／Pages 可完成，重啟時讀回遠端狀態並重新自審，不重複 Merge。技術條件缺少時如實 BLOCKED；本機停止操作及必要時取消已送出的 Pages 工作即可停止新動作；不需要自動化啟用變數或每個 Issue 的核准 Token。需要管理員才能完成的設定列明精確操作，不假裝已完成。詳見 INSTALL.md 與 docs/development/AUTONOMOUS_OPERATIONS.md。
+
+回復用適用測試及自審的 revert PR，保留歷史，不 reset／force push main。Human 可主動停止任務或調整需求。
+
+## 歷史與範圍
+
+不新增 Approval Token、Trusted Reviewer、Attestation、Registry、Control Plane 或新治理平台。Archived 設計與歷史 Records 僅為證據；C3–C5 及後續平台工作仍停止。Issue #18／PR #19 的 Plan、雙語化、Result 與證據不被此遷移覆寫。
+
+政策描述目標與責任；實際啟用狀態以 Issue #20 Result／E2E 和 GitHub 設定證據為準，不能由 Markdown 推定已上線。

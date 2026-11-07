@@ -1,0 +1,43 @@
+candidate/candidate.bundle is okay
+The bundle contains this ref:
+57de6cba78d444c23d5dff36be3caeb40399d039 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+.candidate/candidate.bundle is okay
+The bundle contains this ref:
+57de6cba78d444c23d5dff36be3caeb40399d039 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+To /tmp/tmpecvozxt6/origin.git
+ * [new branch]      codex/issue-20 -> codex/issue-20
+candidate/candidate.bundle is okay
+The bundle contains this ref:
+57de6cba78d444c23d5dff36be3caeb40399d039 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+Everything up-to-date
+.Switched to a new branch 'codex/issue-20'
+[codex/issue-20 1658c03] CLH agent attempt 1 for Issue 20
+.candidate/candidate.bundle is okay
+The bundle contains this ref:
+8030ea40a266150627a82a1c97f046a28002495c refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+To /tmp/tmppt39d928/origin.git
+ * [new branch]      codex/issue-20 -> codex/issue-20
+.Switched to a new branch 'codex/issue-20'
+..................................usage: python3 -m unittest [-h] [--repo REPO] [--pr PR] [--head HEAD]
+                           [--base BASE] [--sha SHA] [--run-id RUN_ID]
+                           {check,run,deployment,preflight}
+python3 -m unittest: error: argument command: invalid choice: 'reconcile' (choose from 'check', 'run', 'deployment', 'preflight')
+......
+----------------------------------------------------------------------
+Ran 44 tests in 0.693s
+
+OK

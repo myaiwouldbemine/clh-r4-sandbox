@@ -1,0 +1,38 @@
+Command: python3 -m unittest discover -s scripts -p test_*.py
+Exit: 0
+The bundle contains this ref:
+bacb1edeece680c73311621caa7528d2d759aa06 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+The bundle contains this ref:
+bacb1edeece680c73311621caa7528d2d759aa06 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+The bundle contains this ref:
+bacb1edeece680c73311621caa7528d2d759aa06 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+The bundle contains this ref:
+d0ddbb8e343f32778b2fc16b23d70dbb4cf40633 refs/heads/codex/issue-20
+The bundle records a complete history.
+The bundle uses this hash algorithm: sha1
+candidate/candidate.bundle is okay
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+.candidate/candidate.bundle is okay
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+To /tmp/tmpj9e7_hmy/origin.git
+ * [new branch]      codex/issue-20 -> codex/issue-20
+candidate/candidate.bundle is okay
+Everything up-to-date
+.candidate/candidate.bundle is okay
+From candidate/candidate.bundle
+ * [new branch]      codex/issue-20 -> codex/issue-20
+To /tmp/tmp_tvqm564/origin.git
+ * [new branch]      codex/issue-20 -> codex/issue-20
+.................................................
+----------------------------------------------------------------------
+Ran 51 tests in 2.555s
+
+OK

@@ -1,0 +1,30 @@
+applicability	Run python - <<'PYCODE'	﻿2026-11-07T04:13:48.8941709Z ##[group]Run python - <<'PYCODE'
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8942342Z [36;1mpython - <<'PYCODE'[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8942828Z [36;1mimport os, sys[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8943286Z [36;1msys.path.insert(0, 'scripts')[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8943984Z [36;1mfrom autonomous_lifecycle import GitHub, metadata, require, protection[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8944763Z [36;1mgh = GitHub(os.environ['GITHUB_REPOSITORY'])[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8945648Z [36;1msha = os.environ['GITHUB_SHA'][0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8946291Z [36;1mrequire(sha == os.environ['EXPECTED_SHA'], 'Dispatch SHA changed')[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8947198Z [36;1mrequire(gh.get('git/ref/heads/main')['object']['sha'] == sha, 'Main advanced before deployment')[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8947954Z [36;1mprotection(gh)[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8948436Z [36;1mprs = gh.pages(f'commits/{sha}/pulls')[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8949113Z [36;1mapplicable = any(p['merged_at'] and p['merge_commit_sha'] == sha and[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8949875Z [36;1m                 metadata(p['body'])['deployment'] for p in prs)[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8950680Z [36;1mrequire(applicable, 'No merged PR requiring deployment for this SHA')[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8951424Z [36;1mwith open(os.environ['GITHUB_OUTPUT'], 'a') as f:[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8952075Z [36;1m    f.write(f'deploy={str(applicable).lower()}\n')[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8952621Z [36;1mPYCODE[0m
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8974143Z shell: /usr/bin/bash -e {0}
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8974634Z env:
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8978359Z   GH_TOKEN: ***
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8978850Z   EXPECTED_SHA: efbec1377e4288727cb775512e7e83060226c846
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:48.8979420Z ##[endgroup]
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:50.1316846Z Traceback (most recent call last):
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:50.1318030Z   File "<stdin>", line 8, in <module>
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:50.1320245Z   File "/home/runner/work/clh-lifecycle-e2e-20261107-phase-a/clh-lifecycle-e2e-20261107-phase-a/scripts/autonomous_lifecycle.py", line 88, in protection
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:50.1323506Z     require('bypass_actors' in configured and not configured['bypass_actors'], 'Ruleset bypass state unavailable or configured')
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:50.1327214Z   File "/home/runner/work/clh-lifecycle-e2e-20261107-phase-a/clh-lifecycle-e2e-20261107-phase-a/scripts/autonomous_lifecycle.py", line 22, in require
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:50.1329546Z     raise Blocked(message)
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:50.1330776Z autonomous_lifecycle.Blocked: Ruleset bypass state unavailable or configured
+applicability	Run python - <<'PYCODE'	2026-11-07T04:13:50.1459330Z ##[error]Process completed with exit code 1.

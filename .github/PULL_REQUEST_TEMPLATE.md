@@ -1,34 +1,24 @@
 ## Purpose
 Issue: #
-What / why / scope:
+WHAT / WHY / DONE / boundary:
+Accountable Builder:
 
-## Risk and change
-L0 / L1 / L2 / L3, with actual-impact reason:
-Builder:
+## Implementation and verification
+Actual work / applicable tests / CI / Evidence:
+Build / content / provenance / visual / deployment (separate results):
+Plan commit / Result (when applicable):
 Rollback:
 
-## Verification
-Commands, results and evidence (PENDING / NOT RUN when applicable):
-Content / provenance / visual checks, if applicable:
+## Self-Review
+Reviewed full head and base SHA:
+Claim / Source / Method / Evidence / findings / verdict:
+Scope alignment / unresolved blockers:
+Fresh-Context Challenge used or omitted, with reason:
+Handoff (when applicable): outgoing/incoming Builder, SHA, progress, evidence, unresolved issues.
 
-## Self-Review and Evidence
-Builder Self-Review procedure and Evidence:
-Claim / Source / Method / Evidence checklist / Commit SHA:
+## Lifecycle
+Keep Draft until implementation and applicable verification complete.
+Do not use auto-closing keywords: closure follows applicable deployment and archive readback.
+The Builder adds the machine-readable lifecycle block documented in AUTONOMOUS_OPERATIONS.md after current-head Self-Review. It is engineering evidence, not Human approval or proof of independent review.
 
-Fresh-Context Challenge (if applicable):
-Risk assessment / execution reason or rationale for omission:
-
-## Human Approval
-L2 Plan approval reference:
-L3 specific action/scope authorization reference:
-
-## Records / authorization (only if applicable)
-Plan / pre-implementation commit:
-Result / deviations / unfinished:
-Human L2 Plan or L3 specific action/scope approval reference:
-Delete this section for L0/L1 without a formal Plan.
-
-## Status
-Outstanding checks / blockers / material changes:
-Keep Draft while incomplete. Merge needs separate operation authority and all applicable conditions.
-Merge does not authorize deployment.
+On-demand execution: active local Builder session; no hosted model or scheduled merge. Record interruption/recovery state and bounded retry evidence. Normal App/gh sign-in requires no additional model/automation token.

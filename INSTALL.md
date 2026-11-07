@@ -1,43 +1,20 @@
-# CLH Governance v1.1 — Installation / 安裝說明
+# On-Demand Autonomous Engineering｜按需自主工程
 
-此套件準備放入目前的 `feat/CLH-001-project-bootstrap` 分支，並透過 PR 合併；不會自行修改 GitHub。
+閱讀 [GOVERNANCE.md](GOVERNANCE.md)、[完整雙語 AGENTS.md](AGENTS.md) 與 [操作手冊](docs/development/AUTONOMOUS_OPERATIONS.md)。Human + ChatGPT 規劃教材／建立 Issue，Human 在需要時啟動 Codex App；單一 Builder 自主處理工程與符合 Gate 的生命週期，不需 Human 日常 Merge 或重複批准。
 
-## Files / 檔案
-
-- `GOVERNANCE.md` — 雙語 PR 政策（含對等 Agent 與 Merge 授權）
-- `AGENTS.md` — Claude Code / Codex 共用的精簡執行規則
-- `.github/PULL_REQUEST_TEMPLATE.md` — 雙語 PR 驗收表
-
-## Apply / 套用
-
-在 WSL 專案根目錄、正確 Feature Branch 上，將檔案複製到對應路徑（不要複製 `INSTALL.md` 也可以）：
+Use the existing Codex App sign-in for model access and existing `gh auth` for GitHub. They are separate logins. No extra `OPENAI_API_KEY`, `CLH_AUTOMATION_TOKEN`, activation variable, resident service or hosted model runner is required. Never copy App/gh credentials into Actions or expand privileges to pass a gate.
 
 ```bash
-cd /home/copylearning/myaiwouldbemine-Copy-Learning-Hub
-git branch --show-current
-# Copy the 3 files into the repository while preserving .github/ path.
-git add GOVERNANCE.md AGENTS.md .github/PULL_REQUEST_TEMPLATE.md
-git diff --cached --check
-git diff --cached --stat
-git diff --cached -- GOVERNANCE.md AGENTS.md .github/PULL_REQUEST_TEMPLATE.md
+gh auth status
+git fetch origin
+python3 scripts/autonomous_lifecycle.py preflight --repo myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub
+python3 -m unittest discover -s scripts -p 'test_*.py'
+.venv/bin/python -m mkdocs build --strict
+git diff --check
 ```
 
-請先審閱 Staged Diff，確認內容正確後才 Commit。若前次 Governance 尚未 Commit，可一次提交三份文件；若已 Commit，可另外建立政策升級 Commit，保留歷史。
+保留 main 的 strict docs-check／governance-tests、PR-only、無 bypass／force/delete 與 resolved threads；Pages 使用 GitHub Actions 來源及 main-only environment。CI 僅讀取，Pages 部署以原生 GITHUB_TOKEN／OIDC 執行，不使用額外 PAT。既有設定仍需讀回，不以文件代替權限驗證。
 
-```bash
-git commit -m "docs: adopt bilingual PR governance and shared agent instructions"
-```
+Install changes through a normal PR. Commit formal Plans separately before implementation and write Results afterward. Issue #20 / PR #21 remains a Draft candidate: current revision forbids Merge/Deploy/Close, so complete live lifecycle acceptance is BLOCKED. Historical missing-key records describe the previous hosted architecture and remain unchanged. Current evidence is in new ON-DEMAND-REVISION records.
 
-不要直接 Push `main`。在 CLH-001 Feature Branch 完成 MkDocs / CI 後，再 Push Branch 建立 PR。
-
-## Claude Code compatibility / Claude Code 相容性
-
-```bash
-claude --version
-```
-
-新版 Claude Code 可以直接載入 `AGENTS.md`，但若有適用的專案或上層 `CLAUDE.md`，預設可能優先採用它。到 Claude Code 的 `/memory` 查看實際載入檔案；必要時使用最小 `CLAUDE.md`（唯一內容 `@AGENTS.md`）作相容性處理。
-
-## Enforcement caveat / 治理生效注意
-
-文件合併不等於 GitHub Rulesets / Branch Protection 已啟用。須在 GitHub Settings 額外設定，且 Required Check 應在 CI 第一次實際運行後再指定。Agent Merge 須另有使用者授權。
+關閉 App 不承諾繼續工程；已送出的 CI／Pages 工作可完成。重啟後讀取 Issue／留言、PR、head／base、CI、部署及歸檔證據再恢復。中斷與回復步驟見操作手冊；不重複 Merge、不提早 Close。

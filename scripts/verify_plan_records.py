@@ -1,34 +1,42 @@
-"""Read-only Git record verifier. Local assistance only; caller must assess risk and whether a formal Plan exists.
-Usage: python scripts/verify_plan_records.py BASE HEAD ISSUE RISK [--formal-plan]
+"""Read-only Git record verifier. Local assistance only; caller decides whether a formal Plan is needed.
+Usage: python scripts/verify_plan_records.py BASE HEAD ISSUE [--formal-plan]
 This is a local verifier, not a production authorization/merge service.
 """
 import argparse
 import subprocess
 from pathlib import PurePosixPath
 
-FIELDS = ("goal", "why", "scope", "boundary", "risk level", "implementation plan",
-          "acceptance criteria", "verification strategy", "human decisions", "revision history")
+FIELDS = ("goal", "why", "scope", "boundary", "implementation plan",
+          "acceptance criteria", "verification strategy", "revision history")
 RESULT_FIELDS = ("results", "evidence", "pr", "commit", "deviations", "unfinished")
 
 def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip()
 
-def verify(base, head, issue, risk, formal_plan=False):
-    if type(risk) is not int or risk not in range(4):
-        raise ValueError("unknown risk")
+def plan_fields_present(body, revision=False):
+    # Named architecture revisions may use an E2E acceptance heading for DONE.
+    return all(field in body or (revision and field == "acceptance criteria" and "e2e acceptance" in body)
+               for field in FIELDS)
+
+
+def verify(base, head, issue, formal_plan=False, record_prefix=""):
+    if type(issue) is not int or issue <= 0:
+        raise ValueError("invalid issue")
     # Validate revisions as commit objects before using them in Git expressions.
     base = git("rev-parse", "--verify", base + "^{commit}")
     head = git("rev-parse", "--verify", head + "^{commit}")
     git("merge-base", "--is-ancestor", base, head)
+    if record_prefix and (not record_prefix.endswith("-") or not all(c.isupper() or c.isdigit() or c == "-" for c in record_prefix)):
+        raise ValueError("invalid record prefix")
     prefix = f"records/ISSUE-{issue}/"
-    plan, result = prefix + "PLAN.md", prefix + "RESULT.md"
+    plan, result = prefix + record_prefix + "PLAN.md", prefix + record_prefix + "RESULT.md"
     files = git("ls-tree", "-r", "--name-only", head).splitlines()
-    required = formal_plan or risk >= 2 or plan in files
+    required = formal_plan or plan in files
     if not required:
-        return "NOT REQUIRED: no formal plan; risk below L2"
+        return "NOT REQUIRED: no formal plan"
     assert plan in files and result in files, "Plan and Result are required"
     body = git("show", f"{head}:{plan}").lower()
-    assert all(field in body for field in FIELDS), "Missing Plan fields"
+    assert plan_fields_present(body, bool(record_prefix)), "Missing Plan fields"
     assert f"/issues/{issue}" in body, "Plan must link the Issue"
     output = git("show", f"{head}:{result}").lower()
     assert all(field in output for field in RESULT_FIELDS), "Missing Result fields"
@@ -43,7 +51,7 @@ def verify(base, head, issue, risk, formal_plan=False):
         assert prior_plan or not implementation, "Implementation precedes Plan commit"
         if not prior_plan and plan in changed:
             initial = git("show", f"{commit}:{plan}").lower()
-            assert all(field in initial for field in FIELDS), "Initial Plan was incomplete"
+            assert plan_fields_present(initial, bool(record_prefix)), "Initial Plan was incomplete"
             assert f"/issues/{issue}" in initial, "Initial Plan lacked Issue link"
             prior_plan = True
     assert prior_plan, "No traceable Plan commit"
@@ -52,7 +60,8 @@ def verify(base, head, issue, risk, formal_plan=False):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("base"); p.add_argument("head")
-    p.add_argument("issue", type=int); p.add_argument("risk", type=int, choices=range(4))
+    p.add_argument("issue", type=int)
     p.add_argument("--formal-plan", action="store_true")
+    p.add_argument("--record-prefix", default="")
     a = p.parse_args()
-    print(verify(a.base, a.head, a.issue, a.risk, a.formal_plan))
+    print(verify(a.base, a.head, a.issue, a.formal_plan, a.record_prefix))
