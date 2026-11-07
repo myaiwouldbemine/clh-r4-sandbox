@@ -45,6 +45,7 @@ class Fake:
                         required_conversation_resolution={'enabled':True})
         if '/check-runs?' in path: return {'check_runs':self.checks}
         if path == 'pulls/21/merge' and method == 'PUT':
+            self.base = MERGE
             self.pr.update(merged=True, state='closed', merge_commit_sha=MERGE)
             return {'merged':True,'sha':MERGE}
         if path == 'issues/20/comments' and method == 'POST':
