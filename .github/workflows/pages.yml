@@ -1,5 +1,7 @@
 name: Deploy GitHub Pages
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       expected_sha:
@@ -18,8 +20,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    outputs:
-      deploy: ${{ steps.check.outputs.deploy }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,22 +32,13 @@ jobs:
           python - <<'PYCODE'
           import os, sys
           sys.path.insert(0, 'scripts')
-          from autonomous_lifecycle import GitHub, metadata, require, protection
+          from autonomous_lifecycle import GitHub, publication_check
           gh = GitHub(os.environ['GITHUB_REPOSITORY'])
-          sha = os.environ['GITHUB_SHA']
-          require(sha == os.environ['EXPECTED_SHA'], 'Dispatch SHA changed')
-          require(gh.get('git/ref/heads/main')['object']['sha'] == sha, 'Main advanced before deployment')
-          protection(gh, deployment=True)
-          prs = gh.pages(f'commits/{sha}/pulls')
-          applicable = any(p['merged_at'] and p['merge_commit_sha'] == sha and
-                           metadata(p['body'])['deployment'] for p in prs)
-          require(applicable, 'No merged PR requiring deployment for this SHA')
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-              f.write(f'deploy={str(applicable).lower()}\n')
+          publication_check(gh, os.environ['GITHUB_SHA'], os.environ['GITHUB_EVENT_NAME'],
+                            os.environ.get('EXPECTED_SHA'))
           PYCODE
   build:
     needs: applicability
-    if: needs.applicability.outputs.deploy == 'true' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,12 +59,17 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Confirm current main before publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)" = "$GITHUB_SHA"
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

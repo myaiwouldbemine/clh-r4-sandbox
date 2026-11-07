@@ -68,7 +68,10 @@ class OnDemandTests(unittest.TestCase):
 
     def test_deployed_bytes_mismatch_blocks(self):
         with patch('autonomous_lifecycle.urllib.request.urlopen') as request:
-            request.return_value.__enter__.return_value.read.return_value=b'wrong'
+            response = request.return_value.__enter__.return_value
+            response.status = 200
+            response.geturl.return_value = 'https://example.invalid/'
+            response.read.return_value=b'wrong'
             with self.assertRaisesRegex(Blocked,'SHA mismatch'):
                 read_deployed_sha('https://example.invalid/',MERGE)
             request.return_value.__enter__.return_value.read.return_value=MERGE.encode()
@@ -103,10 +106,10 @@ class OnDemandTests(unittest.TestCase):
             for forbidden in ('schedule:', 'workflow_run:', 'secrets.', 'issues:', 'contents: write'):
                 self.assertNotIn(forbidden,text)
         pages=Path('.github/workflows/pages.yml').read_text()
-        for forbidden in ('CLH_AUTOMATION_TOKEN','OPENAI_API_KEY','CLH_AUTONOMY_ENABLED','  push:'):
+        for forbidden in ('CLH_AUTOMATION_TOKEN','OPENAI_API_KEY','CLH_AUTONOMY_ENABLED'):
             self.assertNotIn(forbidden,pages)
         self.assertIn('expected_sha:',pages)
-        self.assertIn('Dispatch SHA changed',pages)
+        self.assertIn('push:\n    branches: [main]',pages)
 
     def test_hosted_publisher_cli_disabled(self):
         p=subprocess.run(['python3','scripts/agent_job.py','publish','20'],capture_output=True,text=True)

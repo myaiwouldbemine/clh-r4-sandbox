@@ -247,19 +247,53 @@ def process(gh, number, *, expected_head=None, expected_base=None, check_only=Fa
         deployment = {'status': 'NOT RUN', 'reason': 'Not applicable to this task'}
     require(gh.get(f'issues/{m["issue"]}') == issue, 'Issue changed before archive')
     require(gh.get(f'pulls/{number}')['body'] == pr['body'], 'PR evidence changed before archive')
+    if m['deployment']:
+        current_main(gh, pr['merge_commit_sha'])
     archive_close(gh, pr, m, deployment)
 
 
+def current_main(gh, sha):
+    require(bool(SHA.fullmatch(sha)) and gh.get('git/ref/heads/main')['object']['sha'] == sha,
+            'Deployment SHA is no longer main')
+
+
+def publication_metadata(gh, sha):
+    prs = [p for p in gh.pages(f'commits/{sha}/pulls')
+           if p['merged_at'] and p['merge_commit_sha'] == sha and p['base']['ref'] == 'main'
+           and p['base']['repo']['full_name'] == gh.repo]
+    require(len(prs) == 1, 'Expected one merged main PR for deployment SHA')
+    pr = prs[0]
+    if not re.search(r'<!--\s*clh-lifecycle', pr['body'] or '', re.I):
+        return None
+    m = metadata(pr['body'])
+    require(pr['head']['repo']['full_name'] == gh.repo and m['head'] == pr['head']['sha'],
+            'Lifecycle PR head or source mismatch')
+    parents = gh.get(f'git/commits/{sha}')['parents']
+    require([p['sha'] for p in parents] == [m['base'], m['head']], 'Reviewed merge parents differ')
+    return m
+
+
+def publication_check(gh, sha, event, expected_sha):
+    require(event in ('push', 'workflow_dispatch'), 'Unsupported publication event')
+    if event == 'workflow_dispatch':
+        require(sha == expected_sha, 'Dispatch SHA changed')
+    current_main(gh, sha)
+    protection(gh, deployment=True)
+    publication_metadata(gh, sha)
+
+
 def deployment_verified(gh, sha, run_id):
-    require(bool(SHA.fullmatch(sha)), 'Invalid deployment SHA')
+    current_main(gh, sha)
+    m = publication_metadata(gh, sha)
     page = gh.get('pages')
     read_deployed_sha(page['html_url'], sha)
-    for pr in gh.pages(f'commits/{sha}/pulls'):
-        if not pr['merged_at'] or pr['merge_commit_sha'] != sha:
-            continue
-        m = metadata(pr['body'])
-        if not m['deployment']:
-            continue
+    current_main(gh, sha)
+    print(f"HTTPS homepage 200 and deployment SHA {sha} verified at {page['html_url']}")
+    if m and m['deployment']:
+        issue = gh.get(f'issues/{m["issue"]}')
+        require('pull_request' not in issue and issue['user']['login'] == gh.repo.split('/')[0]
+                and hashlib.sha256(issue['body'].encode()).hexdigest() == m['issue_body_sha256'],
+                'Deployment evidence target differs from reviewed Issue')
         body = f'<!-- clh-deployed:{sha} -->\n' + json.dumps({'run_id': str(run_id), 'url': page['html_url']}, sort_keys=True)
         prior = gh.pages(f'issues/{m["issue"]}/comments')
         if not any(c['body'] == body for c in prior):
@@ -269,8 +303,11 @@ def deployment_verified(gh, sha, run_id):
 def read_deployed_sha(site_url, sha):
     require(bool(SHA.fullmatch(sha)), 'Invalid deployment SHA')
     require(site_url.startswith('https://'), 'HTTPS Pages URL required')
+    with urllib.request.urlopen(site_url, timeout=30) as response:
+        require(response.status == 200 and response.geturl().startswith('https://'), 'HTTPS homepage unavailable')
     url = site_url.rstrip('/') + '/deployment-sha.txt?sha=' + sha
     with urllib.request.urlopen(url, timeout=30) as response:
+        require(response.status == 200 and response.geturl().startswith('https://'), 'HTTPS marker unavailable')
         actual = response.read(128).decode().strip()
     require(actual == sha, 'Remote deployment SHA mismatch')
 
