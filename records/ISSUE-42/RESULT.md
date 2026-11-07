@@ -1,4 +1,4 @@
-# Issue 42 result (interim, pre-merge)
+# Issue 42 result (pre-merge)
 
 Issue: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/42
 PR: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/43 (Draft at time of writing)
@@ -20,4 +20,8 @@ Builder: Claude Code. Base 8937de5. Implementation commit be2da5887c80ce61492d28
 Existing LEC08 index left untouched; ZIP `docs/` copy not used directly (would overwrite it). Stale "V3" label changed as noted.
 
 ## Unfinished
-CI, merge, Pages deployment, deployed SHA readback, archive readback, closure: PENDING. Pages deploys only from main, so no live preview before merge. Learning Records #26 and #41 stay OPEN.
+Merge, Pages deployment, live preview QA, deployed SHA readback, archive readback, closure: PENDING (recorded post-merge in the Issue evidence comment and a follow-up record). Pages deploys only from main, so no live preview before merge. Learning Records #26 and #41 stay OPEN.
+
+## CI and Self-Review
+- CI on head d657dbad72ee3ca6d096a9dd3f9dcc1b9a80b6a2 (implementation be2da58 plus interim Result): docs-check PASS, governance-tests PASS (run IDs 42366584230, 42366584283). The head after this record update is re-checked before merge.
+- Self-Review (Builder, not independent Human review): base 8937de5; scope limited to OBSIDIAN_VAULT/, docs/preview/, mkdocs.yml nav, three scripts, records/ISSUE-42/; existing lec08 docs unchanged; no new Knowledge Connections added. Human authorization to Ready/merge/deploy given for DRAFT preview only; not Learning Review approval.
