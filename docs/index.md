@@ -29,10 +29,10 @@ CLH 以**學習為先（Learning-First）**：先讀原始教材、深度學習�
 
 📄 [完整教材製作與發布流程（Learning-to-Publishing Workflow）](development/CLH_LEARNING_TO_PUBLISHING_WORKFLOW.md)
 
-## About / Project
+## 關於專案｜About / Project
 
 - [Learning-to-Publishing Workflow](development/CLH_LEARNING_TO_PUBLISHING_WORKFLOW.md)
-- [Autonomous Operations](development/AUTONOMOUS_OPERATIONS.md)
-- [Guarded Auto Merge](development/GUARDED_AUTO_MERGE.md)
-- [Independent Review](development/INDEPENDENT_REVIEW.md)
-- [Canary Authorization](development/CANARY_AUTHORIZATION.md)
+- [自主化工程作業｜Autonomous Operations](development/AUTONOMOUS_OPERATIONS.md)
+- [受控自動合併｜Guarded Auto Merge](development/GUARDED_AUTO_MERGE.md)
+- [獨立審查｜Independent Review](development/INDEPENDENT_REVIEW.md)
+- [金絲雀驗證授權｜Canary Authorization](development/CANARY_AUTHORIZATION.md)
