@@ -34,3 +34,21 @@ Each criterion reported separately as PASS/FAIL/BLOCKED/PENDING/NOT RUN. README 
 
 ## Revision history
 - r0: initial plan (rebuilt on a new branch after the first draft lacked required headings; PR #28 superseded).
+
+## Supplement r1 — Single Source of Truth document (Human-directed, same Issue)
+Human placed `docs/development/CLH_LEARNING_TO_PUBLISHING_WORKFLOW.md` (SSOT) and asked that Issue 27 be integrated around it. Why: avoid duplicating diagrams in two places.
+
+### Differences from Issue 27 acceptance criteria, recorded before implementation
+| Issue 27 text | Supplement | Handling without relaxing the criterion |
+| --- | --- | --- |
+| README has Phases A-D, full Mermaid flowchart, role matrix, lifecycle diagram | README keeps a brief summary and a link; diagrams live in the SSOT | The content requirements are met by the SSOT, which is published in MkDocs nav; README summarizes Phases A-D and links. Reported as a literal-location deviation |
+| Scope: only README.md, RAW_DATA/README.md, records | Also adds the SSOT file and a mkdocs.yml nav entry | Human-authorized addition; recorded here and in Result. No GOVERNANCE, AGENTS, CI, scripts or template changes |
+| RAW_DATA link to root README section | Link to the SSOT | Both kept: RAW_DATA/README links to the SSOT and to the README summary anchor |
+| Issue state | Issue 27 was already closed | Reopened for this supplement (no new Issue); re-closed after merge, deployment and archive readback |
+
+### Steps
+1. Commit this Plan revision alone.
+2. Import the SSOT byte-identical (Zone.Identifier sidecar excluded), shorten README section 7 (keep anchor), update RAW_DATA/README links, add nav entry.
+3. Verify relative links and Mermaid syntax across the three Markdown files, `git diff --check`, strict MkDocs, unit tests, verify_plan_records, `git ls-files RAW_DATA`.
+4. Draft PR, Result update, Self-Review, Ready, lifecycle merge, Pages SHA readback, archive, close.
+- r1: added supplement and difference table.
