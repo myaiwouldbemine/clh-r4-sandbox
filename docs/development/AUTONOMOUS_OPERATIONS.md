@@ -52,17 +52,17 @@ REST has no atomic expected-base input. Fresh base reads and strict native up-to
 
 ## Pages and SHA readback
 
-For website work, the first run merges and reports deployment PENDING, keeping the Issue open. Builder reads the merge SHA and current main, then dispatches:
+For website work, the first run merges and reports deployment PENDING, keeping the Issue open. Watch the Pages push run for the exact merge SHA. For recovery while that SHA is still main, the Builder can retry manually:
 
 ```bash
 gh workflow run pages.yml --repo OWNER/REPO --ref main -f expected_sha=FULL_MERGE_SHA
 ```
 
-This is a Builder engineering action, not a Human approval step. The workflow must first be installed on main. It accepts only main and exact dispatch SHA, verifies native protection and a merged PR requiring deployment. An advanced main blocks old-SHA dispatch; investigate and prepare a current reviewed recovery PR rather than falsely crediting another SHA. Pages jobs serialize, build strict MkDocs, embed `deployment-sha.txt`, upload artifact and deploy with native GITHUB_TOKEN/OIDC (`pages:write`, `id-token:write` only deployment job). No off-device AI runs.
+This is a Builder engineering action, not a Human approval step. The workflow must first be installed on main. Both events verify current main, effective native protection and the exact merged main PR. Dispatch additionally requires the expected SHA. Every valid protected merge publishes the current tree so consecutive merges can coalesce. Lifecycle deployment metadata controls Issue evidence. The local Builder checks the private bypass list. An advanced main blocks old-SHA dispatch; investigate and prepare a current reviewed recovery PR rather than falsely crediting another SHA. Pages jobs serialize, build strict MkDocs, embed `deployment-sha.txt`, upload artifact and deploy with native GITHUB_TOKEN/OIDC (`pages:write`, `id-token:write` only deployment job). No off-device AI runs.
 
-The verify job reads the configured HTTPS Pages URL with bounded retries and records a merge-SHA/run marker. The local Builder observes the exact run to completion, then repeats the targeted `run` command with the original reviewed head/base. Already merged PRs reuse their merge SHA; no second merge. The executor verifies successful Pages workflow path/main/merge SHA, configured URL and **fresh remote SHA bytes** before archival. A marker alone is insufficient. Deployment denial, failed run, stale published bytes or missing evidence leave the Issue open.
+The verify job reads the configured HTTPS Pages URL with bounded retries and checks homepage status and SHA bytes. Only a lifecycle PR requiring deployment receives a merge-SHA/run marker on its reviewed Issue. The local Builder observes the exact run to completion, then repeats the targeted `run` command with the original reviewed head/base. Already merged PRs reuse their merge SHA; no second merge. The executor verifies successful Pages workflow path/main/merge SHA, configured URL and **fresh remote SHA bytes** before archival. A marker alone is insufficient. Deployment denial, failed run, stale published bytes or missing evidence leave the Issue open.
 
-[GitHub Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) supports native token/OIDC deployment. [GitHub event documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow) explains GITHUB_TOKEN downstream-event restrictions; explicit local dispatch avoids depending on a hosted merge triggering another workflow.
+[GitHub Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) supports native token/OIDC deployment. [GitHub event documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow) explains GITHUB_TOKEN downstream-event restrictions; the protected merge uses the local Builder’s existing gh identity so its push triggers Pages.
 
 ## Archive, close and interruption recovery
 
@@ -73,7 +73,7 @@ Archive uses PR + full merge SHA as a stable key, stores separate merge/deployme
 | Editing / before push | Inspect worktree and commits; preserve work, reread scope/head/base, test and push normally |
 | Pushed / CI pending | Read actual new-head CI; fix bounded failures and invalidate stale review |
 | Ready or merge request with lost response | Fetch PR; if unmerged revalidate all gates, if merged use existing merge SHA |
-| Merged / Pages not dispatched | Read main and existing runs; dispatch only if exact-SHA run absent and main matches |
+| Merged / Pages pending | Follow the exact push run. Retry only after inspecting the failure and confirming current main. A manual retry provides recovery evidence only |
 | Pages running / App off | Existing job may finish; next session reads run and remote SHA |
 | Archive write/close response lost | Read existing merge-SHA archive, verify bytes, reuse it, then read Issue state |
 | Conflicting archive / changed requirements | Stop, record blocker; no overwrite, duplicate merge or false closure |
