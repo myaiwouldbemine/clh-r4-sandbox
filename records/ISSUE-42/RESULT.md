@@ -25,3 +25,10 @@ Merge, Pages deployment, live preview QA, deployed SHA readback, archive readbac
 ## CI and Self-Review
 - CI on head d657dbad72ee3ca6d096a9dd3f9dcc1b9a80b6a2 (implementation be2da58 plus interim Result): docs-check PASS, governance-tests PASS (run IDs 42366584230, 42366584283). The head after this record update is re-checked before merge.
 - Self-Review (Builder, not independent Human review): base 8937de5; scope limited to OBSIDIAN_VAULT/, docs/preview/, mkdocs.yml nav, three scripts, records/ISSUE-42/; existing lec08 docs unchanged; no new Knowledge Connections added. Human authorization to Ready/merge/deploy given for DRAFT preview only; not Learning Review approval.
+
+## Post-merge: merge, deployment, live QA (recorded after merge)
+- Merge: PR #43 merged with head pinned to 8e4c72910d7d9447fbe945b56d755f58a59745de (both required checks success on that SHA); merge commit 52e64c070c561b15bf202fe72da461caffdaca46. Human authorization for Ready/merge/Pages of the DRAFT preview was given in-session; it is not Learning Review approval.
+- Deployment: workflow run https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/actions/runs/42367177781 success. Remote readback `site/deployment-sha.txt` = 52e64c070c561b15bf202fe72da461caffdaca46 PASS.
+- Live URLs (HTTP 200): https://myaiwouldbemine.github.io/myaiwouldbemine-Copy-Learning-Hub/preview/lec08/ and .../preview/lec09/. Existing .../subjects/operating-systems/lec08/ still 200.
+- Live browser QA (Chromium, desktop 1366 and mobile 390, both lessons): DRAFT label PASS; 4 of 4 SVG per lesson (8 of 8) PASS; 3 of 3 Mermaid per lesson (6 of 6) PASS; code blocks present (LEC08 11, LEC09 7) PASS; no raw WikiLink, no horizontal scroll, no page errors; LEC08 to LEC09 and LEC09 to LEC08 links click through to existing anchors PASS.
+- Still NOT RUN: accessibility audit, Obsidian desktop rendering. PENDING: Human Learning Review; Learning Records #26 and #41 remain OPEN; proposed extra Knowledge Connections await Human Review. Issue #42 closure waits for archive readback of this record.
