@@ -149,21 +149,19 @@ Human 建立工程 Issue，並在需要時啟動 Codex App／本機 Agent，定�
 
 ChatGPT＋Human 保有 V2 Knowledge Consolidation／V3 Code-First Deep Dive 的創作、推導、語義品質、核准與最終整合。製作時分開、定稿時合併、網站依主題呈現。工程 Agent 只忠實匯入已核准教材；缺少語義核准時標記 PENDING／BLOCKED。
 
+在 GitHub New Issue 選擇 Learning Record，以留言逐步補上 V2／V3 里程碑、來源、品質證據與定稿連結。需要變更 Repository 時選擇 Engineering Task。MkDocs 提供依主題閱讀、搜尋與導覽。
+
 所有變更透過 PR；必要 Plan 先於實作提交，有 Plan 就有 Result。必要 CI、自審與目前 head／base 證據完整後才能自主 Merge，不直接 push main、force push 或繞過保護。Self-Review 不冒充獨立人工審查。
 
 參閱 [GOVERNANCE.md](GOVERNANCE.md)、[完整雙語 AGENTS.md](AGENTS.md)、[安裝說明](INSTALL.md)。
 
 ## 8. Deployment｜網站部署
 
-設計流程為通過 Gate 並合併 main 後，由本機 Builder 指定 merge SHA 啟動 GitHub Actions，以 strict MkDocs 建置、GitHub Pages 部署，讀回 deployment SHA，再歸檔證據與結案。非網站任務不強制部署。Merge 不代表部署成功。
-
-**實作與正式驗收分開：本機流程使用既有 App 登入與 gh auth，不需要額外模型或自動化 Token。** 最新結果見 [Issue #20](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/20)。未完成真實 E2E 不宣稱全自主上線。
+受保護 PR 合併至 main 時，push 會自動觸發 GitHub Pages 工作流程。流程執行 strict MkDocs、部署網站並透過 HTTPS 讀回 deployment-sha.txt。Builder 核對發布 SHA 與 Merge SHA，歸檔並讀回證據後結案。
 
 ## 9. Project Status｜目前進度
 
-Issue #20 的自主治理遷移使用獨立 PR #21；既有 Issue #18／PR #19 的雙語化與學習表單歷史保留。main 已設定必要 CI、PR-only、無 bypass 的原生規則，Pages 已設定 Actions 來源；這不代表網站已部署。
-
-已改為按需工程候選：停用 hosted Agent 與排程 Merge。電腦／App 關閉時不執行新工程，已提交 CI／Pages 可繼續；下次由 Builder 讀回狀態恢復。真實 Merge → Deploy → Archive → Close E2E 尚未完成，本次修訂維持 Draft 且不 Merge／Deploy／Close。最新完整 SHA、CI、Result 與阻擋原因以 PR #21 為準。
+按需工程與自動 Pages 的實作及驗收紀錄見 [Issue #20](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/20) 與 [Issue #22](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/22)。
 
 ## 10. Roadmap｜未來發展
 

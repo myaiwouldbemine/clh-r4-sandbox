@@ -1,0 +1,81 @@
+name: "Learning Record｜學習紀錄"
+description: "記錄學習目標、來源與 V2／V3 歷程；成果與證據可在後續留言逐步補充。"
+title: "[Learning] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ChatGPT＋Human 負責教材創作與品質核准
+        V2 Knowledge Consolidation 與 V3 Code-First Deep Dive：製作時分開、定稿時合併、網站上依主題呈現。
+        GitHub 保存已核准教材、版本與學習軌跡；MkDocs 提供閱讀、搜尋、導覽與展示。
+        建立時只需填寫學科／課程／單元、學習目標與來源資訊；來源未確定可如實標示 PENDING。
+        其餘欄位可留白，之後以 Issue Comments 記錄階段、實際進度、版本／來源、證據及下一步；不得預填未完成成果。
+        Learning Issue 不強制對應工程 PR。只有 Repository 變更才需要 Engineering Task 與相應工程流程。
+        Engineering Builder（Claude Code 或 Codex）僅負責工程與忠實匯入已核准教材，不創作、推導或改寫教材語意。
+        Issue 建立、CI PASS、PR Merge 或 Issue Closed 均不代表教材品質已核准、學習完成或完全掌握；歸檔與學習完成分開記錄。
+        本表單不授予實作、Merge、Close 或 Deployment 權限；依目前 main 的 GOVERNANCE.md 與 AGENTS.md 辦理。
+
+  - type: textarea
+    id: subject-course-unit
+    attributes:
+      label: "Subject / Course / Unit｜學科／課程／單元"
+      description: "填寫本次學習範圍。"
+      placeholder: "學科：…；課程：…；單元：…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: learning-objectives
+    attributes:
+      label: "Learning Objectives｜學習目標"
+      description: "希望理解或能夠解釋什麼？目標不代表已完成。"
+    validations:
+      required: true
+
+  - type: textarea
+    id: source-materials
+    attributes:
+      label: "Source Materials｜來源材料"
+      description: "列出講義、頁碼、程式碼版本或參考連結；尚未確定時如實標記 PENDING，後續補充。"
+    validations:
+      required: true
+
+  - type: textarea
+    id: v2-consolidation
+    attributes:
+      label: "V2 Knowledge Consolidation｜知識整合"
+      description: "選填：記錄 V2 目前進度或 ChatGPT＋Human 產出參考；可改在後續留言更新。"
+    validations:
+      required: false
+
+  - type: textarea
+    id: v3-code-first
+    attributes:
+      label: "V3 Code-First Deep Dive｜程式碼優先深入學習"
+      description: "選填：記錄 V3 目前進度、程式碼版本或產出參考；未執行的驗證標記 NOT RUN。"
+    validations:
+      required: false
+
+  - type: textarea
+    id: content-quality-evidence
+    attributes:
+      label: "Content Quality / Evidence｜內容品質與證據"
+      description: "選填：列出實際證據及 ChatGPT＋Human 品質核准紀錄；尚待驗收標記 PENDING，CI 通過不等於品質核准。"
+    validations:
+      required: false
+
+  - type: textarea
+    id: v2-v3-integration
+    attributes:
+      label: "V2/V3 Integration｜整合定稿"
+      description: "選填：記錄 ChatGPT＋Human 整合定稿的版本與核准參考；尚未定稿可留白或標記 PENDING。"
+    validations:
+      required: false
+
+  - type: textarea
+    id: publication-archive
+    attributes:
+      label: "Publication / Archive References｜發布／歸檔參考"
+      description: "選填：已有的 Repository、工程 PR、網站或歸檔連結；無 Repository 變更不需工程 PR，歸檔完成不代表學習完成。"
+    validations:
+      required: false

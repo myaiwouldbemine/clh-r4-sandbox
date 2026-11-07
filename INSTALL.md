@@ -15,6 +15,6 @@ git diff --check
 
 保留 main 的 strict docs-check／governance-tests、PR-only、無 bypass／force/delete 與 resolved threads；Pages 使用 GitHub Actions 來源及 main-only environment。CI 僅讀取，Pages 部署以原生 GITHUB_TOKEN／OIDC 執行，不使用額外 PAT。既有設定仍需讀回，不以文件代替權限驗證。
 
-Install changes through a normal PR. Commit formal Plans separately before implementation and write Results afterward. Issue #20 / PR #21 remains a Draft candidate: current revision forbids Merge/Deploy/Close, so complete live lifecycle acceptance is BLOCKED. Historical missing-key records describe the previous hosted architecture and remain unchanged. Current evidence is in new ON-DEMAND-REVISION records.
+Install changes through a normal PR. Commit formal Plans separately before implementation and write Results afterward. A protected merge to main triggers Pages automatically. Verify the published SHA over HTTPS, archive the evidence and read it back before closing the Issue.
 
 關閉 App 不承諾繼續工程；已送出的 CI／Pages 工作可完成。重啟後讀取 Issue／留言、PR、head／base、CI、部署及歸檔證據再恢復。中斷與回復步驟見操作手冊；不重複 Merge、不提早 Close。

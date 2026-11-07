@@ -84,6 +84,6 @@ For an unchanged failure, record at most three repair attempts with cause/action
 
 Keep CI contents:read and main PR-only, strict required checks, resolved threads, no bypass/force/delete. Pages source must be Actions and its environment main-only. Read settings rather than assuming documentation configures them. Do not add credentials, expand scopes or weaken rules to make validation pass.
 
-PR #21 remains Draft for this revision. The architecture instruction prohibits Merge, Deploy and Issue #20 closure during this task. Real branch publication, CI and read-only gate tests are distinct from full live lifecycle E2E, which remains BLOCKED/NOT RUN. Original #18/#19 and Issue #20 evidence remain historical; new ON-DEMAND-REVISION records describe this design.
+Issue #20 / PR #21 records the on-demand lifecycle implementation. Issue #22 / PR #23 records automatic Pages publication. Verify each subsequent merge against its own checks, run and published SHA.
 
 Before merge, stopping the session causes no production installation. After future installation, stop local operations, inspect/cancel affected queued Pages jobs, then use a tested revert PR with current Self-Review/required CI and normal merge. Redeploy and read back the revert SHA for website recovery. Do not restore hosted agent/scheduler or the obsolete premature-close path as an active rollback. Git revert does not undo remote settings. Keep the Issue open until recovery evidence is archived and read back; never rewrite history.
