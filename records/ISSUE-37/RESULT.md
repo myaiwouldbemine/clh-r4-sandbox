@@ -27,3 +27,15 @@ Builder: Claude Code (sole). Plan: records/ISSUE-37/PLAN.md (committed alone bef
 - Pre-existing, not changed: in CANARY_AUTHORIZATION.md the English L3 checklist table follows a paragraph without a blank line, so MkDocs renders it as text (the original site also rendered only 2 of 3 tables). The Chinese table renders. English left byte-identical per scope; a blank line could fix it in a later Issue.
 - Banner "ARCHIVED / NOT ACTIVE" and the 繁體中文摘要 in AUTONOMOUS_OPERATIONS retained. Terms such as PASS/BLOCK/NOT RUN, role names (Builder, Reviewer) and App/identifier names kept in English.
 - Link blocks in CANARY_AUTHORIZATION: Chinese text points to the English block for URLs rather than duplicating them.
+
+## PR
+https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/38
+
+## Commit
+Merge SHA recorded in the archive record after merge.
+
+## Deviations
+- Plan headings were renamed in revision r1 (after implementation, heading-only) to satisfy the advisory local verifier; r0 history is preserved in afa1430.
+
+## Unfinished
+Merge, Pages deployment/readback, archive and Issue closure follow.

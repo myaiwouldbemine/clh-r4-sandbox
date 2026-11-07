@@ -27,12 +27,15 @@ No change to GOVERNANCE.md, AGENTS.md, CI, scripts, mkdocs.yml, teaching content
 - Existing 繁體中文摘要 in AUTONOMOUS_OPERATIONS is retained as is.
 - Normative terms (MUST/never/only) map consistently: 必須/不得/僅; status words (PASS/BLOCK/NOT RUN/PENDING) stay English.
 
-## Implementation steps
+## Implementation plan
 1. Commit this Plan alone.
 2. Edit `docs/index.md`; translate the four documents.
 3. Verify (below). Draft PR, Result, Self-Review, Ready, gated merge, Pages SHA readback, archive, close.
 
-## Verification / acceptance strategy
+## Acceptance criteria
+Those of Issue 37.
+
+## Verification strategy
 - Automated: `git diff --check`; English-preservation check (stripping added Chinese blocks reproduces the original English text of every file exactly); code fences, URLs, link targets and headings identical to original (scripted diff); `mkdocs build --strict`; built-HTML check of homepage labels and links; governance tests; `verify_plan_records.py`; protected PR CI.
 - Section-by-section equivalence review: per file, count of sections/paragraphs/list items/table rows/code blocks English vs Chinese must match; then a manual normative-equivalence pass over roles, permissions, conditions, gates, failure/rollback, evidence, commands. Result lists findings per document.
 - Translation quality is Builder self-review only; no native Human linguistic review or browser visual QA is claimed. Those are reported NOT RUN/PENDING unless performed.
@@ -40,3 +43,4 @@ No change to GOVERNANCE.md, AGENTS.md, CI, scripts, mkdocs.yml, teaching content
 
 ## Revision history
 - r0: initial plan.
+- r1: heading-only rename (Implementation plan, Acceptance criteria, Verification strategy) so scripts/verify_plan_records.py recognises the fields; no content change. Made after implementation; r0 is in afa1430.
