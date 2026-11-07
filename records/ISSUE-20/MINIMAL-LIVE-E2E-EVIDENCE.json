@@ -1,0 +1,19 @@
+{
+  "status": "BLOCKED",
+  "environment": "isolated only",
+  "repository": "https://github.com/myaiwouldbemine/clh-lifecycle-e2e-20261107-phase-a",
+  "bootstrap_issue": 1,
+  "bootstrap_pr": 2,
+  "merge_sha": "efbec1377e4288727cb775512e7e83060226c846",
+  "pages_run": "https://github.com/myaiwouldbemine/clh-lifecycle-e2e-20261107-phase-a/actions/runs/42337500261",
+  "blocker": "Native Actions token ruleset read omits bypass_actors; fail-closed protection rejects deployment. No credential expansion or gate weakening permitted.",
+  "local_tests": {
+    "status": "PASS",
+    "count": 44,
+    "kind": "injected/regression"
+  },
+  "production": "NOT RUN",
+  "fixture": "NOT RUN",
+  "rollback": "NOT RUN",
+  "archive_close": "NOT RUN"
+}
