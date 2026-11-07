@@ -1,6 +1,7 @@
 # Issue 27 result
 
 Issue: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/27
+PR: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/29
 Accountable Builder: Claude Code. Plan commit e41102f precedes implementation. Final head: see PR lifecycle block.
 
 ## Results
@@ -16,5 +17,8 @@ Accountable Builder: Claude Code. Plan commit e41102f precedes implementation. F
 | RAW_DATA not committed | PASS. `git ls-files RAW_DATA` lists only RAW_DATA/README.md |
 | Merge / Deployment / Archive / Closure | PENDING at this commit; recorded in Issue archive comment |
 
-## Notes
+## Deviations
+First branch/PR #28 was superseded: its initial Plan lacked required headings and force push is prohibited, so work was rebuilt on a new branch with a complete Plan commit first.
+
+## Unfinished
 Learning Record #26 stays open; this Engineering Task closing does not imply learning completion or content approval. Visual check NOT RUN (no browser session).
