@@ -22,3 +22,16 @@ First branch/PR #28 was superseded: its initial Plan lacked required headings an
 
 ## Unfinished
 Learning Record #26 stays open; this Engineering Task closing does not imply learning completion or content approval. Visual check NOT RUN (no browser session).
+
+## Supplement r1 result (SSOT integration)
+
+PR: https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/30.
+
+| Verification | Result |
+| --- | --- |
+| SSOT file | PASS. `docs/development/CLH_LEARNING_TO_PUBLISHING_WORKFLOW.md` imported unmodified from the Human-provided file; Zone.Identifier sidecar not committed |
+| Criteria deviation | Recorded in PLAN r1: README now summarizes and links instead of carrying full diagrams (diagrams, matrix, lifecycles and one-to-many are in the SSOT, published in MkDocs nav). RAW_DATA/README links to the SSOT and the README anchor. Scope additions (SSOT file, mkdocs.yml nav) are Human-directed |
+| Mermaid syntax | PASS. 4/4 blocks in SSOT parse (mermaid@11); README and RAW_DATA/README contain none. Built HTML contains the mermaid blocks. GitHub UI render NOT RUN |
+| Relative links | PASS for README, RAW_DATA/README, SSOT |
+| Build / tests | PASS: git diff --check, strict MkDocs, unit tests; verify_plan_records PASS |
+| Not changed | GOVERNANCE, AGENTS, CI, lifecycle scripts, teaching semantics; no RAW_DATA PDF/ZIP tracked |

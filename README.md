@@ -151,130 +151,16 @@ mkdocs build --strict
 
 ## 7. Learning-to-Publishing Workflow｜教材製作與發布流程
 
-本流程把「學習與教材語義」和「工程發布」分成兩條獨立軌道：ChatGPT＋Human 決定教材內容是否正確、是否核准；唯一 Builder 只負責忠實匯入、測試與發布。Draft 可以先發布，未完成驗收的內容保持 PENDING。
+教材製作與發布流程的 Single Source of Truth 是 [CLH 教材製作與發布流程](docs/development/CLH_LEARNING_TO_PUBLISHING_WORKFLOW.md)（完整流程圖、角色責任矩陣、Learning Record 與 Engineering Task 生命週期、LEC08 案例）；網站導覽亦可閱讀。此處僅摘要：
 
-### 7.1 Phases｜階段
+- **Phase A · Learning：** Human＋ChatGPT 建立 Learning Record，製作 V2／V3，Draft／Final 內容核准，未核准保持 PENDING／BLOCKED。
+- **Phase B · Local RAW_DATA：** 原始 PDF 存 `ORIGINAL/`，產出存 `GENERATED/`，僅存本機、記錄 SHA-256，不進 Git（細則見 [RAW_DATA/README.md](RAW_DATA/README.md)）。
+- **Phase C · Engineering Publication：** Engineering Task → 唯一 Builder 規劃、實作、測試、自審 → Protected PR → Required CI → Merge → Pages 與 SHA 讀回 → Evidence Archive → 工程結案。
+- **Phase D · Learning Feedback：** 回填 PR、SHA、網址；學習驗收未完成則 Learning Record 保持 OPEN。
+- 一個 Learning Record 可連結多個 Engineering Task，兩者獨立結案；工程結案 ≠ 學習完成。
+- 範例：LEC08 為 [Learning Record #26](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/26)、[Engineering Task #24](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/24)、[PR #25](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/25)。
 
-| Phase | 名稱 | 步驟 | 負責 |
-|---|---|---|---|
-| A | Learning | 取得 Original PDF → 開立 Learning Record → 製作 V2（Knowledge Consolidation）與 V3（Code-First Deep Dive）→ Draft／Final 內容核准，未通過則循環修訂 | Human＋ChatGPT |
-| B | Local RAW_DATA | 原始 PDF 存入 `ORIGINAL/`，核准產出的 PDF／HTML／MD／ZIP 存入 `GENERATED/`，記錄 SHA-256；僅存本機，不進 Git | Human |
-| C | Engineering Publication | 開立 Engineering Task → 唯一 Builder 規劃、實作、測試、自審 → Protected PR → CI → Merge → Pages 部署與 SHA 讀回 → Evidence Archive → 工程結案 | Builder＋GitHub Actions |
-| D | Learning Feedback | 將 PR、Merge SHA、Pages 連結回填 Learning Record，Human 閱讀並驗收；未達標則回到 Phase A 並開新 Engineering Task | Human＋ChatGPT |
-
-### 7.2 Workflow Diagram｜流程圖
-
-```mermaid
-flowchart TD
-    subgraph A["Phase A - Learning (Human + ChatGPT)"]
-        A1["Original PDF"] --> A2["Learning Record Issue"]
-        A2 --> A3["V2 Knowledge Consolidation"]
-        A2 --> A4["V3 Code-First Deep Dive"]
-        A3 --> A5{"Content approval"}
-        A4 --> A5
-        A5 -->|"Revise"| A3
-        A5 -->|"Draft approved"| A6["PDF / HTML / MD outputs"]
-        A5 -->|"Final approved"| A6
-        A5 -.->|"Not approved: PENDING / BLOCKED"| A2
-    end
-
-    subgraph B["Phase B - Local RAW_DATA (not committed)"]
-        B1["ORIGINAL: original PDF"]
-        B2["GENERATED: PDF / HTML / MD / ZIP"]
-        B3["Record SHA-256"]
-        B1 --> B3
-        B2 --> B3
-    end
-
-    subgraph C["Phase C - Engineering Publication (Builder + GitHub Actions)"]
-        C1["Engineering Task Issue"] --> C2["Single Builder: Claude Code or Codex"]
-        C2 --> C3["Plan, implement, test, Self-Review"]
-        C3 --> C4["Protected PR + required CI"]
-        C4 --> C5["Merge to main"]
-        C5 --> C6["GitHub Pages deploy + SHA readback"]
-        C6 --> C7["Evidence Archive + readback"]
-        C7 --> C8["Engineering Task closed"]
-    end
-
-    subgraph D["Phase D - Learning Feedback (Human + ChatGPT)"]
-        D1["Backfill PR, Merge SHA, Pages link to Learning Record"]
-        D2{"Learning accepted?"}
-        D3["Learning Record closed"]
-        D1 --> D2
-        D2 -->|"Yes"| D3
-        D2 -->|"No"| A2
-    end
-
-    A1 --> B1
-    A6 --> B2
-    B3 --> C1
-    C8 --> D1
-```
-
-### 7.3 Role Matrix｜角色責任矩陣
-
-| 責任 | Human | ChatGPT | Builder（Claude Code 或 Codex，唯一） | GitHub Actions |
-|---|---|---|---|---|
-| 開立 Learning Record | ✅ 負責 | 協助 | — | — |
-| V2／V3 創作、推導、語義品質 | ✅ 核准 | ✅ 製作 | ❌ 不得創作 | — |
-| 教材語義核准（Draft／Final） | ✅ 與 ChatGPT 共同 | ✅ 與 Human 共同 | ❌ 不得代為核准 | ❌ |
-| 原始資料保存、SHA-256、授權 | ✅ 負責 | 協助記錄 | 僅讀取、核對 | — |
-| 開立 Engineering Task、啟動 Builder | ✅ 負責 | 協助撰寫 | — | — |
-| 規劃、實作、測試、自審 | 可修改需求或停止 | — | ✅ 負責 | — |
-| 忠實匯入已核准教材 | — | — | ✅ 不改語義；未核准標記 PENDING／BLOCKED | — |
-| 必要 CI 檢查 | — | — | 修正失敗 | ✅ 執行並回報 |
-| Merge、Pages、SHA 讀回 | — | — | ✅ 自主執行並核對 | ✅ 部署 |
-| Evidence Archive、工程結案 | — | — | ✅ 負責 | 輔助 |
-| 學習驗收與 Learning Record 結案 | ✅ 負責 | 協助 | ❌ 不得結案 | ❌ |
-
-CI PASS、Merge、部署成功或 Engineering Task 結案，都不代表教材品質核准或學習掌握。Self-Review、CI、Bot Summary 與 Human 意見不得互相冒充。
-
-### 7.4 Issue Lifecycles｜兩種 Issue 生命週期
-
-```mermaid
-flowchart LR
-    subgraph LR_["Learning Record lifecycle"]
-        L1["Opened"] --> L2["V2 / V3 in progress"]
-        L2 --> L3["Draft approved"]
-        L3 --> L4["Final approved"]
-        L4 --> L5["Published and read by Human"]
-        L5 --> L6["Learning accepted: Closed"]
-        L5 -->|"Gaps found"| L2
-    end
-
-    subgraph ET["Engineering Task lifecycle (one per publication change)"]
-        E1["Opened"] --> E2["Plan"]
-        E2 --> E3["Draft PR + implementation"]
-        E3 --> E4["Tests + Self-Review"]
-        E4 --> E5["Ready + required CI"]
-        E5 --> E6["Merge"]
-        E6 --> E7["Pages deploy + SHA readback"]
-        E7 --> E8["Archive + readback"]
-        E8 --> E9["Closed"]
-    end
-
-    L3 -.->|"opens Engineering Task #1"| E1
-    L4 -.->|"opens Engineering Task #2 ... #N"| E1
-    E9 -.->|"backfill PR, SHA, Pages link"| L5
-```
-
-- 一個 Learning Record 可以連結多次 Engineering Task，例如 Draft 發布、Final 發布、勘誤修正。
-- 兩者**獨立結案**：Engineering Task 在 Merge、部署驗證與證據歸檔讀回後結案；Learning Record 只在 Human 驗收學習成果後結案。
-- 工程結案 ≠ 學習完成；Learning Record 可以在多個 Engineering Task 結案後仍保持 Open。
-- Learning Record 以留言逐步更新，不必對應 PR；只有 Repository 變更才進入 Engineering Task。
-
-### 7.5 Case Study｜LEC08 範例
-
-NYCU OS LEC08（Memory Management）：[Learning Record #26](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/26)、Draft 發布的 [Engineering Task #24](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/issues/24)、[PR #25](https://github.com/myaiwouldbemine/myaiwouldbemine-Copy-Learning-Hub/pull/25)。本機檔案為 `RAW_DATA/operating-systems/LEC08/ORIGINAL/lec08.pdf` 與 `RAW_DATA/operating-systems/LEC08/GENERATED/LEC08_FULL_DRAFT.zip`，不提交至 Git。Draft 發布不代表內容已核准，教材驗收仍為 PENDING。
-
-### 7.6 Where Things Live｜資料存放分工
-
-| 位置 | 用途 | 進入 Git |
-|---|---|---|
-| `RAW_DATA/` | 本機原始與產出檔（見 [RAW_DATA/README.md](RAW_DATA/README.md)） | 僅 README |
-| `docs/` | 已核准或標示 Draft 的網站教材 | 是 |
-| `RELEARNING_SUPPLEMENTS/` | 依 Issue 的重學清單 | 是 |
-| `records/ISSUE-<number>/` | 工程 Plan 與 Result 證據 | 是 |
+工程權限、合併與部署規則仍以 [GOVERNANCE.md](GOVERNANCE.md) 與 [AGENTS.md](AGENTS.md) 為準。
 
 ## 8. On-Demand Autonomous Engineering｜按需自主工程
 

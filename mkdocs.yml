@@ -52,6 +52,8 @@ nav:
           - V2 Knowledge Consolidation (Draft): subjects/operating-systems/lec08/V2_LEC08_KNOWLEDGE_CONSOLIDATION.md
           - V3 Code-First Deep Dive (Draft): subjects/operating-systems/lec08/V3_LEC08_CODE_FIRST_DEEP_DIVE.md
           - Review Manifest (Draft): subjects/operating-systems/lec08/REVIEW_MANIFEST.md
+  - Development:
+      - Learning-to-Publishing Workflow: development/CLH_LEARNING_TO_PUBLISHING_WORKFLOW.md
   - Machine Learning: subjects/machine-learning/index.md
   - Deep Learning: subjects/deep-learning/index.md
   - Computer Vision: subjects/computer-vision/index.md
