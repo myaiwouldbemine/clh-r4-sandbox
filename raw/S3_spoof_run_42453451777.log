@@ -1,0 +1,36 @@
+content-gate	Set up job	﻿2026-11-08T06:07:35.9118741Z Current runner version: '2.338.2'
+content-gate	Set up job	2026-11-08T06:07:35.9141707Z ##[group]Runner Image Provisioner
+content-gate	Set up job	2026-11-08T06:07:35.9142591Z Hosted Compute Agent
+content-gate	Set up job	2026-11-08T06:07:35.9143126Z Version: 20261028.624
+content-gate	Set up job	2026-11-08T06:07:35.9143642Z Commit: 54898b74c23fde5556c9b3c3a2290865feef0dfe
+content-gate	Set up job	2026-11-08T06:07:35.9144307Z Build Date: 2026-10-28T21:51:42Z
+content-gate	Set up job	2026-11-08T06:07:35.9144875Z Worker ID: {0be89b67-3c1b-483a-ba5b-607c99a70451}
+content-gate	Set up job	2026-11-08T06:07:35.9145481Z Region: westus2
+content-gate	Set up job	2026-11-08T06:07:35.9145994Z Cloud: Azure
+content-gate	Set up job	2026-11-08T06:07:35.9146761Z ##[endgroup]
+content-gate	Set up job	2026-11-08T06:07:35.9148247Z ##[group]Operating System
+content-gate	Set up job	2026-11-08T06:07:35.9148832Z Ubuntu
+content-gate	Set up job	2026-11-08T06:07:35.9149326Z 24.04.5
+content-gate	Set up job	2026-11-08T06:07:35.9149812Z LTS
+content-gate	Set up job	2026-11-08T06:07:35.9150252Z ##[endgroup]
+content-gate	Set up job	2026-11-08T06:07:35.9150761Z ##[group]Runner Image
+content-gate	Set up job	2026-11-08T06:07:35.9151276Z Image: ubuntu-24.04
+content-gate	Set up job	2026-11-08T06:07:35.9151747Z Version: 20261101.360.1
+content-gate	Set up job	2026-11-08T06:07:35.9152709Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261101.360/images/ubuntu/Ubuntu2404-Readme.md
+content-gate	Set up job	2026-11-08T06:07:35.9154176Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261101.360
+content-gate	Set up job	2026-11-08T06:07:35.9154987Z ##[endgroup]
+content-gate	Set up job	2026-11-08T06:07:35.9155979Z ##[group]GITHUB_TOKEN Permissions
+content-gate	Set up job	2026-11-08T06:07:35.9157959Z Contents: read
+content-gate	Set up job	2026-11-08T06:07:35.9158462Z Metadata: read
+content-gate	Set up job	2026-11-08T06:07:35.9159025Z ##[endgroup]
+content-gate	Set up job	2026-11-08T06:07:35.9160868Z Secret source: Actions
+content-gate	Set up job	2026-11-08T06:07:35.9161781Z Cache mode: write
+content-gate	Set up job	2026-11-08T06:07:35.9162376Z Prepare workflow directory
+content-gate	Set up job	2026-11-08T06:07:35.9432833Z Prepare all required actions
+content-gate	Set up job	2026-11-08T06:07:35.9520827Z Complete job name: content-gate
+content-gate	Run echo "spoofed content-gate, no verification performed"	﻿2026-11-08T06:07:36.0394517Z ##[group]Run echo "spoofed content-gate, no verification performed"
+content-gate	Run echo "spoofed content-gate, no verification performed"	2026-11-08T06:07:36.0395833Z [36;1mecho "spoofed content-gate, no verification performed"[0m
+content-gate	Run echo "spoofed content-gate, no verification performed"	2026-11-08T06:07:36.1518153Z shell: /usr/bin/bash -e {0}
+content-gate	Run echo "spoofed content-gate, no verification performed"	2026-11-08T06:07:36.1518914Z ##[endgroup]
+content-gate	Run echo "spoofed content-gate, no verification performed"	2026-11-08T06:07:36.1661153Z spoofed content-gate, no verification performed
+content-gate	Complete job	﻿2026-11-08T06:07:36.1791596Z Cleaning up orphan processes
