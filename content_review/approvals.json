@@ -68,6 +68,10 @@
     {
       "head_sha": "0d08b69bf16dd5831ba0f31068d6174ae53118d7",
       "human_reference": "sandbox v2 gate install after merge"
+    },
+    {
+      "head_sha": "93eb23c1c20eb403e2c2894177934d1410819df1",
+      "human_reference": "sandbox bootstrap of PR #58 gate 88cec44 (authorized 2026-11-10 sandbox E2E task)"
     }
   ]
 }
