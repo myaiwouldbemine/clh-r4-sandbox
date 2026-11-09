@@ -1,0 +1,13 @@
+name: Spoof2 PR-added
+# Sandbox-only J1 test: a PR-controlled pull_request job named like the trusted check. It verifies nothing.
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  content-gate:
+    name: content-gate
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "spoofed content-gate, no verification performed"
