@@ -1,0 +1,28 @@
+name: Trusted Content Gate
+# pull_request_target: definition and gate code come from the BASE commit.
+# The PR head is checked out as data only and never executed. No secrets; read-only token.
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions:
+  contents: read
+jobs:
+  content-gate:
+    name: content-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: "${{ github.event.pull_request.base.sha }}", path: base, persist-credentials: false}
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: head
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Run base gate on head data
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 -I -S -B base/scripts/trusted_content_gate.py base head "$BASE_SHA" "$HEAD_SHA"
