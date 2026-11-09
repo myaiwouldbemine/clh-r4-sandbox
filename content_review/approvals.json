@@ -1,8 +1,60 @@
 {
   "schema_version": 1,
   "note": "Human-owned approval record. Each entry binds one exact file SHA-256. Same-account identity is not established.",
-  "guarded_prefixes": ["docs/preview/", "docs/subjects/", "fixtures/lessons/"],
-  "draft_prefixes": ["docs/preview/", "fixtures/lessons/"],
-  "approvals": [],
+  "guarded_prefixes": [
+    "docs/preview/",
+    "docs/subjects/",
+    "fixtures/lessons/"
+  ],
+  "draft_prefixes": [
+    "docs/preview/",
+    "fixtures/lessons/"
+  ],
+  "approvals": [
+    {
+      "path": "fixtures/lessons/t4.md",
+      "sha256": "70cafb58967cb4669ec905d38d7342b0e0accb530d56108bd8e4eb46f0ac7cfa",
+      "scope": "DRAFT",
+      "rights": "APPROVED",
+      "link_review": {
+        "path": "records/t4_LINK_REVIEW.json",
+        "sha256": "dffbd057a6cec038be4e27080774095c4938e790a483536ea7ead69a133b12b0"
+      },
+      "human_reference": "sandbox fixture"
+    },
+    {
+      "path": "fixtures/lessons/t5.md",
+      "sha256": "4ea9130ff97426f58a7b94c10148f9234670bdc41f5d48b604ddd4f8a568ff59",
+      "scope": "DRAFT",
+      "rights": "APPROVED",
+      "link_review": {
+        "path": "records/t5_LINK_REVIEW.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "human_reference": "sandbox fixture"
+    },
+    {
+      "path": "fixtures/lessons/t6.md",
+      "sha256": "6f21c64210733566fb2975a8f9374fa312112647b904337b6e997a4d5f1725e9",
+      "scope": "DRAFT",
+      "rights": "PENDING",
+      "link_review": {
+        "path": "records/t6_LINK_REVIEW.json",
+        "sha256": "be6f3e0d39db5ad8907f384ada56b423bac9eea366afde7198503cdb132d6172"
+      },
+      "human_reference": "sandbox fixture"
+    },
+    {
+      "path": "fixtures/lessons/t7.md",
+      "sha256": "60b9988b9c73cf84c4938b91cd124ee4b6cdb0390030dbba824ecb5bed9d963a",
+      "scope": "DRAFT",
+      "rights": "APPROVED",
+      "link_review": {
+        "path": "records/t7_LINK_REVIEW.json",
+        "sha256": "813a86d6bd9d344cd96a128af5394e8fd77b0cdbe718a7b56bf20fb1dc62e8f4"
+      },
+      "human_reference": "sandbox fixture"
+    }
+  ],
   "governance_changes": []
 }
