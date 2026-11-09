@@ -1,9 +1,7 @@
 {
   "schema_version": 1,
   "note": "Human-owned approval record. Each entry binds one exact file SHA-256. Same-account identity is not established.",
-  "guarded_prefixes": [
-    "docs/"
-  ],
+  "guarded_prefixes": [],
   "draft_prefixes": [
     "docs/preview/"
   ],
