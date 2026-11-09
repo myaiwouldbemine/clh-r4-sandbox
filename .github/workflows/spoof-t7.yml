@@ -1,0 +1,7 @@
+name: Spoof T7
+on: pull_request
+jobs:
+  content-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo spoof
