@@ -76,17 +76,6 @@
         "sha256": "5eeeebc5c8379811ba0da0b2aa64484ee14840df2e31b5e3570100cb669245a1"
       },
       "human_reference": "sandbox B2 E2E"
-    },
-    {
-      "path": "docs/preview/t12/index.md",
-      "sha256": "447856f723be0f30ad13d94e805d71030beb1447055e8370f2cde9addacc8ec0",
-      "scope": "DRAFT",
-      "rights": "APPROVED",
-      "link_review": {
-        "path": "records/t12_LINK_REVIEW.json",
-        "sha256": "1b809ef9d524fd7de2f831d93582f7859ca22ad33eb08ccb759a6c39a7ad96f5"
-      },
-      "human_reference": "sandbox B2 E2E"
     }
   ],
   "governance_changes": [
