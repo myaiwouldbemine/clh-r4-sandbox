@@ -56,5 +56,10 @@
       "human_reference": "sandbox fixture"
     }
   ],
-  "governance_changes": []
+  "governance_changes": [
+    {
+      "head_sha": "4418130cdbe1927f769b17e434c8bdc90de70f5f",
+      "human_reference": "sandbox T10 governance approval"
+    }
+  ]
 }
