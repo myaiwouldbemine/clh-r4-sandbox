@@ -7,6 +7,25 @@
   "draft_prefixes": [
     "docs/preview/"
   ],
-  "approvals": [],
-  "governance_changes": []
+  "approvals": [
+    {
+      "path": "docs/preview/p9/index.md",
+      "sha256": "f6b411e1dcb3a8de04b247d3ee7139873f312b3047fac3ffa5ff9991526b8b4e",
+      "scope": "DRAFT",
+      "rights": "APPROVED",
+      "link_review": {
+        "path": "records/p9_LINK_REVIEW.json",
+        "sha256": "16c9731ca1f0aa9b141932df4a94b2276f807590aa2f947cdf66a83343ec1bb2"
+      },
+      "human_reference": "sandbox P9"
+    }
+  ],
+  "governance_changes": [
+    {
+      "files": {
+        "mkdocs.yml": "089f94fee1f943cf2096a65b74a0d45b240d39dfaf6c9fb57ff738d00a32ac4a"
+      },
+      "human_reference": "sandbox P10"
+    }
+  ]
 }
