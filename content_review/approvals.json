@@ -54,6 +54,39 @@
         "sha256": "813a86d6bd9d344cd96a128af5394e8fd77b0cdbe718a7b56bf20fb1dc62e8f4"
       },
       "human_reference": "sandbox fixture"
+    },
+    {
+      "path": "docs/preview/t9/index.md",
+      "sha256": "9429bbe8bf04c45c662ab7418e25e973984cf5eac884837833a98b0c80020ceb",
+      "scope": "DRAFT",
+      "rights": "APPROVED",
+      "link_review": {
+        "path": "records/t9_LINK_REVIEW.json",
+        "sha256": "f28c2b8a0741c58a1816ae9003771e1cf086d13124d6eb41fd5d8fa43f8a5af3"
+      },
+      "human_reference": "sandbox B2 E2E"
+    },
+    {
+      "path": "docs/preview/t9m/index.md",
+      "sha256": "0ef21c4a7e268cba0e429515e479c4eeec4766c0d2cae186948c5f80d49a79a6",
+      "scope": "DRAFT",
+      "rights": "APPROVED",
+      "link_review": {
+        "path": "records/t9m_LINK_REVIEW.json",
+        "sha256": "5eeeebc5c8379811ba0da0b2aa64484ee14840df2e31b5e3570100cb669245a1"
+      },
+      "human_reference": "sandbox B2 E2E"
+    },
+    {
+      "path": "docs/preview/t12/index.md",
+      "sha256": "447856f723be0f30ad13d94e805d71030beb1447055e8370f2cde9addacc8ec0",
+      "scope": "DRAFT",
+      "rights": "APPROVED",
+      "link_review": {
+        "path": "records/t12_LINK_REVIEW.json",
+        "sha256": "1b809ef9d524fd7de2f831d93582f7859ca22ad33eb08ccb759a6c39a7ad96f5"
+      },
+      "human_reference": "sandbox B2 E2E"
     }
   ],
   "governance_changes": [
@@ -72,6 +105,12 @@
     {
       "head_sha": "93eb23c1c20eb403e2c2894177934d1410819df1",
       "human_reference": "sandbox bootstrap of PR #58 gate 88cec44 (authorized 2026-11-10 sandbox E2E task)"
+    },
+    {
+      "files": {
+        "mkdocs.yml": "87af072ff8c83603dbc04311f6584d0ce0e0de605ea1eacf6f9ecedf5e152e87"
+      },
+      "human_reference": "sandbox B2 E2E T10"
     }
   ]
 }
