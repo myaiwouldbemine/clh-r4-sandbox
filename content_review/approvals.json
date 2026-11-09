@@ -64,6 +64,10 @@
     {
       "head_sha": "037fe71faf97bf34481848faf6f5b0866f06ea68",
       "human_reference": "sandbox T10 governance approval v2"
+    },
+    {
+      "head_sha": "0d08b69bf16dd5831ba0f31068d6174ae53118d7",
+      "human_reference": "sandbox v2 gate install after merge"
     }
   ]
 }
